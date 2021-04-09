@@ -1,0 +1,41 @@
+name: annotation-tool
+channels:
+  - anaconda
+  - conda-forge
+  - defaults
+dependencies:
+  - _libgcc_mutex=0.1=main
+  - ca-certificates=2021.1.19=h06a4308_1
+  - certifi=2020.12.5=py39h06a4308_0
+  - icu=68.1=h58526e2_0
+  - krb5=1.17.1=h173b8e3_0
+  - ld_impl_linux-64=2.33.1=h53a641e_7
+  - libedit=3.1.20191231=h14c3975_1
+  - libffi=3.3=he6710b0_2
+  - libgcc-ng=9.1.0=hdf63c60_0
+  - libpq=12.2=h20c2e04_0
+  - libstdcxx-ng=9.1.0=hdf63c60_0
+  - libuv=1.40.0=h7b6447c_0
+  - ncurses=6.2=he6710b0_1
+  - nodejs=12.19.0=hfa01f41_2
+  - openssl=1.1.1k=h27cfd23_0
+  - pip=21.0.1=py39h06a4308_0
+  - postgresql=12.2=h20c2e04_0
+  - python=3.9.2=hdb3f193_0
+  - python_abi=3.9=1_cp39
+  - readline=8.1=h27cfd23_0
+  - setuptools=52.0.0=py39h06a4308_0
+  - sqlite=3.35.4=hdfb4753_0
+  - tk=8.6.10=hbc83047_0
+  - tzdata=2020f=h52ac0ba_0
+  - wheel=0.36.2=pyhd3eb1b0_0
+  - xz=5.2.5=h7b6447c_0
+  - zlib=1.2.11=h7b6447c_3
+  - pip:
+    - asgiref==3.3.2
+    - django==3.2
+    - django-webpack-loader==0.7.0
+    - djangorestframework==3.12.4
+    - pytz==2021.1
+    - sqlparse==0.4.1
+prefix: /home/ac1dwi/miniconda3/envs/annotation-tool
