@@ -1,0 +1,12 @@
+{% load render_bundle from webpack_loader %}
+{% include "header.html" with page_title="Home page" %}
+
+<div id="app">
+    <router-view>
+        <span class="spinner-grow spinner-grow-sm mr-2" role="status" aria-hidden="true"></span>
+        Loading page...
+    </router-view>
+</div>
+
+{% render_bundle 'app' %}
+
