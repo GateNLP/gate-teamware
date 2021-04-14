@@ -1,0 +1,28 @@
+{
+  "name": "gate-annotation-service",
+  "version": "0.0.1",
+  "description": "A service for collaborative document annotation. Project plan can be found here:",
+  "main": "index.js",
+  "scripts": {
+    "postinstall": "(cd frontend && npm install) #Install npm packages in frontend also",
+    "serve:frontend": "cd frontend && npm  run serve",
+    "serve:server": "python manage.py runserver",
+    "serve": "run-p serve:frontend serve:server",
+    "build:frontend": "cd frontend && npm run build",
+    "build:server": "",
+    "build": "run-s build:frontend build:server"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GateNLP/gate-annotation-service.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/GateNLP/gate-annotation-service/issues"
+  },
+  "homepage": "https://github.com/GateNLP/gate-annotation-service#readme",
+  "devDependencies": {
+    "npm-run-all": "^4.1.5"
+  }
+}

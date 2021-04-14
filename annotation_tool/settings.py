@@ -40,7 +40,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'webpack_loader',
 ]
 
 MIDDLEWARE = [
@@ -58,7 +57,11 @@ ROOT_URLCONF = 'annotation_tool.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        'DIRS':
+            [
+                os.path.join(BASE_DIR, 'templates'),
+                os.path.join(BASE_DIR, 'frontend/templates')
+            ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -122,11 +125,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 STATIC_URL = '/static/'
-
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "frontend/src/assets"),
-    os.path.join(BASE_DIR, "frontend/dist"),
+    os.path.join(BASE_DIR, "frontend/static"),
 ]
+STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
 WEBPACK_LOADER = {
     'DEFAULT': {
