@@ -5,6 +5,7 @@
       <router-link to="/about">About</router-link>
     </div>
     <router-view/>
+    <img src="@/assets/logo.png"/>
   </div>
 </template>
 
