@@ -2,13 +2,7 @@ import django
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-
-class ServiceUser(AbstractUser):
-    """
-    Custom user class.
-    """
-    annotates = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="annotators")
-    
+  
 
 class Project(models.Model):
     """
@@ -16,8 +10,6 @@ class Project(models.Model):
     """
     name = models.TextField()
     created_at = models.DateTimeField(default=django.utils.timezone.now)
-    managers = models.ManyToManyField(ServiceUser, related_name="manages")
-    owner = models.OneToOneField(ServiceUser, related_name="owns")
     data = models.JSONField()
 
     def export_annotations():
@@ -40,6 +32,15 @@ class Project(models.Model):
 
     def transfer_owner(old_owner,new_owner):
         pass
+
+
+class ServiceUser(AbstractUser):
+    """
+    Custom user class.
+    """
+    annotates = models.ForeignKey(Project, on_delete=models.SET_NULL, related_name="annotators", null=True)
+    manages = models.ManyToManyField(Project, related_name="managers")
+    owns = models.OneToOneField(Project, on_delete=models.SET_NULL, related_name="owner", null=True)
 
 
 class Document(models.Model):
