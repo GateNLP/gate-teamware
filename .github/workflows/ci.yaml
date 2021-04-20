@@ -5,11 +5,16 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -l {0}
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
       - uses: conda-incubator/setup-miniconda@v2
         with:
+          auto-update-conda: true
+          auto-activate-base: false
           activate-environment: "annotation-tool"
           environment-file: environment.yml
 #      - name: Use Node.js v14
@@ -18,7 +23,6 @@ jobs:
 #          node-version: '14'
 #      - name: Install npm packages
 #        run: npm install
-      - run: conda activate annotation-tool
       - run: conda info
       - run: conda list
       - run: conda config --show
