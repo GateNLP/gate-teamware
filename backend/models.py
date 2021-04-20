@@ -7,7 +7,7 @@ class ServiceUser(AbstractUser):
     """
     Custom user class.
     """
-    annotates = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="users")
+    annotates = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="annotators")
     
 
 class Project(models.Model):
@@ -16,8 +16,8 @@ class Project(models.Model):
     """
     name = models.TextField()
     created_at = models.DateTimeField(default=django.utils.timezone.now)
-    managers = models.ManyToManyField(ServiceUser, related_name="projects")
-    owner = models.ForeignKey(ServiceUser, related_name="projects")
+    managers = models.ManyToManyField(ServiceUser, related_name="manages")
+    owner = models.OneToOneField(ServiceUser, related_name="owns")
     data = models.JSONField()
 
     def export_annotations():
@@ -46,7 +46,7 @@ class Document(models.Model):
     """
     Model to represent a document.
     """
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="projects")
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="documents")
     data = models.JSONField()
 
 
