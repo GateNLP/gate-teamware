@@ -16,10 +16,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, re_path
 
-
 from backend import views
+from backend.rpcserver import JSONRPCEndpoint
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('rpc/', JSONRPCEndpoint.as_view()),
     re_path('^.*$', views.MainView.as_view(), name="index"),
 ]

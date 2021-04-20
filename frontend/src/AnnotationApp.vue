@@ -4,10 +4,26 @@
       <router-link to="/">Home</router-link> |
       <router-link to="/about">About</router-link>
     </div>
+    {{csrfToken}}
     <router-view/>
     <img src="@/assets/logo.png"/>
   </div>
 </template>
+<script>
+import {mapState, mapActions} from "vuex";
+
+export default {
+  computed: {
+    ...mapState(["csrfToken"])
+  },
+  methods: {
+    ...mapActions(["testrpc"])
+  },
+  mounted() {
+    this.testrpc()
+  }
+}
+</script>
 
 <style>
 #app {
