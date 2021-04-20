@@ -7,10 +7,16 @@
     "postinstall": "(cd frontend && npm install) #Install npm packages in frontend also",
     "serve:frontend": "cd frontend && npm  run serve",
     "serve:server": "python manage.py runserver",
+    "serve:cypress": "npx cypress open",
     "serve": "run-p serve:frontend serve:server",
     "build:frontend": "cd frontend && npm run build",
     "build:server": "",
-    "build": "run-s build:frontend build:server"
+    "build": "run-s build:frontend build:server",
+    "test:frontend": "cd frontend && npm run test",
+    "test:backend": "./manage.py test",
+    "test:cypress": "cypress run",
+    "test:integration": "run-p --race serve test:cypress",
+    "test": "run-s test:frontend test:backend test:integration"
   },
   "repository": {
     "type": "git",
@@ -23,6 +29,7 @@
   },
   "homepage": "https://github.com/GateNLP/gate-annotation-service#readme",
   "devDependencies": {
+    "cypress": "^7.1.0",
     "npm-run-all": "^4.1.5"
   }
 }
