@@ -18,7 +18,7 @@ jobs:
 #          node-version: '14'
 #      - name: Install npm packages
 #        run: npm install
-      - run: source activate annotation-tool
+      - run: conda activate annotation-tool
       - run: conda info
       - run: conda list
       - run: conda config --show
