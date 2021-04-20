@@ -10,18 +10,21 @@ jobs:
       - uses: actions/checkout@v2
       - uses: conda-incubator/setup-miniconda@v2
         with:
-          environment-file: environment.yml
           activate-environment: annotation-tool
-      - name: Use Node.js v14
-        uses: actions/setup-node@v2
-        with:
-          node-version: '14'
-      - name: Install npm packages
-        run: npm install
-      - name: Run backend test
-        run: npm run test:backend
-      - name: Run frontend test
-        run: npm run test:frontend
-      - name: Run integration test
-        run: npm run test:integration
+          environment-file: environment.yml
+#      - name: Use Node.js v14
+#        uses: actions/setup-node@v2
+#        with:
+#          node-version: '14'
+#      - name: Install npm packages
+#        run: npm install
+      - run: conda info
+      - run: conda list
+      - run: conda config --show
+#      - name: Run backend test
+#        run: npm run test:backend
+#      - name: Run frontend test
+#        run: npm run test:frontend
+#      - name: Run integration test
+#        run: npm run test:integration
 
