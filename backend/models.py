@@ -7,7 +7,7 @@ class ServiceUser(AbstractUser):
     """
     Custom user class.
     """
-    annotates = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="annotates_projects") # QUERY - should this be a one-to-one?
+    annotates = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="users")
     
 
 class Project(models.Model):
@@ -16,8 +16,8 @@ class Project(models.Model):
     """
     name = models.TextField()
     created_at = models.DateTimeField(default=django.utils.timezone.now)
-    manager = models.ManyToManyField(Project, related_name="managers")
-    owner = models.ForeignKey(ServiceUser, related_name='owner')
+    managers = models.ManyToManyField(ServiceUser, related_name="projects")
+    owner = models.ForeignKey(ServiceUser, related_name="projects")
     data = models.JSONField()
 
     def export_annotations():
@@ -54,8 +54,6 @@ class Annotation(models.Model):
     """
     Model to represent a single annotation.
     """
-    user = models.ForeignKey(ServiceUser, on_delete=models.CASCADE, related_name='users')
-    document = models.ForeignKey(Document, on_delete=models.CASCADE, related_name='documents')
-    data = models.JSONField()
-    user = models.ForeignKey(ServiceUser, on_delete=models.CASCADE, related_name='users')
+    user = models.ForeignKey(ServiceUser, on_delete=models.CASCADE, related_name="annotations")
+    document = models.ForeignKey(Document, on_delete=models.CASCADE, related_name="annotations")
     data = models.JSONField()
