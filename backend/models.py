@@ -2,7 +2,15 @@ import django
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-  
+
+class ServiceUser(AbstractUser):
+    """
+    Custom user class.
+    """
+    annotates = models.ForeignKey("Project", on_delete=models.SET_NULL, related_name="annotators", null=True)
+    manages = models.ManyToManyField("Project", related_name="managers")
+    owns = models.ForeignKey("Project", on_delete=models.SET_NULL, related_name="owner", null=True)
+
 
 class Project(models.Model):
     """
@@ -33,14 +41,6 @@ class Project(models.Model):
     def transfer_owner(old_owner,new_owner):
         pass
 
-
-class ServiceUser(AbstractUser):
-    """
-    Custom user class.
-    """
-    annotates = models.ForeignKey(Project, on_delete=models.SET_NULL, related_name="annotators", null=True)
-    manages = models.ManyToManyField(Project, related_name="managers")
-    owns = models.OneToOneField(Project, on_delete=models.SET_NULL, related_name="owner", null=True)
 
 
 class Document(models.Model):
