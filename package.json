@@ -13,7 +13,7 @@
     "build:server": "",
     "build": "run-s build:frontend build:server",
     "test:frontend": "cd frontend && npm run test",
-    "test:backend": "pytest",
+    "test:backend": "pytest -v",
     "test:cypress": "cypress run",
     "test:integration": "run-p --race serve test:cypress",
     "test": "run-s test:frontend test:backend test:integration"
