@@ -27,6 +27,7 @@ secret_file_path = os.path.join(SETTINGS_DIR, "secret.py")
 if not os.path.exists(secret_file_path):
     with open(secret_file_path, 'w') as secret_file:
         secret_file.write("\"\"\"\nAuto-generated secret file\n\"\"\"\nfrom .secret_default import *\n")
+        print(f"Secret file generated at {secret_file_path}")
 
 from .secret import *
 
