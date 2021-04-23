@@ -9,6 +9,7 @@
     "serve:server": "python manage.py runserver",
     "serve:integration": "python manage.py runserver --settings='annotation_tool.settings.integration'",
     "serve:cypress": "npx cypress open",
+    "serve:frontendintegration": "run-p serve:frontend serve:server",
     "serve": "run-p serve:frontend serve:server",
     "build:frontend": "cd frontend && npm run build",
     "build:server": "",
@@ -16,7 +17,7 @@
     "test:frontend": "cd frontend && npm run test",
     "test:backend": "pytest -v",
     "test:cypress": "cypress run",
-    "test:integration": "run-p --race serve test:cypress",
+    "test:integration": "run-p --race serve:frontendintegration test:cypress",
     "test": "run-s test:frontend test:backend test:integration"
   },
   "repository": {
