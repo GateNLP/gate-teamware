@@ -13,13 +13,11 @@ and this must be overridden depending on use.
 ### Secret
 
 A `secret.py` should be created to hold settings that should not be made public by tracking through version
-control. The format of the file should be as follows:
+control, the file will be auto-generated if it doesn't exist and values should be overridden for each 
+deployment location. 
 
-```python
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-+rh5#u6=19q90g$)e%ca&wpfjsju*5*=9b#ah2b&dlwpkx%4$o'
+A `secret_default.py` exists as a guide and to provide default value for testing. 
 
-```
 
 ## Backend Testing
 
