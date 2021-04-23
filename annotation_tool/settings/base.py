@@ -22,14 +22,11 @@ SETTINGS_DIR = Path(__file__).resolve().parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
-# Import secret settings or generate a default one for automated testing
-secret_file_path = os.path.join(SETTINGS_DIR, "secret.py")
-if not os.path.exists(secret_file_path):
-    with open(secret_file_path, 'w') as secret_file:
-        secret_file.write("\"\"\"\nAuto-generated secret file\n\"\"\"\nfrom .secret_default import *\n")
-        print(f"Secret file generated at {secret_file_path}")
-
-from .secret import *
+# Import secret settings or default secret for testing
+try:
+    from .secret import *
+except ModuleNotFoundError:
+    from .secret_default import *
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
