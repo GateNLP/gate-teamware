@@ -164,3 +164,5 @@ dmypy.json
 cython_debug/
 
 webpack-stats\.json
+
+annotation_tool/settings/secret.py

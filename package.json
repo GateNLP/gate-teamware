@@ -7,6 +7,7 @@
     "postinstall": "(cd frontend && npm install) #Install npm packages in frontend also",
     "serve:frontend": "cd frontend && npm  run serve",
     "serve:server": "python manage.py runserver",
+    "serve:integration": "python manage.py runserver --settings='annotation_tool.settings.integration'",
     "serve:cypress": "npx cypress open",
     "serve": "run-p serve:frontend serve:server",
     "build:frontend": "cd frontend && npm run build",
