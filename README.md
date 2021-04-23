@@ -13,10 +13,7 @@ and this must be overridden depending on use.
 ### Secret
 
 A `secret.py` should be created to hold settings that should not be made public by tracking through version
-control, the file will be auto-generated if it doesn't exist and values should be overridden for each 
-deployment location. 
-
-A `secret_default.py` exists as a guide and to provide default value for testing. 
+control. A `secret_default.py` exists as a guide and to provide default value for testing. 
 
 
 ## Backend Testing
