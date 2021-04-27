@@ -9,12 +9,16 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
     state: {
-        csrfToken: null
+        csrfToken: null,
+        projects: null,
     },
     mutations: {
         setCsrfToken(state, token) {
             state.csrfToken = token
             rpc.setCsrfToken(token)
+        },
+        updateProjects(state,projects) {
+            state.projects = projects;
         }
 
     },
@@ -50,6 +54,15 @@ export default new Vuex.Store({
                 console.log(e.code == rpc.INTERNAL_ERROR)
             }
 
+        },
+        async getProjects({dispatch,commit}){
+            try {
+                let projects = await rpc.call("getProjects");
+                console.log(projects);
+                commit("updateProjects", projects);
+            } catch (e){
+                console.log(e)
+            }
         }
 
     },

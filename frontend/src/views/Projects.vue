@@ -1,24 +1,24 @@
 <template>
   <div class="projects">
       <h2>Projects</h2>
-      <b-table striped hover :items="items"></b-table>
+      <b-table striped hover :items="projects"></b-table>
   </div>
 </template>
 
 <script>
+import { mapActions, mapState } from 'vuex'
 export default {
-  name: 'ProjectList',
+  name: 'Projects',
   props: {},
-  data() {
-      return {
-        items: [
-          { id: 40, name: 'test project'},
-          { id: 21, name: 'test project'},
-          { id: 89, name: 'test project'},
-          { id: 38, name: 'test project' }
-        ]
-      }
-    },
+  methods:{
+    ...mapActions(["getProjects"])
+  },
+  computed:{
+    ...mapState(["projects"])
+  },
+  beforeMount(){
+    this.getProjects();
+  }
 }
 </script>
 
