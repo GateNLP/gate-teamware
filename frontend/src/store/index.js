@@ -29,6 +29,12 @@ export default new Vuex.Store({
             commit('setCsrfToken', token)
             axios.defaults.headers.common['X-CSRFToken'] = state.csrfToken;
         },
+        testnormal({dispatch, commit}){
+          return "Hello world"
+        },
+        async testasync({dispatch}){
+            return "Hello world"
+        },
         async login({dispatch, commit}, username, password) {
 
         },
