@@ -1,7 +1,14 @@
+# Runs frontend, backend and integration testing
 name: CI
 on:
   push:
-    branches: [ frontend-testing ]
+    branches:
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
+      - dev
 jobs:
   build:
     runs-on: ubuntu-latest
