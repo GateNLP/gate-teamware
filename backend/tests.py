@@ -1,4 +1,4 @@
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
 import json
 from backend.rpcserver import rpc_method, rpc_method_auth, AuthError
@@ -26,7 +26,7 @@ class TestRPCServer(TestCase):
     def test_rpc_server(self):
         username = "testuser"
         user_pass = "123456789"
-        user = User.objects.create(username=username)
+        user = get_user_model().objects.create(username=username)
         user.set_password(user_pass)
         user.save()
 
