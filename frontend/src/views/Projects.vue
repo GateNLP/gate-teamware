@@ -1,7 +1,15 @@
 <template>
-  <div class="projects">
+  <div class="projects container">
       <h1>Projects</h1>
-      <b-table striped hover :items="projects"></b-table>
+
+      <ul>
+        <li v-for="project in projects" :key="project.id">
+          <b-link :to="'/project/'+project.id">{{project.name}}</b-link>
+        </li>
+      </ul>
+
+
+    <b-button @click="handleCreateProject">Create project</b-button>
   </div>
 </template>
 
@@ -11,7 +19,12 @@ export default {
   name: 'Projects',
   props: {},
   methods:{
-    ...mapActions(["getProjects"])
+    ...mapActions(["getProjects", "createProject"]),
+    async handleCreateProject(){
+      let projectObj = await this.createProject()
+      this.$router.push("/project/"+projectObj.id)
+
+    }
   },
   computed:{
     ...mapState(["projects"])

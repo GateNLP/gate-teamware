@@ -1,12 +1,9 @@
 from django.contrib.auth import get_user_model
-from django.forms import model_to_dict
 from django.test import TestCase, Client
 from django.utils import timezone
 
 from backend.models import Project, Document
-from backend.utils.serialize import ModelSerializer, ProjectSerializer
-
-import json
+from backend.utils.serialize import ModelSerializer
 
 
 class TestProjectModel(TestCase):

@@ -25,13 +25,33 @@ export default new Vuex.Store({
         },
         async getProjects({dispatch,commit}){
             try {
-                let projects = await rpc.call("getProjects");
-                console.log(projects);
+                let projects = await rpc.call("get_projects");
                 commit("updateProjects", projects);
             } catch (e){
                 console.log(e)
             }
+        },
+        async createProject({dispatch, commit}){
+            try{
+                console.log("Creating a project")
+                let project = await rpc.call("create_project")
+                dispatch("getProjects")
+                return project
+            }catch(e){
+                console.log(e)
+            }
+        },
+        async updateProject({dispatch, commit}, payload){
+            try{
+                let project = await rpc.call("update_project", payload)
+                dispatch("getProjects")
+                return project
+            }catch(e){
+                console.log(e)
+            }
         }
+
+
 
     },
     modules: {}

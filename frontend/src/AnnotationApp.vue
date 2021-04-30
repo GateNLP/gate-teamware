@@ -16,7 +16,6 @@
       </b-navbar>
     </div>
 
-    {{csrfToken}}
     <router-view/>
   </div>
 </template>

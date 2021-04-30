@@ -17,7 +17,7 @@ class Project(models.Model):
     """
     Model to store annotation projects.
     """
-    name = models.TextField()
+    name = models.TextField(default="New project")
     created_at = models.DateTimeField(default=timezone.now)
     data = models.JSONField(default=dict)
     owner = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, related_name="owns")

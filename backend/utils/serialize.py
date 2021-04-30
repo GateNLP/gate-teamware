@@ -2,7 +2,6 @@ import logging
 import json
 from datetime import datetime
 from django.db import models
-from rest_framework import serializers
 from django.db.models import Model, ManyToOneRel, ManyToManyRel, ForeignKey
 
 from django.utils import timezone
@@ -53,7 +52,9 @@ class ForeignKeySerializer(FieldSerializer):
         return related_obj.id
 
     def deserialize(self, model_obj, val_input, field):
-        rel_obj = field.related_model.objects.get(pk=val_input)
+        rel_obj = None
+        if val_input:
+            rel_obj = field.related_model.objects.get(pk=val_input)
         setattr(model_obj, field.name, rel_obj)
 
 
@@ -153,8 +154,3 @@ class ModelSerializer:
         field_serializer = self.get_field_serializer(field)
         return field_serializer.deserialize(model_obj, input_field, field)
 
-
-class ProjectSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Project
-        fields = "__all__"
