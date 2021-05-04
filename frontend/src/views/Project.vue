@@ -8,6 +8,8 @@
       <b-form-group label="Project Configuration">
         <b-textarea v-model="local_project.configuration"></b-textarea>
       </b-form-group>
+      <div class="text-danger" v-if="local_project.configuration && json_error && valid_json == false">{{ json_error }}</div>
+      <div class="text-success" v-if="valid_json == true">Valid JSON ✔</div>
 
       <b-form-row>
         <b-col>
@@ -39,7 +41,9 @@ export default {
         name: null,
         configuration: null,
         data: null,
-      }
+      },
+      valid_json: null,
+      json_error: "",
     }
   },
   computed: {
@@ -66,7 +70,16 @@ export default {
         reader.readAsText(file)
       }
 
-    }
+    },
+    validateJSON(str) {
+        try {
+            JSON.parse(str);
+        } catch (e) {
+            this.json_error = JSON.stringify(e.message);
+            return false;
+        }
+        return true;
+    },
   },
   watch: {
     projects: {
@@ -80,6 +93,12 @@ export default {
           }
         }
       }
+    },
+    local_project: {
+      handler(newValue, oldValue) {
+        this.valid_json = this.validateJSON(newValue.configuration);
+      },
+      deep: true,
     }
   }
 }
