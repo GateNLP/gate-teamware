@@ -20,25 +20,25 @@ class Project(models.Model):
     created_at = models.DateTimeField(default=django.utils.timezone.now)
     data = models.JSONField()
 
-    def export_annotations():
+    def export_annotations(self):
         pass
 
-    def add_annotator(user):
+    def add_annotator(self, user):
         pass
 
-    def remove_annotator(user):
+    def remove_annotator(self, user):
         pass
 
-    def add_manager(user):
+    def add_manager(self, user):
         pass
 
-    def remove_manager(user):
+    def remove_manager(self, user):
         pass
 
-    def set_owner(user):
+    def set_owner(self, user):
         pass
 
-    def transfer_owner(old_owner,new_owner):
+    def transfer_owner(self, old_owner, new_owner):
         pass
 
 
