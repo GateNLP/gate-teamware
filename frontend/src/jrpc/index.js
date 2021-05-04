@@ -21,9 +21,15 @@ class JRPCClient{
     }
 
     loadCsrfFromCookie(){
+
         const token = Cookies.get('csrftoken')
+
         if(token) {
             axios.defaults.headers.common['X-CSRFToken'] = token
+        }
+        else{
+            console.error("Could not get CSRF token from cookie!")
+
         }
     }
 
@@ -43,6 +49,7 @@ class JRPCClient{
      * @returns {Promise<*>}
      */
     async call(methodName, ...params){
+        this.loadCsrfFromCookie()
         try{
             this.#messageCounter += 1
             const response = await axios.post(this.#endpointUrl, {

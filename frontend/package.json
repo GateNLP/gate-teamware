@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "axios": "^0.21.1",
+    "bootstrap": "^4.6.0",
+    "bootstrap-vue": "^2.21.2",
     "core-js": "^3.6.5",
     "js-cookie": "^2.2.1",
     "vue": "^2.6.11",

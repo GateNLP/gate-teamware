@@ -1,4 +1,7 @@
 import { render, fireEvent } from '@testing-library/vue'
+
+/** Example of how a component could be tested
+
 import HelloWorld from '@/components/HelloWorld.vue'
 
 //Testing a component e.g. HelloWorld
@@ -11,3 +14,5 @@ describe('HelloWorld.vue', () => {
     getByText("Installed CLI Plugins")
   })
 })
+
+ **/
