@@ -1,6 +1,8 @@
 import django
 from django.contrib.auth.models import AbstractUser
+from django.contrib.auth import get_user_model
 from django.db import models
+from django.utils import timezone
 
 
 class ServiceUser(AbstractUser):
@@ -9,16 +11,16 @@ class ServiceUser(AbstractUser):
     """
     annotates = models.ForeignKey("Project", on_delete=models.SET_NULL, related_name="annotators", null=True)
     manages = models.ManyToManyField("Project", related_name="managers")
-    owns = models.ForeignKey("Project", on_delete=models.SET_NULL, related_name="owner", null=True)
 
 
 class Project(models.Model):
     """
     Model to store annotation projects.
     """
-    name = models.TextField()
-    created_at = models.DateTimeField(default=django.utils.timezone.now)
-    data = models.JSONField()
+    name = models.TextField(default="New project")
+    created_at = models.DateTimeField(default=timezone.now)
+    data = models.JSONField(default=dict)
+    owner = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, related_name="owns")
 
     def export_annotations(self):
         pass
@@ -48,13 +50,13 @@ class Document(models.Model):
     Model to represent a document.
     """
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="documents")
-    data = models.JSONField()
+    data = models.JSONField(default=dict)
 
 
 class Annotation(models.Model):
     """
     Model to represent a single annotation.
     """
-    user = models.ForeignKey(ServiceUser, on_delete=models.CASCADE, related_name="annotations")
+    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name="annotations", null=True)
     document = models.ForeignKey(Document, on_delete=models.CASCADE, related_name="annotations")
-    data = models.JSONField()
+    data = models.JSONField(default=dict)

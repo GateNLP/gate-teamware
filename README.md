@@ -10,7 +10,7 @@ A service for collaborative document annotation. Project plan can be found here:
 Django settings are located in `annotation_tool/setttings` folder. The app will use `base.py` setting by default
 and this must be overridden depending on use.
 
-### Secret
+### secret.py
 
 A `secret.py` should be created to hold settings that should not be made public by tracking through version
 control. A `secret_default.py` exists as a guide and to provide default value for testing. 

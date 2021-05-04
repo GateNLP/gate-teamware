@@ -3,7 +3,10 @@ jest.mock('@/jrpc')
 
 import store from '@/store'
 
-// Testing vuex functions
+/**
+
+ Example on how to mock the jrpc call
+
 describe("Vuex functions testing", () =>{
 
     beforeAll(() =>{
@@ -33,3 +36,5 @@ describe("Vuex functions testing", () =>{
 
     })
 })
+
+**/

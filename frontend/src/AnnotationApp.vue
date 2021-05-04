@@ -16,7 +16,6 @@
       </b-navbar>
     </div>
 
-    {{csrfToken}}
     <router-view/>
   </div>
 </template>
@@ -24,15 +23,6 @@
 import {mapState, mapActions} from "vuex";
 
 export default {
-  computed: {
-    ...mapState(["csrfToken"])
-  },
-  methods: {
-    ...mapActions(["testrpc"])
-  },
-  mounted() {
-    this.testrpc()
-  }
 }
 </script>
 
