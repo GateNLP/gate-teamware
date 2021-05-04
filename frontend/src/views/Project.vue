@@ -6,7 +6,7 @@
         <b-form-input v-model="local_project.name"></b-form-input>
       </b-form-group>
       <b-form-group label="Project Configuration">
-        <b-textarea></b-textarea>
+        <b-textarea v-model="local_project.configuration"></b-textarea>
       </b-form-group>
 
       <b-form-row>
@@ -37,6 +37,7 @@ export default {
       filestr: "",
       local_project: {
         name: null,
+        configuration: null,
         data: null,
       }
     }
