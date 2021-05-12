@@ -31,6 +31,14 @@ export default new Vuex.Store({
                 console.log(e)
             }
         },
+        async getProjectDocuments({dispatch,commit},payload){
+            try {
+                let documents = await rpc.call("get_project_documents",payload);
+                return documents
+            } catch (e){
+                console.log(e)
+            }
+        },
         async createProject({dispatch, commit}){
             try{
                 console.log("Creating a project")
