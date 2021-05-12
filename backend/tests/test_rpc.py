@@ -104,9 +104,23 @@ class TestRPCServer(TestCase):
         self.assertEqual(msg["error"]["code"], backend.rpcserver.UNAUTHORIZED_ERROR)
 
 
+class TestRPCProjectCreate(TestCase):
 
+    def test_rpc_update_project(self):
+        username = "testuser"
+        user_pass = "123456789"
+        user = get_user_model().objects.create(username=username)
+        user.set_password(user_pass)
+        user.save()
 
+        data = {
+            "id":1,
+            "name":"Test project",
+            "data":"[\n  {\n    \"text\": \"Some text\"\n  },\n  {\n    \"text\": \"Document <b>with some html</b>\"\n  },\n  {\n    \"text\": \"Another document\"\n  }\n]\n",
+            "configuration":"[\n  {\n    \"name\": \"sentiment\",\n    \"title\": \"Sentiment\",\n    \"type\":\"radio\",\n    \"options\": {\n        \"positive\": \"Positive\",\n        \"negative\": \"Negative\",\n        \"neutral\": \"Neutral\"\n    }\n  },\n  {\n    \"name\": \"reason\",\n    \"title\": \"Reason for your stated sentiment\",\n    \"type\":\"textarea\"\n  }\n]",
+            }
 
-
-
-
+        c = Client()
+        response = c.post("/rpc/", {"jsonrpc": "2.0", "method": "update_project", "id": 20, "params": data},
+                          content_type="application/json")
+        self.assertEqual(response.status_code, 400)
