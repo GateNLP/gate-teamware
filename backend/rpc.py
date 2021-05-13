@@ -1,7 +1,7 @@
 import json
 
 from backend.rpcserver import rpc_method
-from backend.models import Project, Document
+from backend.models import Project, Document, Annotation
 from backend.utils.serialize import ModelSerializer
 
 
@@ -50,4 +50,11 @@ def add_project_document(project_id, document):
     project = Project.objects.get(pk=project_id)
     document = Document.objects.create(project=project)
 
-    return
+    return document.pk
+
+
+@rpc_method
+def add_document_annotation(doc_id, annotation):
+    document = Document.objects.get(pk=doc_id)
+    annotation = Annotation.objects.create(document=document, data=annotation)
+    return annotation.pk

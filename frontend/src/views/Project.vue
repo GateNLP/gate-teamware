@@ -1,18 +1,21 @@
 <template>
   <div class="container">
     <h1>Project</h1>
-    <b-form>
+    <b-form class="mt-4 mb-4">
 
       <b-form-group label="Name">
         <b-form-input v-model="local_project.name"></b-form-input>
       </b-form-group>
 
-      <b-form-group label="Project Configuration">
-        <b-textarea v-model="local_project.configuration"></b-textarea>
-      </b-form-group>
-      <div class="text-danger" v-if="local_project.configuration && json_error && valid_json == false">{{ json_error }}</div>
-      <div class="text-success" v-if="valid_json == true">Valid JSON ✔</div>
-
+      <b-form-row>
+        <b-col>
+          <JsonEditor v-model="local_project.configuration"></JsonEditor>
+        </b-col>
+        <b-col>
+          <strong>Annotation preview</strong>
+          <AnnotationRenderer :config="local_project.configuration"></AnnotationRenderer>
+        </b-col>
+      </b-form-row>
     <b-form-group label="Documents" class="mt-4">
       <b-file @change="fileHandler" multiple></b-file>
     </b-form-group>
@@ -23,10 +26,6 @@
         </b-col>
       </b-form-row>
     </b-form>
-
-    <div>
-      {{ local_project.data }}
-    </div>
 
     <div v-if="documents">
       <VTable :data="documents" :column-display="tableColumnsDisplay"></VTable>
@@ -39,10 +38,12 @@
 import _ from "lodash"
 import {mapActions, mapState} from "vuex";
 import VTable from "../components/VTable";
+import AnnotationRenderer from "@/components/AnnotationRenderer";
+import JsonEditor from "@/components/JsonEditor";
 
 export default {
   name: "Project",
-  components: {VTable},
+  components: {JsonEditor, AnnotationRenderer, VTable},
   data() {
     return {
       local_project: {
@@ -50,8 +51,7 @@ export default {
         configuration: null,
         data: null,
       },
-      valid_json: null,
-      json_error: "",
+      configurationStr: "",
       documents: null,
       tableColumnsDisplay: {
         'id': 'string',
@@ -66,9 +66,9 @@ export default {
     },
   },
   methods: {
-    ...mapActions(["updateProject","getProjectDocuments"]),
+    ...mapActions(["getProjects", "updateProject","getProjectDocuments"]),
     async saveProjectHandler() {
-      this.updateProject(this.local_project);
+      await this.updateProject(this.local_project);
       this.documents = await this.getProjectDocuments(this.projectId);
     },
     fileHandler(e) {
@@ -85,15 +85,7 @@ export default {
       }
 
     },
-    validateJSON(str) {
-        try {
-            JSON.parse(str);
-        } catch (e) {
-            this.json_error = JSON.stringify(e.message);
-            return false;
-        }
-        return true;
-    },
+
   },
   watch: {
     projects: {
@@ -108,14 +100,9 @@ export default {
         }
       }
     },
-    local_project: {
-      handler(newValue, oldValue) {
-        this.valid_json = this.validateJSON(newValue.configuration);
-      },
-      deep: true,
-    }
   },
   async mounted(){
+    await this.getProjects();
     this.documents = await this.getProjectDocuments(this.projectId);
   }
 }

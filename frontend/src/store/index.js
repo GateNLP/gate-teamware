@@ -57,6 +57,16 @@ export default new Vuex.Store({
             }catch(e){
                 console.log(e)
             }
+        },
+        async addAnnotation({dispatch, commit}, {docId, annotation}){
+            try {
+
+                let annotateId = await rpc.call("add_document_annotation", docId, annotation)
+            }catch (e){
+                console.log(e)
+            }
+
+
         }
 
 
