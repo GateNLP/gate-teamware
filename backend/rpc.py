@@ -1,3 +1,5 @@
+import json
+
 from backend.rpcserver import rpc_method
 from backend.models import Project, Document
 from backend.utils.serialize import ModelSerializer
@@ -14,7 +16,13 @@ def create_project():
 @rpc_method
 def update_project(project_dict):
 
-    proj = serializer.deserialize(Project, project_dict)
+    project = serializer.deserialize(Project, project_dict)
+
+    for document in json.loads(project_dict["data"]):
+        Document.objects.get_or_create(
+                    project=project,
+                    data=document)
+
     return True
 
 @rpc_method
@@ -43,4 +51,3 @@ def add_project_document(project_id, document):
     document = Document.objects.create(project=project)
 
     return
-

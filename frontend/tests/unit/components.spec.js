@@ -1,4 +1,22 @@
 import { render, fireEvent } from '@testing-library/vue'
+import { routes } from '@/router'
+
+import { createLocalVue, mount } from '@vue/test-utils'
+
+// create an extended `Vue` constructor
+const localVue = createLocalVue()
+
+import BootstrapVue from 'bootstrap-vue'
+// install plugins as normal
+localVue.use(BootstrapVue)
+
+// pass the `localVue` to the mount options
+import Project from '@/views/Project.vue'
+mount(Project, {
+  localVue
+})
+
+
 
 /** Example of how a component could be tested
 
@@ -16,3 +34,14 @@ describe('HelloWorld.vue', () => {
 })
 
  **/
+
+
+describe('Project.vue', () => {
+  it('Validates JSON input as project configuration', () => {
+    const { getByText } = render(Project, {routes}, (vue, store, router) => {
+      router.push('/projects/1')
+    });
+    // Asserts initial state.
+    getByText('Project Configuration');
+  })
+})
