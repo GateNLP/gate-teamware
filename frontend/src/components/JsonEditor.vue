@@ -30,11 +30,12 @@ export default {
                 "type": "string"
               },
               "type": {
-                "type": "string"
+                "enum": ["text", "textarea", "selector", "combobox", "radio", "html"]
               }
             },
             "required": ["name", "type"]
-          }
+          },
+          "minItems": 1
         },
 
       },

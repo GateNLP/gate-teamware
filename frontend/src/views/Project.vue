@@ -25,7 +25,7 @@
           </b-form-row>
         </b-form>
       </b-tab>
-      <b-tab title="Documents">
+      <b-tab title="Documents" :disabled="documentTabDisabled">
 
         <b-button variant="primary" v-if="local_project.configuration && documents && documents.length > 0" @click="goToAnnotatePage">Annotate documents</b-button>
 
@@ -57,7 +57,7 @@ export default {
   data() {
     return {
       activeTab: 0,
-      documentTabEnabled: false,
+
       local_project: {
         name: null,
         configuration: null,
@@ -76,6 +76,9 @@ export default {
     projectId() {
       return this.$route.params.id
     },
+    documentTabDisabled(){
+      return !(this.local_project && this.local_project.configuration && this.local_project.configuration.length > 0)
+    }
   },
   methods: {
     ...mapActions(["getProjects", "updateProject", "getProjectDocuments"]),
