@@ -1,36 +1,46 @@
 <template>
   <div class="container">
-    <h1>Project</h1>
-    <b-form class="mt-4 mb-4">
+    <h1>Project: {{local_project.name}}</h1>
 
-      <b-form-group label="Name">
-        <b-form-input v-model="local_project.name"></b-form-input>
-      </b-form-group>
+    <b-tabs v-model="activeTab">
+      <b-tab title="Configuration">
+        <b-form class="mt-4 mb-4">
+          <b-form-group label="Name">
+            <b-form-input v-model="local_project.name"></b-form-input>
+          </b-form-group>
+          <b-form-row>
+            <b-col>
+              <h4>Project configuration</h4>
+              <JsonEditor v-model="local_project.configuration"></JsonEditor>
+            </b-col>
+            <b-col>
+              <h4>Annotation preview</h4>
+              <AnnotationRenderer :config="local_project.configuration"></AnnotationRenderer>
+            </b-col>
+          </b-form-row>
+          <b-form-row>
+            <b-col>
+              <b-button @click="saveProjectHandler" variant="primary"><b-icon-box-arrow-in-down></b-icon-box-arrow-in-down> Save project configuration</b-button>
+            </b-col>
+          </b-form-row>
+        </b-form>
+      </b-tab>
+      <b-tab title="Documents">
 
-      <b-form-row>
-        <b-col>
-          <JsonEditor v-model="local_project.configuration"></JsonEditor>
-        </b-col>
-        <b-col>
-          <strong>Annotation preview</strong>
-          <AnnotationRenderer :config="local_project.configuration"></AnnotationRenderer>
-        </b-col>
-      </b-form-row>
-    <b-form-group label="Documents" class="mt-4">
-      <b-file @change="fileHandler" multiple></b-file>
-    </b-form-group>
+        <b-button variant="primary" v-if="local_project.configuration && documents && documents.length > 0" @click="goToAnnotatePage">Annotate documents</b-button>
 
-      <b-form-row>
-        <b-col>
-          <b-button @click="saveProjectHandler">Save</b-button>
-        </b-col>
-      </b-form-row>
-    </b-form>
+        <b-form>
+          <b-form-group label="Documents" class="mt-4">
+            <b-file @change="fileHandler" multiple></b-file>
+          </b-form-group>
 
-    <div v-if="documents">
-      <VTable :data="documents" :column-display="tableColumnsDisplay"></VTable>
-    </div>
+          <div v-if="documents">
+            <VTable :data="documents" :column-display="tableColumnsDisplay"></VTable>
+          </div>
+        </b-form>
+      </b-tab>
 
+    </b-tabs>
   </div>
 </template>
 
@@ -46,6 +56,8 @@ export default {
   components: {JsonEditor, AnnotationRenderer, VTable},
   data() {
     return {
+      activeTab: 0,
+      documentTabEnabled: false,
       local_project: {
         name: null,
         configuration: null,
@@ -55,8 +67,8 @@ export default {
       documents: null,
       tableColumnsDisplay: {
         'id': 'string',
-        'text':'string',
-    },
+        'text': 'string',
+      },
     }
   },
   computed: {
@@ -66,7 +78,7 @@ export default {
     },
   },
   methods: {
-    ...mapActions(["getProjects", "updateProject","getProjectDocuments"]),
+    ...mapActions(["getProjects", "updateProject", "getProjectDocuments"]),
     async saveProjectHandler() {
       await this.updateProject(this.local_project);
       this.documents = await this.getProjectDocuments(this.projectId);
@@ -85,6 +97,10 @@ export default {
       }
 
     },
+    goToAnnotatePage(e){
+      this.$router.push(`/annotate/${this.projectId}/${this.documents[0].id}`)
+
+    },
 
   },
   watch: {
@@ -95,13 +111,14 @@ export default {
           for (let project of newProjectsList) {
             if (String(project.id) === this.projectId) {
               this.local_project = _.cloneDeep(project)
+
             }
           }
         }
       }
     },
   },
-  async mounted(){
+  async mounted() {
     await this.getProjects();
     this.documents = await this.getProjectDocuments(this.projectId);
   }

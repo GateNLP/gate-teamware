@@ -1,8 +1,8 @@
 <template>
-  <div>
+  <div class="annotation">
     <div v-for="elemConfig in config" :key="elemConfig.name">
       <b-form-group :label="elemConfig.title">
-        <p v-if="elemConfig.description">{{ elemConfig.description }}</p>
+        <p class="annotation-description" v-if="elemConfig.description">{{ elemConfig.description }}</p>
         <component v-if="getInputType(elemConfig.type)"
                    :is="getInputType(elemConfig.type)"
                    :name="elemConfig.name"
@@ -13,7 +13,13 @@
                    @input="inputEventHandler"></component>
       </b-form-group>
     </div>
-    <BButton @click.prevent="submitHandler">Submit</BButton>
+    <b-row>
+      <b-col>
+        <BButton @click.prevent="submitHandler" class="mr-4" variant="success">Submit</BButton>
+        <BButton @click.prevent="clearFormHandler" variant="danger">Clear</BButton>
+      </b-col>
+    </b-row>
+
   </div>
 </template>
 
@@ -101,7 +107,18 @@ export default {
 
       if(validationPassed){
         this.$emit('submit', this.annotationOutput)
+        this.clearForm()
       }
+
+
+    },
+    clearForm(){
+      this.annotationOutput = {}
+      this.validation = {}
+
+    },
+    clearFormHandler(e){
+      this.clearForm()
     }
 
   },

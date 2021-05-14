@@ -1,8 +1,7 @@
 <template>
   <div>
-    <b-form-group label="Project Configuration">
-      <b-textarea v-model="jsonStr" @change="jsonStrChangeHandler" rows="30"></b-textarea>
-    </b-form-group>
+
+    <b-textarea v-model="jsonStr" @change="jsonStrChangeHandler" rows="30"></b-textarea>
     <div class="text-danger" v-if="jsonStr && json_error && valid_json === false">{{ json_error }}</div>
     <div class="text-success" v-if="valid_json === true">Valid JSON ✔</div>
   </div>
