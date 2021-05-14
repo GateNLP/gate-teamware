@@ -67,9 +67,15 @@ export default new Vuex.Store({
             }
 
 
-        }
-
-
+        },
+        async getAnnotations({dispatch, commit}, projectID){
+            try{
+                let response = await rpc.call("get_annotations", projectID)
+                return response
+            }catch(e){
+                console.log(e)
+            }
+        },
 
     },
     modules: {}

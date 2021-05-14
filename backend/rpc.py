@@ -1,5 +1,8 @@
 import json
 
+import gatenlp
+# https://pypi.org/project/gatenlp/
+
 from backend.rpcserver import rpc_method
 from backend.models import Project, Document, Annotation
 from backend.utils.serialize import ModelSerializer
@@ -66,3 +69,20 @@ def add_document_annotation(doc_id, annotation):
     document = Document.objects.get(pk=doc_id)
     annotation = Annotation.objects.create(document=document, data=annotation)
     return annotation.pk
+
+@rpc_method
+def get_annotations(project_id):
+    project = Project.objects.get(pk=project_id)
+    annotations = []
+    for document in project.documents.all():
+        doc = gatenlp.Document(text = document.data['text'])
+        annset = doc.annset()
+
+        for annotation in document.annotations.all():
+            annotation_data = annotation.data
+            annset.add(0,0,"Annotation", annotation_data)
+
+        annotations.append(doc.save_mem())
+    
+    return annotations
+

@@ -1,5 +1,6 @@
 asgiref==3.3.2
 certifi==2020.12.5
+gatenlp==1.0.4
 Django==3.2
 django-webpack-loader==0.7.0
 djangorestframework==3.12.4
