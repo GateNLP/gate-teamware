@@ -1,58 +1,68 @@
 <template>
   <div>
+    <VJsoneditor v-model="inputVal" :options="jeOptions" :plus="false" height="800px"></VJsoneditor>
 
-    <b-textarea v-model="jsonStr" @change="jsonStrChangeHandler" rows="30"></b-textarea>
-    <div class="text-danger" v-if="jsonStr && json_error && valid_json === false">{{ json_error }}</div>
-    <div class="text-success" v-if="valid_json === true">Valid JSON ✔</div>
   </div>
 
 </template>
 
 <script>
+import VJsoneditor from "v-jsoneditor"
+
+
 export default {
   name: "JsonEditor",
+  components: {VJsoneditor},
   data() {
     return {
-      jsonStr: "",
-      valid_json: null,
-      json_error: "",
+      jeOptions: {
+        mode: "code",
+        schema: {
+          // "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "https://example.com/product.schema.json",
+          "title": "Project config schema",
+          "description": "Declares valid object types",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string"
+              }
+            },
+            "required": ["name", "type"]
+          }
+        },
+
+      },
     }
   },
   props: {
     value: {
       default: null
-    }
+    },
+  },
+  computed: {
+    inputVal: {
+      set(val) {
+        this.$emit('input', val)
+      },
+      get() {
+        return this.value
+      }
+    },
   },
   methods: {
-    jsonStrChangeHandler(e){
-      this.valid_json = this.validateJSON(this.jsonStr)
-      if(this.valid_json){
-        this.$emit('input', JSON.parse(this.jsonStr))
-      }
-    },
-    validateJSON(str) {
-        try {
-            JSON.parse(str);
-        } catch (e) {
-            this.json_error = JSON.stringify(e.message);
-            return false;
-        }
-        return true;
-    },
-  },
-  watch: {
-    value: {
-      immediate: true,
-      handler(newValue){
-        if(newValue){
-          this.jsonStr = JSON.stringify(newValue, null, 2)
-        }
-        else{
-          this.jsonStr = ""
-        }
-      }
+    onValidationError(e) {
+      console.log("Validation error")
+      console.log(e)
     }
-  }
+
+  },
+  watch: {}
 }
 </script>
 
