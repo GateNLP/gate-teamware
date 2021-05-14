@@ -38,7 +38,8 @@ describe('HelloWorld.vue', () => {
 
 describe('Project.vue', () => {
   it('Validates JSON input as project configuration', () => {
-    const { getByText } = render(Project, {routes}, (vue, store, router) => {
+    const $route = { params: {id: 1} };
+    const { getByText } = render(Project, {routes, stubs: [$route]}, (vue, store, router) => {
       router.push('/projects/1')
     });
     // Asserts initial state.

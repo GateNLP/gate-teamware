@@ -28,7 +28,7 @@
     </b-form>
 
     <div v-if="documents">
-      <VTable :data="documents" :column-display="tableColumnsDisplay"></VTable>
+      <VTable :data="documents" :column-display="tableColumnsDisplay" :column-ignore="tableIgnoreColumns"></VTable>
     </div>
 
   </div>
@@ -37,7 +37,7 @@
 <script>
 import _ from "lodash"
 import {mapActions, mapState} from "vuex";
-import VTable from "../components/VTable";
+import VTable from "@/components/VTable";
 import AnnotationRenderer from "@/components/AnnotationRenderer";
 import JsonEditor from "@/components/JsonEditor";
 
@@ -56,7 +56,8 @@ export default {
       tableColumnsDisplay: {
         'id': 'string',
         'text':'string',
-    },
+      },
+      tableIgnoreColumns: ['annotations','project','data'],
     }
   },
   computed: {

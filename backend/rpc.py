@@ -43,7 +43,15 @@ def get_project_documents(project_id):
 
     project = Project.objects.get(pk=project_id)
 
-    return [serializer.serialize(doc) for doc in project.documents.all()]
+    documents = [serializer.serialize(doc) for doc in project.documents.all()]
+
+    # add additional and modified fields to the document json for the frontend
+    for document in documents:
+        document["text"] = document["data"]["text"]
+        document["annotated_by"] = [annotation["user"] for annotation in document["annotations"]]
+        document["annotation_count"] = len(document["annotations"])
+
+    return documents
 
 @rpc_method
 def add_project_document(project_id, document):
