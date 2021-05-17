@@ -12,14 +12,21 @@
             <b-col>
               <h4>Project configuration</h4>
               <JsonEditor v-model="local_project.configuration"></JsonEditor>
+
+              <h5 class="mt-4">Document input preview</h5>
+              <VJsoneditor v-model="testDocument" :options="{mode: 'code'}" :plus="false" height="400px"></VJsoneditor>
+
             </b-col>
             <b-col>
               <h4>Annotation preview</h4>
-              <AnnotationRenderer :config="local_project.configuration"></AnnotationRenderer>
+              <AnnotationRenderer :config="local_project.configuration" @input="annotationOutputHandler"></AnnotationRenderer>
+
+              <h5 class="mt-4">Annotation output preview</h5>
+              <VJsoneditor v-model="annotationOutput" :options="{mode: 'preview', mainMenuBar: false}" :plus="false" height="400px" ></VJsoneditor>
             </b-col>
           </b-form-row>
           <b-form-row>
-            <b-col>
+            <b-col class="mt-4">
               <b-button @click="saveProjectHandler" variant="primary"><b-icon-box-arrow-in-down></b-icon-box-arrow-in-down> Save project configuration</b-button>
             </b-col>
           </b-form-row>
@@ -50,14 +57,20 @@ import {mapActions, mapState} from "vuex";
 import VTable from "../components/VTable";
 import AnnotationRenderer from "@/components/AnnotationRenderer";
 import JsonEditor from "@/components/JsonEditor";
+import VJsoneditor from "v-jsoneditor";
 
 export default {
   name: "Project",
-  components: {JsonEditor, AnnotationRenderer, VTable},
+  components: {JsonEditor, AnnotationRenderer, VTable, VJsoneditor},
   data() {
     return {
       activeTab: 0,
+      testDocument: {
+          text: "<p>Some html text <strong>in bold</strong>.</p><p>Paragraph 2.</p>"
+        },
+      annotationOutput: {
 
+      },
       local_project: {
         name: null,
         configuration: null,
@@ -104,6 +117,9 @@ export default {
       this.$router.push(`/annotate/${this.projectId}/${this.documents[0].id}`)
 
     },
+    annotationOutputHandler(value){
+      this.annotationOutput = value
+    }
 
   },
   watch: {

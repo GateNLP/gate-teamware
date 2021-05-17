@@ -30,7 +30,7 @@ export default {
                 "type": "string"
               },
               "type": {
-                "enum": ["text", "textarea", "selector", "combobox", "radio", "html"]
+                "enum": ["text", "textarea", "selector", "checkbox", "radio", "html"]
               }
             },
             "required": ["name", "type"]
