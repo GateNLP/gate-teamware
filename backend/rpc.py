@@ -82,11 +82,11 @@ def get_annotations(project_id):
         doc = gatenlp.Document(text = document.data['text'])
         doc.name = str(document.pk)
 
-        # add an arbitrary Annotation_Set
-        annset = doc.annset(name = str(document.pk))
-
-        # For each annotation, add to the annotation set
         for annotation in document.annotations.all():
+            # add an Annotation_Set named as the annotation user
+            annset = doc.annset(name = annotation.user.name)
+            
+            # add the annotation to the annotation set
             annset.add(0,0,"Annotation", annotation.data, id=annotation.pk)
 
         # For each document, append the annotations
