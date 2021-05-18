@@ -72,16 +72,24 @@ def add_document_annotation(doc_id, annotation):
 
 @rpc_method
 def get_annotations(project_id):
+    """
+    Serialize project annotations as GATENLP format JSON using the python-gatenlp interface.
+    """
     project = Project.objects.get(pk=project_id)
     annotations = []
     for document in project.documents.all():
+        # create a GateNLP Document instance
         doc = gatenlp.Document(text = document.data['text'])
-        annset = doc.annset()
+        doc.name = str(document.pk)
 
+        # add an arbitrary Annotation_Set
+        annset = doc.annset(name = str(document.pk))
+
+        # For each annotation, add to the annotation set
         for annotation in document.annotations.all():
-            annotation_data = annotation.data
-            annset.add(0,0,"Annotation", annotation_data)
+            annset.add(0,0,"Annotation", annotation.data, id=annotation.pk)
 
+        # For each document, append the annotations
         annotations.append(doc.save_mem())
     
     return annotations
