@@ -84,13 +84,17 @@ def get_annotations(project_id):
 
         for annotation in document.annotations.all():
             # add an Annotation_Set named as the annotation user
-            annset = doc.annset(name = annotation.user.name)
+            annset = doc.annset(name = annotation.user.username)
             
             # add the annotation to the annotation set
-            annset.add(0,0,"Annotation", annotation.data, id=annotation.pk)
+            annset.add(start = 0,
+                        end = len(document.data['text']),
+                        anntype = "Document",
+                        features=dict(label=annotation.data,_id=annotation.pk),
+                        )
 
         # For each document, append the annotations
-        annotations.append(doc.save_mem())
+        annotations.append(doc.save_mem(fmt="bdocjs"))
     
     return annotations
 
