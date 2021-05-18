@@ -18,7 +18,6 @@ def create_project():
 
 @rpc_method
 def update_project(project_dict):
-
     project = serializer.deserialize(Project, project_dict)
 
     for document in json.loads(project_dict["data"]):
