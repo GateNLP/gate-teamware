@@ -31,7 +31,7 @@
       <VTable :data="documents" :column-display="tableColumnsDisplay" :column-ignore="tableIgnoreColumns" :allowExport="false"></VTable>
     </div>
 
-    <b-button @click="exportAnnotationsHandler">
+    <b-button variant="primary" @click="exportAnnotationsHandler">
         <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-download" fill="currentColor"
            xmlns="http://www.w3.org/2000/svg">
         <path fill-rule="evenodd"
@@ -39,7 +39,7 @@
         <path fill-rule="evenodd"
               d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
       </svg>
-      Export Annotations</b-button>
+      Export Annotations (JSON)</b-button>
 
   </div>
 </template>
