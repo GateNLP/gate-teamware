@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
 import json
 
-from backend.models import Annotation, Document, Project, ServiceUser
+from backend.models import Annotation, Document, Project
 from backend.rpcserver import rpc_method, rpc_method_auth, AuthError
 import backend.rpcserver
 
@@ -132,7 +132,7 @@ class TestRPCProjectCreate(TestCase):
 
 class TestRPCAnnotationExport(TestCase):
 
-    def test_rpc_get_annotations(self):
+    def test_rpc_get_annotations_endpoint(self):
         username = "testuser"
         user_pass = "123456789"
         user = get_user_model().objects.create(username=username)
@@ -147,9 +147,14 @@ class TestRPCAnnotationExport(TestCase):
                 document = Document.objects.create(project=project, data=input_document)
                 Annotation.objects.create(user=user,document=document,data={"testannotation":"test"})
 
-
+        # test the endpoint
         c = Client()
         response = c.post("/rpc/", {"jsonrpc": "2.0", "method": "get_annotations", "id": 20, "params": [project.id]},
                     content_type="application/json")
         self.assertEqual(response.status_code, 200)
-        print(json.dumps(response.json()['result'])) #test that result is json serializable
+
+        # test the get_annotations function
+        from backend.rpc import get_annotations
+        annotations = get_annotations(project.id)
+        self.assertIsNotNone(annotations)
+        self.assertEqual(type(annotations),list)
