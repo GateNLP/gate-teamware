@@ -11,13 +11,13 @@ from backend.utils.serialize import ModelSerializer
 serializer = ModelSerializer()
 
 @rpc_method
-def create_project():
+def create_project(request):
     proj = Project.objects.create()
 
     return serializer.serialize(proj)
 
 @rpc_method
-def update_project(project_dict):
+def update_project(request, project_dict):
     project = serializer.deserialize(Project, project_dict)
 
     for document in json.loads(project_dict["data"]):
@@ -28,20 +28,20 @@ def update_project(project_dict):
     return True
 
 @rpc_method
-def get_project(pk):
+def get_project(request, pk):
 
     proj = Project.objects.get(pk=pk)
     return serializer.serialize(proj)
 
 
 @rpc_method
-def get_projects():
+def get_projects(request):
 
     projects = Project.objects.all()
     return [serializer.serialize(proj) for proj in projects]
 
 @rpc_method
-def get_project_documents(project_id):
+def get_project_documents(request, project_id):
 
     project = Project.objects.get(pk=project_id)
 
@@ -56,7 +56,7 @@ def get_project_documents(project_id):
     return documents
 
 @rpc_method
-def add_project_document(project_id, document):
+def add_project_document(request, project_id, document):
     project = Project.objects.get(pk=project_id)
     document = Document.objects.create(project=project)
 
@@ -64,13 +64,13 @@ def add_project_document(project_id, document):
 
 
 @rpc_method
-def add_document_annotation(doc_id, annotation):
+def add_document_annotation(request, doc_id, annotation):
     document = Document.objects.get(pk=doc_id)
     annotation = Annotation.objects.create(document=document, data=annotation)
     return annotation.pk
 
 @rpc_method
-def get_annotations(project_id):
+def get_annotations(request, project_id):
     """
     Serialize project annotations as GATENLP format JSON using the python-gatenlp interface.
     """

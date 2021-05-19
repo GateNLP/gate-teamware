@@ -8,19 +8,19 @@ import backend.rpcserver
 
 
 @rpc_method
-def rpc_test_add_func(a, b):
+def rpc_test_add_func(request, a, b):
     return a+b
 
 @rpc_method_auth
-def rpc_test_need_auth():
+def rpc_test_need_auth(request):
     return 10
 
 @rpc_method
-def rpc_test_raise_auth_error():
+def rpc_test_raise_auth_error(request):
     raise AuthError("Raised to test authentication error handling")
 
 @rpc_method_auth
-def rpc_test_raise_permission_error():
+def rpc_test_raise_permission_error(request):
     raise PermissionError("Thrown to test permission error handling")
 
 class TestRPCServer(TestCase):

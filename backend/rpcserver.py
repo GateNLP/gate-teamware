@@ -89,7 +89,7 @@ class JSONRPCEndpoint(View):
             # Get and call method
             method = REGISTERED_RPC_METHODS[method_name]
             if (not method.authenticate) or (method.authenticate and request.user.is_authenticated):
-                result = method.function(*params)
+                result = method.function(request, *params)
                 log.info(f"Called {method_name}")
                 return self.success_response(result, msg_id)
             else:
