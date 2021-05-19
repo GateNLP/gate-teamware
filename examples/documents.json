@@ -1,5 +1,11 @@
 [
   {
     "text": "Some text"
+  },
+  {
+    "text": "Document <b>with some html</b>"
+  },
+  {
+    "text": "Another document"
   }
 ]

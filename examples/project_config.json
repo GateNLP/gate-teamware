@@ -1,0 +1,57 @@
+[
+  {
+    "name": "html",
+    "title": "Test html display",
+    "description": "Test html display description",
+    "type": "html",
+    "text": "Some text to display"
+  },
+  {
+    "name": "radio",
+    "title": "Test radio input",
+    "description": "Test radio description",
+    "type": "radio",
+    "options": {
+      "val1": "Value 1",
+      "val2": "Value 2",
+      "val3": "Value 4",
+      "val4": "Value 5"
+    }
+  },
+  {
+    "name": "checkbox",
+    "title": "Test checkbox input",
+    "description": "Test checkbox description",
+    "type": "checkbox",
+    "options": {
+      "val1": "Value 1",
+      "val2": "Value 2",
+      "val3": "Value 4",
+      "val4": "Value 5"
+    }
+  },
+  {
+    "name": "selector",
+    "title": "Test selector input",
+    "description": "Test selector description",
+    "type": "selector",
+    "options": {
+      "val1": "Value 1",
+      "val2": "Value 2",
+      "val3": "Value 4",
+      "val4": "Value 5"
+    }
+  },
+  {
+    "name": "textarea",
+    "title": "Test textarea input",
+    "description": "Test text description",
+    "type": "textarea"
+  },
+  {
+    "name": "text",
+    "title": "Test text input",
+    "description": "Test text description",
+    "type": "text"
+  }
+]

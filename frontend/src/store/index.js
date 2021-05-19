@@ -31,6 +31,14 @@ export default new Vuex.Store({
                 console.log(e)
             }
         },
+        async getProjectDocuments({dispatch,commit},payload){
+            try {
+                let documents = await rpc.call("get_project_documents",payload);
+                return documents
+            } catch (e){
+                console.log(e)
+            }
+        },
         async createProject({dispatch, commit}){
             try{
                 console.log("Creating a project")
@@ -49,9 +57,25 @@ export default new Vuex.Store({
             }catch(e){
                 console.log(e)
             }
-        }
+        },
+        async addAnnotation({dispatch, commit}, {docId, annotation}){
+            try {
+
+                let annotateId = await rpc.call("add_document_annotation", docId, annotation)
+            }catch (e){
+                console.log(e)
+            }
 
 
+        },
+        async getAnnotations({dispatch, commit}, projectID){
+            try{
+                let response = await rpc.call("get_annotations", projectID)
+                return response
+            }catch(e){
+                console.log(e)
+            }
+        },
 
     },
     modules: {}
