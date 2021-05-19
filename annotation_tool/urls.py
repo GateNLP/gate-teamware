@@ -23,4 +23,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('rpc/', JSONRPCEndpoint.as_view()),
     re_path('^.*$', views.MainView.as_view(), name="index"),
+    path('login/', views.login, name='login'),
+    path('logout/', views.logout, name='logout'),
+    path('register/', views.register, name='register'),
 ]
