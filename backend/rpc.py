@@ -1,5 +1,9 @@
 import json
 
+from django.contrib.auth import authenticate, get_user_model, login as djlogin, logout as djlogout
+from django.http import JsonResponse, HttpRequest
+from django.shortcuts import redirect, render
+
 import gatenlp
 # https://pypi.org/project/gatenlp/
 
@@ -9,6 +13,52 @@ from backend.utils.serialize import ModelSerializer
 
 
 serializer = ModelSerializer()
+
+#####################################
+### Login/Logout/Register Methods ###
+#####################################
+
+@rpc_method
+def login(request,payload):
+    context = {}
+    user = authenticate(username=payload["username"], password=payload["password"])
+    if user is not None:
+        djlogin(request, user)
+        context["user"] = user
+        return {"username":payload["username"],"isAuthenticated":True}
+    else:
+        context["error"] = "Invalid username or password."
+
+    return JsonResponse(request, context)
+
+
+# def logout(request):
+#     djlogout(request)
+#     return redirect("/")
+
+
+# def register(request):
+#     context = {}
+#     if "username" in request.POST and "password" in request.POST:
+#         username = request.POST["username"]
+#         password = request.POST["password"]
+#         email = request.POST["email"]
+
+#         if not get_user_model().objects.filter(username=username).exists():
+#             user = get_user_model().objects.create_user(username=username, password=password, email=email)
+#             djlogin(request, user)
+#             return redirect("/")
+#         else:
+#             context["error"] = "Username already exists"
+#         # User.objects.get()
+#         # print("User created!")
+
+#     return render(request, "register.html", context=context)
+
+
+##################################
+### Project Management Methods ###
+##################################
 
 @rpc_method
 def create_project(request):

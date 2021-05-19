@@ -10,19 +10,36 @@ Vue.use(Vuex)
 export default new Vuex.Store({
     state: {
         projects: null,
+        user: {
+            username: "",
+            isAuthenticated: false,
+        },
     },
     mutations: {
+        updateUser(state, params) {
+            state.user.username = params.username;
+            state.user.isAuthenticated = params.isAuthenticated;
+        },
         updateProjects(state,projects) {
             state.projects = projects;
         }
     },
     actions: {
-        async login({dispatch, commit}, username, password) {
-
+        updateUser({commit}, params) {
+            commit("updateUser", params);
         },
-        async logout({dispatch, commit}) {
-
+        async login({dispatch, commit}, payload) {
+            try{
+                let response = await rpc.call("login",payload);
+                dispatch("updateUser",response);
+                return response
+            }catch (e){
+                console.error(e);
+            }
         },
+        // async logout({dispatch, commit}) {
+
+        // },
         async getProjects({dispatch,commit}){
             try {
                 let projects = await rpc.call("get_projects");

@@ -3,7 +3,7 @@ import AnnotationApp from './AnnotationApp.vue'
 import router from './router'
 import store from './store'
 import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
-
+import {mapActions} from 'vuex'
 
 
 // Import Bootstrap an BootstrapVue CSS files (order is important)
@@ -21,5 +21,14 @@ Vue.config.productionTip = false
 new Vue({
   router,
   store,
+  methods: {
+    ...mapActions(["updateUser"]),
+},
+  mounted() {
+    //Adds user's details reactive
+    if (store.user) {
+        this.updateUser(store.user);
+    }
+  },
   render: h => h(AnnotationApp)
 }).$mount('#app')

@@ -17,7 +17,7 @@
 
             <b-form-row>
                 <b-col>
-                    <b-button variant="primary" @click="null">Sign In</b-button>
+                    <b-button variant="primary" @click="loginHandler">Sign In</b-button>
                 </b-col>
             </b-form-row>
         </b-form>
@@ -36,6 +36,12 @@ export default {
     },
     methods: {
     ...mapActions(["login"]),
+    loginHandler(){
+        let response = this.login({username:this.username,password:this.password});
+        if (response.isAuthenticated == true){
+            this.$router.push({ name: 'Home' });
+        }
+    }
     }
 }
 </script>

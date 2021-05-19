@@ -9,10 +9,16 @@
           <b-nav-item to="/about">About</b-nav-item>
         </b-navbar-nav>
 
-        <b-navbar-nav  class="ml-auto">
+        <b-navbar-nav  class="ml-auto" v-if="!user || !user.isAuthenticated">
           <b-nav-item to="/login" right>Sign In</b-nav-item>
           <b-nav-item to="/register" right>Register</b-nav-item>
         </b-navbar-nav>
+
+        <b-navbar-nav  class="ml-auto" v-else>
+          <b-nav-text variant="dark">Logged in as: {{ user.username }}</b-nav-text>
+          <b-nav-item to="/logout" right>Sign Out</b-nav-item>
+        </b-navbar-nav>
+
       </b-navbar>
     </div>
 
@@ -23,6 +29,10 @@
 import {mapState, mapActions} from "vuex";
 
 export default {
+    computed:{
+        ...mapState(["user"]),
+
+    },
 }
 </script>
 
