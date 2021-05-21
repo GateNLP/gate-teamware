@@ -12,6 +12,7 @@ localVue.use(BootstrapVue)
 
 // pass the `localVue` to the mount options
 import Project from '@/views/Project.vue'
+import AnnotationRenderer from "@/components/AnnotationRenderer";
 mount(Project, {
   localVue
 })
@@ -45,3 +46,6 @@ describe('Project.vue', () => {
     getByText('Project Configuration');
   })
 })
+
+
+

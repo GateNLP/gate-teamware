@@ -1,6 +1,6 @@
 <template>
   <div>
-    <BFormSelect :options="options" v-model="inputVal" :state="state"></BFormSelect>
+    <BFormSelect :options="options" v-model="inputVal" :state="state" :name="config.name"></BFormSelect>
     <b-form-invalid-feedback :state="state">
       An item must be selected.
     </b-form-invalid-feedback>
@@ -8,7 +8,6 @@
       Looks Good.
     </b-form-valid-feedback>
   </div>
-
 </template>
 
 <script>

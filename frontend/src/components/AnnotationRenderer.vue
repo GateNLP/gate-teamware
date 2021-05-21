@@ -11,6 +11,9 @@
                    v-model="annotationOutput[elemConfig.name]"
                    :state="validation[elemConfig.name]"
                    @input="inputEventHandler"></component>
+        <div v-else>
+          Component invalid
+        </div>
       </b-form-group>
     </div>
     <b-row>
@@ -19,7 +22,6 @@
         <BButton @click.prevent="clearFormHandler" variant="danger">Clear</BButton>
       </b-col>
     </b-row>
-
   </div>
 </template>
 
@@ -83,11 +85,17 @@ export default {
     },
     validateAnnotation() {
       for (let elemConfig of this.config) {
-        if (!this.ignoreValidateTypes.includes(elemConfig.type)) {
+        if (!this.ignoreValidateTypes.includes(elemConfig.type) && !elemConfig.optional) {
           if (elemConfig.name in this.annotationOutput) {
             this.validation[elemConfig.name] = true
           } else {
             this.validation[elemConfig.name] = false
+          }
+        }
+        else{
+          //Remove the validation key if validation is not needed
+          if(elemConfig.name in this.validation){
+            delete this.validation[elemConfig.name]
           }
         }
       }

@@ -45,7 +45,7 @@
   {
     "name": "textarea",
     "title": "Test textarea input",
-    "description": "Test text description",
+    "description": "Test textarea description",
     "type": "textarea"
   },
   {
