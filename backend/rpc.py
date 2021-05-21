@@ -32,11 +32,10 @@ def login(request,payload):
 
     return JsonResponse(request, context)
 
-
-# def logout(request):
-#     djlogout(request)
-#     return redirect("/")
-
+@rpc_method
+def logout(request):
+    djlogout(request)
+    return
 
 # def register(request):
 #     context = {}
