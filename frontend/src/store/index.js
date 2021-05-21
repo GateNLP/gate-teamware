@@ -50,7 +50,7 @@ export default new Vuex.Store({
                 username: "",
                 isAuthenticated: false,
             }
-            rpc.call("logout",params.username);
+            rpc.call("logout");
             Cookies.remove('username');
             commit("updateUser", params);
         },
