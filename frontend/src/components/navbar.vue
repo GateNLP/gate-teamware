@@ -5,7 +5,7 @@
         <b-navbar-brand to="/">GATE Annotate</b-navbar-brand>
 
         <b-navbar-nav>
-          <b-nav-item to="/projects">Projects</b-nav-item>
+          <b-nav-item to="/projects" v-if="user && user.isAuthenticated">Projects</b-nav-item>
           <b-nav-item to="/about">About</b-nav-item>
         </b-navbar-nav>
 
