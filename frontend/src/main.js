@@ -21,14 +21,5 @@ Vue.config.productionTip = false
 new Vue({
   router,
   store,
-  methods: {
-    ...mapActions(["updateUser"]),
-},
-  mounted() {
-    //Adds user's details reactive
-    if (store.user) {
-        this.updateUser(store.user);
-    }
-  },
   render: h => h(AnnotationApp)
 }).$mount('#app')

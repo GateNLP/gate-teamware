@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
+import Cookies from 'js-cookie'
 import JSRPCClient from '../jrpc'
 
 const rpc = new JSRPCClient("/rpc/")
@@ -28,18 +29,30 @@ export default new Vuex.Store({
         updateUser({commit}, params) {
             commit("updateUser", params);
         },
-        async login({dispatch, commit}, payload) {
+        async login({dispatch, commit}, params) {
             try{
+                const payload = {
+                    username: params.username,
+                    password: params.password,
+                }
                 let response = await rpc.call("login",payload);
                 dispatch("updateUser",response);
+                if (params.setCookie){
+                    Cookies.set('username',params.username);
+                }
                 return response
             }catch (e){
                 console.error(e);
             }
         },
-        // async logout({dispatch, commit}) {
-
-        // },
+        logout({dispatch, commit}) {
+            let params = {
+                username: "",
+                isAuthenticated: false,
+            }
+            Cookies.remove('username');
+            commit("updateUser", params);
+        },
         async getProjects({dispatch,commit}){
             try {
                 let projects = await rpc.call("get_projects");

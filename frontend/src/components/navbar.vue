@@ -16,7 +16,7 @@
 
         <b-navbar-nav  class="ml-auto" v-else>
           <b-nav-text variant="dark">Logged in as: {{ user.username }}</b-nav-text>
-          <b-nav-item to="/logout" right>Sign Out</b-nav-item>
+          <b-nav-item @click="logoutHandler" right>Sign Out</b-nav-item>
         </b-navbar-nav>
 
       </b-navbar>
@@ -31,7 +31,13 @@ import {mapState, mapActions} from "vuex";
 export default {
     computed:{
         ...mapState(["user"]),
-
+    },
+    methods:{
+      ...mapActions(["logout"]),
+      logoutHandler(){
+        this.logout();
+        this.$router.push({ name: 'Home' });
+      },
     },
 }
 </script>

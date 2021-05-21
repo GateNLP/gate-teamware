@@ -11,6 +11,16 @@
                 <b-form-input type="password" v-model="password"/>
             </b-form-group>
 
+            <b-form-group>
+                <b-form-checkbox
+                    id="checkbox-1"
+                    v-model="setCookie"
+                    name="checkbox-1"
+                    >
+                    Remember me
+                </b-form-checkbox>
+            </b-form-group>
+
             <div class="alert alert-warning" role="alert" v-if="error">
                 {{ error }}
             </div>
@@ -32,12 +42,13 @@ export default {
             error: false,
             username: null,
             password: null,
+            setCookie: false,
         }
     },
     methods: {
     ...mapActions(["login"]),
-    loginHandler(){
-        let response = this.login({username:this.username,password:this.password});
+    async loginHandler(){
+        let response = await this.login({username:this.username,password:this.password, setCookie: this.setCookie});
         if (response.isAuthenticated == true){
             this.$router.push({ name: 'Home' });
         }
