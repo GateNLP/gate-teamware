@@ -30,30 +30,30 @@ def login(request,payload):
     else:
         context["error"] = "Invalid username or password."
 
-    return JsonResponse(request, context)
+    return JsonResponse(context)
 
 @rpc_method
 def logout(request):
     djlogout(request)
     return
 
-# def register(request):
-#     context = {}
-#     if "username" in request.POST and "password" in request.POST:
-#         username = request.POST["username"]
-#         password = request.POST["password"]
-#         email = request.POST["email"]
+@rpc_method
+def register(request,payload):
+    context = {}
+    username = payload.get("username")
+    password = payload.get("password")
+    email = payload.get("email")
 
-#         if not get_user_model().objects.filter(username=username).exists():
-#             user = get_user_model().objects.create_user(username=username, password=password, email=email)
-#             djlogin(request, user)
-#             return redirect("/")
-#         else:
-#             context["error"] = "Username already exists"
-#         # User.objects.get()
-#         # print("User created!")
+    if not get_user_model().objects.filter(username=username).exists():
+        user = get_user_model().objects.create_user(username=username, password=password, email=email)
+        djlogin(request, user)
+        context["username"] = payload["username"]
+        context["isAuthenticated"] = True
+        return context
+    else:
+        context["error"] = "Username already exists"
 
-#     return render(request, "register.html", context=context)
+    return JsonResponse(context)
 
 
 ##################################

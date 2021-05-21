@@ -54,6 +54,20 @@ export default new Vuex.Store({
             Cookies.remove('username');
             commit("updateUser", params);
         },
+        async register({dispatch, commit}, params) {
+            try{
+                const payload = {
+                    username: params.username,
+                    password: params.password,
+                    email: params.email,
+                }
+                let response = await rpc.call("register",payload);
+                dispatch("updateUser",response);
+                return response
+            }catch (e){
+                console.error(e);
+            }
+        },
         async getProjects({dispatch,commit}){
             try {
                 let projects = await rpc.call("get_projects");
