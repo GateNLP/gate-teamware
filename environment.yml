@@ -87,4 +87,6 @@ dependencies:
     - sqlparse==0.4.1
     - toml==0.10.2
     - gatenlp
+    - msgpack
+    - bs4
 prefix: /home/twin/miniconda3/envs/annotation-tool
