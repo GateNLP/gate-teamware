@@ -22,8 +22,6 @@ describe("AnnotationRenderer", () => {
             }
         })
 
-        ar.debug()
-
         for (let comp of annotationComps) {
             //Check title's rendered
             if (comp.title)
