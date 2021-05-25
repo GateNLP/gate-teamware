@@ -1,11 +1,18 @@
 const fs = require('fs')
 import {render, fireEvent} from "@testing-library/vue";
+import '@testing-library/jest-dom';
 
 import '../globalVue'
 import AnnotationRenderer from "@/components/AnnotationRenderer";
 
 function elementHasTagWithName(elem, tag, name){
     const queryStr = `${tag}[name='${name}']`
+    const result = elem.querySelector(queryStr)
+    return result
+}
+
+function elementHasTagWithValue(elem, tag, val){
+    const queryStr = `${tag}[value='${val}']`
     const result = elem.querySelector(queryStr)
     return result
 }
@@ -86,6 +93,86 @@ describe("AnnotationRenderer", () => {
             ar.getByText("Component invalid")
 
         }
+
+    })
+
+    it('Test text regex', async () => {
+
+        const annotationComps = [
+            {
+                name: "text",
+                type: "text",
+                regex: "^foo$",
+
+            }]
+
+        const ar = render(AnnotationRenderer, {
+            props: {
+                config: annotationComps
+            }
+        })
+
+        const textElem = elementHasTagWithName(ar.container, "input", "text")
+        const submitBtn = ar.getByText("Submit")
+
+        await fireEvent.update(textElem, "sadfsdfds")
+        await fireEvent.click(submitBtn)
+
+        expect(ar.emitted().submit).not.toBeTruthy()
+
+        await fireEvent.update(textElem, "foo")
+        await fireEvent.click(submitBtn)
+
+        expect(ar.emitted().submit).toHaveLength(1)
+
+
+
+    })
+
+    it('Test checkboxes', async () => {
+
+        const annotationComps = [
+            {
+                name: "text",
+                type: "checkbox",
+                minSelected: 2,
+                options: {
+                    "val1": "Val 1",
+                    "val2": "Val 2",
+                    "val3": "Val 3",
+                    "val4": "Val 4",
+                }
+
+            }]
+
+        const ar = render(AnnotationRenderer, {
+            props: {
+                config: annotationComps
+            }
+        })
+
+         const submitBtn = ar.getByText("Submit")
+
+        // Empty - Fail
+        await fireEvent.click(submitBtn)
+        expect(ar.emitted().submit).not.toBeTruthy()
+
+
+        const checkboxElem = elementHasTagWithValue(ar.container, "input", "val1")
+        await fireEvent.click(checkboxElem)
+
+        // Single selection - Fail
+        await fireEvent.click(submitBtn)
+        expect(ar.emitted().submit).not.toBeTruthy()
+
+        const checkboxElem2 = elementHasTagWithValue(ar.container, "input", "val2")
+        await fireEvent.click(checkboxElem2)
+
+
+        // Two selection - Success
+        await fireEvent.click(submitBtn)
+        expect(ar.emitted().submit).toBeTruthy()
+
 
     })
 

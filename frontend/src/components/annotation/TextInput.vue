@@ -1,19 +1,16 @@
 <template>
-  <div>
+  <InputErrorDisplay :state="state" :msg-error="msgError" :msg-success="msgSuccess">
     <BInput :name="config.name" v-model="inputVal" :state="state"/>
-    <b-form-invalid-feedback :state="state">
-      Text must not be empty.
-    </b-form-invalid-feedback>
-    <b-form-valid-feedback :state="state">
-      Looks Good.
-    </b-form-valid-feedback>
-  </div>
+  </InputErrorDisplay>
 </template>
 
 <script>
+import InputErrorDisplay from "@/components/annotation/InputErrorDisplay";
+
 export default {
   name: "TextInput",
-  props: ["value", "config", "state"],
+  components: {InputErrorDisplay},
+  props: ["value", "config", "state", "msgError", "msgSuccess"],
   computed: {
     inputVal: {
       get() {
@@ -22,6 +19,11 @@ export default {
       set(val) {
         this.$emit('input', val);
       }
+    },
+  },
+  methods: {
+    validate(){
+      return true
     }
   }
 }

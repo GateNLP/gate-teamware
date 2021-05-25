@@ -10,6 +10,8 @@
                    :document="document"
                    v-model="annotationOutput[elemConfig.name]"
                    :state="validation[elemConfig.name]"
+                   :msg-success="elemConfig.valSuccess"
+                   :msg-error="elemConfig.valError"
                    @input="inputEventHandler"></component>
         <div v-else>
           Component invalid
@@ -41,6 +43,7 @@ export default {
     return {
       annotationOutput: {},
       validation: {},
+      validationErrorMsg: {},
       inputTypes: {
         text: 'TextInput',
         textarea: 'TextareaInput',
@@ -84,48 +87,80 @@ export default {
       }
     },
     validateAnnotation() {
+
+      this.validation = {}
+      this.validationErrorMsg = {}
+
+
       for (let elemConfig of this.config) {
-        if (!this.ignoreValidateTypes.includes(elemConfig.type) && !elemConfig.optional) {
-          if (elemConfig.name in this.annotationOutput) {
-            this.validation[elemConfig.name] = true
-          } else {
-            this.validation[elemConfig.name] = false
+
+        const elemName = elemConfig.name
+        const elemType = elemConfig.type
+
+        if (!this.ignoreValidateTypes.includes(elemType) && !elemConfig.optional) {
+          // Validate to false as default
+          this.validation[elemName] = false
+
+          // Entry exists
+          if (elemName in this.annotationOutput && this.valueNotEmpty(this.annotationOutput[elemName])) {
+
+            if ((elemType === "text" || elemType === "textarea") && "regex" in elemConfig) {
+              const regex = new RegExp(elemConfig.regex)
+              this.validation[elemName] = regex.test(this.annotationOutput[elemName])
+
+            } else if (elemType === "checkbox" && "minSelected" in elemConfig) {
+              this.validation[elemName] = elemConfig.minSelected <= this.annotationOutput[elemName].length
+
+            } else {
+              this.validation[elemName] = true
+            }
+
           }
-        }
-        else{
+        } else {
           //Remove the validation key if validation is not needed
-          if(elemConfig.name in this.validation){
-            delete this.validation[elemConfig.name]
+          if (elemConfig.name in this.validation) {
+            delete this.validation[elemName]
           }
         }
       }
 
       let validationPassed = true
-      for(let key in this.validation){
-        if(!this.ignoreValidateTypes.includes(key) && !this.validation[key]){
+      for (let key in this.validation) {
+        if (!this.ignoreValidateTypes.includes(key) && !this.validation[key]) {
           validationPassed = false
         }
       }
 
       return validationPassed
     },
+    valueNotEmpty(val) {
+        if (typeof val === 'string' && val.length > 0) {
+          return true
+        }
+
+        if (val instanceof Array && val.length > 0) {
+          return true
+        }
+
+        return false
+    },
     submitHandler(e) {
       let validationPassed = this.validateAnnotation()
       this.$forceUpdate()
 
-      if(validationPassed){
+      if (validationPassed) {
         this.$emit('submit', this.annotationOutput)
         this.clearForm()
       }
 
 
     },
-    clearForm(){
+    clearForm() {
       this.annotationOutput = {}
       this.validation = {}
 
     },
-    clearFormHandler(e){
+    clearFormHandler(e) {
       this.clearForm()
     }
 

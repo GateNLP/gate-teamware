@@ -91,8 +91,11 @@ for the `radio`, `checkbox` and `selector` components. See details below on the 
         "name": "mylabel",
         "type": "text",
         "optional": true, //Optional - Set if validation is not required
+        "regex": "regex string", //Optional - When specified, the regex pattern will used to validate the text
         "title": "Title string", //Optional
-        "description": "Descrption string" //Optional
+        "description": "Description string", //Optional
+        "valSuccess": "Success message then field is validated", //Optional
+        "valError": "Error message when field fails is validation" //Optional
     }
 ]
 ```
@@ -105,8 +108,11 @@ for the `radio`, `checkbox` and `selector` components. See details below on the 
         "name": "mylabel",
         "type": "textarea",
         "optional": true, //Optional - Set if validation is not required
+        "regex": "regex string", //Optional - When specified, the regex pattern will used to validate the text
         "title": "Title string", //Optional
-        "description": "Descrption string" //Optional
+        "description": "Description string", //Optional
+        "valSuccess": "Success message then field is validated", //Optional
+        "valError": "Error message when field fails is validation" //Optional
     }
 ]
 ```
@@ -125,7 +131,9 @@ for the `radio`, `checkbox` and `selector` components. See details below on the 
             "value2": "Text to show user 3",
         },
         "title": "Title string", //Optional
-        "description": "Descrption string" //Optional
+        "description": "Description string", //Optional
+        "valSuccess": "Success message then field is validated", //Optional
+        "valError": "Error message when field fails is validation" //Optional
     }
 ]
 ```
@@ -143,8 +151,11 @@ for the `radio`, `checkbox` and `selector` components. See details below on the 
             "value2": "Text to show user 2",
             "value2": "Text to show user 3",
         },
+        "minSelected": 1, //Optional - Specify the minimum number of options that must be selected
         "title": "Title string", //Optional
-        "description": "Descrption string" //Optional
+        "description": "Description string", //Optional
+        "valSuccess": "Success message then field is validated", //Optional
+        "valError": "Error message when field fails is validation" //Optional
     }
 ]
 ```
@@ -163,7 +174,9 @@ for the `radio`, `checkbox` and `selector` components. See details below on the 
             "value2": "Text to show user 3",
         },
         "title": "Title string", //Optional
-        "description": "Descrption string" //Optional
+        "description": "Description string", //Optional
+        "valSuccess": "Success message then field is validated", //Optional
+        "valError": "Error message when field fails is validation" //Optional
     }
 ]
 ```

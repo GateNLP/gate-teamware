@@ -1,21 +1,16 @@
 <template>
-  <div>
+  <InputErrorDisplay :state="state" :msg-error="msgError" :msg-success="msgSuccess">
     <b-form-checkbox-group v-model="inputVal" :name="config.name" :options="options" :state="state"></b-form-checkbox-group>
-    <b-form-invalid-feedback :state="state">
-      At least one item must be selected.
-    </b-form-invalid-feedback>
-    <b-form-valid-feedback :state="state">
-      Looks Good.
-    </b-form-valid-feedback>
-  </div>
-
+  </InputErrorDisplay>
 </template>
 
 <script>
 import { generateBVOptions } from '@/utils'
+import InputErrorDisplay from "@/components/annotation/InputErrorDisplay";
 export default {
 name: "CheckboxInput",
-  props: ["value", "config", "state"],
+  components: {InputErrorDisplay},
+  props: ["value", "config", "state", "msgError", "msgSuccess"],
   computed: {
     options(){
       if(this.config && this.config.options){
