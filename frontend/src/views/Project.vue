@@ -4,7 +4,7 @@
     <b-form class="mt-4 mb-4">
 
       <b-form-group label="Name">
-        <b-form-input v-model="local_project.name"></b-form-input>
+        <b-form-input v-model="local_project.name" name="project_name"></b-form-input>
       </b-form-group>
 
       <b-form-row>

@@ -212,9 +212,17 @@ describe('HelloWorld.vue', () => {
 ### Integration testing
 [Cypress](https://www.cypress.io/) is used for integration testing.
 
+The integration settings are located at `annotation_tool/settings/integration.py`
+
 To run the integration test:
 ```bash
 npm run test:integration
+```
+
+The test can also be run in **interactive mode** using:
+
+```bash
+npm run serve:cypressintegration
 ```
 
 #### Integration test files
@@ -222,5 +230,27 @@ Files related to integration testing are located in `/cypress`
 
 * Test files are located in the `/cypress/integration` directory and should have the extension `.spec.js`.
 
+#### Re-seeding the database
 
+The command `npm run migrate:integration` resets the database and performs migration, use with `beforeEach` to run it
+before every test case in a suite:
+
+```js
+describe('Example test suite', () => {
+
+    beforeEach(() => {
+        // Resets the database every time before
+        // the test is run
+        cy.exec('npm run migrate:integration')
+    })
+
+    it('Test case 1', () => {
+        // Test something
+    })
+  
+    it('Test case 2', () => {
+        // Test something
+    })
+})
+```
 
