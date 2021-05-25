@@ -66,7 +66,7 @@ def register(request,payload):
     else:
         context["error"] = "Username already exists"
 
-    return JsonResponse(context)
+    return context
 
 
 ##################################

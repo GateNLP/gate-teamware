@@ -55,6 +55,8 @@ export default {
         let response = await this.register(this.form);
         if (!response.error){
             this.$router.push({ name: 'Home' });
+        } else {
+            this.error = response.error;
         }
     }
     },
