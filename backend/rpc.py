@@ -19,6 +19,19 @@ serializer = ModelSerializer()
 #####################################
 
 @rpc_method
+def is_authenticated(request):
+    context = {}
+    try:
+        if request.user.is_authenticated:
+            context["isAuthenticated"] = True
+            context["username"] = request.user.username
+        else:
+            context["isAuthenticated"] = False
+    except:
+        raise Exception
+    return context
+
+@rpc_method
 def login(request,payload):
     context = {}
     user = authenticate(username=payload["username"], password=payload["password"])

@@ -37,9 +37,6 @@ export default new Vuex.Store({
                 }
                 let response = await rpc.call("login",payload);
                 dispatch("updateUser",response);
-                if (params.setCookie){
-                    Cookies.set('username',params.username);
-                }
                 return response
             }catch (e){
                 console.error(e);
@@ -51,7 +48,6 @@ export default new Vuex.Store({
                 isAuthenticated: false,
             }
             rpc.call("logout");
-            Cookies.remove('username');
             commit("updateUser", params);
         },
         async register({dispatch, commit}, params) {
@@ -68,6 +64,17 @@ export default new Vuex.Store({
                 console.error(e);
             }
         },
+
+        async is_authenticated({dispatch, commit}) {
+            try{
+                let response = await rpc.call("is_authenticated");
+                dispatch("updateUser",response);
+                return response
+            }catch (e){
+                console.error(e);
+            }
+        },
+
         async getProjects({dispatch,commit}){
             try {
                 let projects = await rpc.call("get_projects");

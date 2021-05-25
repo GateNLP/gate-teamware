@@ -6,19 +6,14 @@
 <script>
 import {mapState, mapActions} from "vuex";
 import navbar from './components/navbar.vue';
-import Cookies from 'js-cookie'
 
 export default {
   components: { navbar },
   methods: {
-    ...mapActions(["updateUser"]),
+    ...mapActions(["is_authenticated"]),
   },
-  mounted() {
-    //Checks for user cookie
-    const username = Cookies.get('username')
-    if (username) {
-        this.updateUser({username: username, isAuthenticated: true});
-    }
+  beforeMount() {
+    this.is_authenticated();
   },
 }
 </script>
