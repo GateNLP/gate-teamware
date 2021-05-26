@@ -21,14 +21,11 @@ serializer = ModelSerializer()
 @rpc_method
 def is_authenticated(request):
     context = {}
-    try:
-        if request.user.is_authenticated:
-            context["isAuthenticated"] = True
-            context["username"] = request.user.username
-        else:
-            context["isAuthenticated"] = False
-    except:
-        raise Exception
+    if request.user.is_authenticated:
+        context["isAuthenticated"] = True
+        context["username"] = request.user.username
+    else:
+        context["isAuthenticated"] = False
     return context
 
 @rpc_method
