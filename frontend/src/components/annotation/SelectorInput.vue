@@ -1,22 +1,17 @@
 <template>
-  <div>
-    <BFormSelect :options="options" v-model="inputVal" :state="state"></BFormSelect>
-    <b-form-invalid-feedback :state="state">
-      An item must be selected.
-    </b-form-invalid-feedback>
-    <b-form-valid-feedback :state="state">
-      Looks Good.
-    </b-form-valid-feedback>
-  </div>
-
+  <InputErrorDisplay :state="state" :msg-error="msgError" :msg-success="msgSuccess">
+    <BFormSelect :options="options" v-model="inputVal" :state="state" :name="config.name"></BFormSelect>
+  </InputErrorDisplay>
 </template>
 
 <script>
 
 import { generateBVOptions } from '@/utils'
+import InputErrorDisplay from "@/components/annotation/InputErrorDisplay";
 export default {
   name: "SelectorInput",
-  props: ["value", "config", "state"],
+  components: {InputErrorDisplay},
+  props: ["value", "config", "state", "msgError", "msgSuccess"],
   computed: {
     options(){
       if(this.config && this.config.options){

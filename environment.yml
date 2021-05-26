@@ -86,4 +86,8 @@ dependencies:
     - pytz==2021.1
     - sqlparse==0.4.1
     - toml==0.10.2
+    - gatenlp
+    - pyyaml
+    - msgpack
+    - bs4
 prefix: /home/twin/miniconda3/envs/annotation-tool

@@ -1,12 +1,25 @@
 <template>
   <div class="container">
-    <h1>Annotate a project</h1>
-    <div v-if="local_project && local_project.configuration && annotateDocument">
+    <h1>Annotating: {{local_project.name}}</h1>
+    <b-row>
+      <b-col md="4">
+        <b-list-group v-if="local_project && local_project.configuration && documents">
+          <b-list-group-item v-for="document in documents">
+            <b-link :to="`/annotate/${projectId}/${document.id}`">Document {{document.id}}</b-link>
+          </b-list-group-item>
+        </b-list-group>
+      </b-col>
+      <b-col>
+        <div v-if="local_project && local_project.configuration && annotateDocument">
       <AnnotationRenderer :config="local_project.configuration" :document="annotateDocument" @submit="submitHandler"></AnnotationRenderer>
     </div>
     <div v-else>
       Invalid document for annotation
     </div>
+
+      </b-col>
+    </b-row>
+
 
   </div>
 </template>
