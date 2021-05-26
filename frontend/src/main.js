@@ -2,7 +2,9 @@ import Vue from 'vue'
 import AnnotationApp from './AnnotationApp.vue'
 import router from './router'
 import store from './store'
-import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
+import { BootstrapVue, BootstrapVueIcons, IconsPlugin } from 'bootstrap-vue'
+import VJsoneditor from 'v-jsoneditor'
+
 
 
 
@@ -14,6 +16,8 @@ import 'bootstrap-vue/dist/bootstrap-vue.css'
 import "@/assets/sass/app.scss"
 
 Vue.use(BootstrapVue)
+Vue.use(BootstrapVueIcons)
+Vue.use(VJsoneditor)
 // Vue.use(IconsPlugin) //optional
 
 Vue.config.productionTip = false

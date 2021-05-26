@@ -155,6 +155,6 @@ class TestRPCAnnotationExport(TestCase):
 
         # test the get_annotations function
         from backend.rpc import get_annotations
-        annotations = get_annotations(project.id)
+        annotations = get_annotations(None, project.id)
         self.assertIsNotNone(annotations)
         self.assertEqual(type(annotations),list)

@@ -1,8 +1,8 @@
 <template>
-  <div>
+  <div class="annotation">
     <div v-for="elemConfig in config" :key="elemConfig.name">
       <b-form-group :label="elemConfig.title">
-        <p v-if="elemConfig.description">{{ elemConfig.description }}</p>
+        <p class="annotation-description" v-if="elemConfig.description">{{ elemConfig.description }}</p>
         <component v-if="getInputType(elemConfig.type)"
                    :is="getInputType(elemConfig.type)"
                    :name="elemConfig.name"
@@ -10,10 +10,20 @@
                    :document="document"
                    v-model="annotationOutput[elemConfig.name]"
                    :state="validation[elemConfig.name]"
+                   :msg-success="elemConfig.valSuccess"
+                   :msg-error="elemConfig.valError"
                    @input="inputEventHandler"></component>
+        <div v-else>
+          Component invalid
+        </div>
       </b-form-group>
     </div>
-    <BButton @click.prevent="submitHandler">Submit</BButton>
+    <b-row>
+      <b-col>
+        <BButton @click.prevent="submitHandler" class="mr-4" variant="success">Submit</BButton>
+        <BButton @click.prevent="clearFormHandler" variant="danger">Clear</BButton>
+      </b-col>
+    </b-row>
   </div>
 </template>
 
@@ -33,6 +43,7 @@ export default {
     return {
       annotationOutput: {},
       validation: {},
+      validationErrorMsg: {},
       inputTypes: {
         text: 'TextInput',
         textarea: 'TextareaInput',
@@ -76,32 +87,81 @@ export default {
       }
     },
     validateAnnotation() {
+
+      this.validation = {}
+      this.validationErrorMsg = {}
+
+
       for (let elemConfig of this.config) {
-        if (!this.ignoreValidateTypes.includes(elemConfig.type)) {
-          if (elemConfig.name in this.annotationOutput) {
-            this.validation[elemConfig.name] = true
-          } else {
-            this.validation[elemConfig.name] = false
+
+        const elemName = elemConfig.name
+        const elemType = elemConfig.type
+
+        if (!this.ignoreValidateTypes.includes(elemType) && !elemConfig.optional) {
+          // Validate to false as default
+          this.validation[elemName] = false
+
+          // Entry exists
+          if (elemName in this.annotationOutput && this.valueNotEmpty(this.annotationOutput[elemName])) {
+
+            if ((elemType === "text" || elemType === "textarea") && "regex" in elemConfig) {
+              const regex = new RegExp(elemConfig.regex)
+              this.validation[elemName] = regex.test(this.annotationOutput[elemName])
+
+            } else if (elemType === "checkbox" && "minSelected" in elemConfig) {
+              this.validation[elemName] = elemConfig.minSelected <= this.annotationOutput[elemName].length
+
+            } else {
+              this.validation[elemName] = true
+            }
+
+          }
+        } else {
+          //Remove the validation key if validation is not needed
+          if (elemConfig.name in this.validation) {
+            delete this.validation[elemName]
           }
         }
       }
 
       let validationPassed = true
-      for(let key in this.validation){
-        if(!this.ignoreValidateTypes.includes(key) && !this.validation[key]){
+      for (let key in this.validation) {
+        if (!this.ignoreValidateTypes.includes(key) && !this.validation[key]) {
           validationPassed = false
         }
       }
 
       return validationPassed
     },
+    valueNotEmpty(val) {
+        if (typeof val === 'string' && val.length > 0) {
+          return true
+        }
+
+        if (val instanceof Array && val.length > 0) {
+          return true
+        }
+
+        return false
+    },
     submitHandler(e) {
       let validationPassed = this.validateAnnotation()
       this.$forceUpdate()
 
-      if(validationPassed){
+      if (validationPassed) {
         this.$emit('submit', this.annotationOutput)
+        this.clearForm()
       }
+
+
+    },
+    clearForm() {
+      this.annotationOutput = {}
+      this.validation = {}
+
+    },
+    clearFormHandler(e) {
+      this.clearForm()
     }
 
   },
