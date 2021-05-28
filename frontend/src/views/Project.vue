@@ -64,6 +64,12 @@
           </div>
         </b-form>
       </b-tab>
+      <b-tab title="Annotators">
+
+      </b-tab>
+      <b-tab title="Managers">
+
+      </b-tab>
 
     </b-tabs>
 

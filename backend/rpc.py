@@ -15,6 +15,7 @@ from backend.utils.serialize import ModelSerializer
 
 
 serializer = ModelSerializer()
+User = get_user_model()
 
 #####################################
 ### Login/Logout/Register Methods ###
@@ -172,3 +173,32 @@ def get_annotations(request, project_id):
     
     return annotations
 
+@rpc_method_auth
+def get_possible_annotators(request):
+    annotators = User.objects.filter(annotates=None)
+    output = [serializer.serialize(annotator, {"id", "username"}) for annotator in annotators]
+    return output
+
+@rpc_method_auth
+def get_project_annotators(request, proj_id):
+    project = Project.objects.get(pk=proj_id)
+    output = [serializer.serialize(annotator, {"id", "username"}) for annotator in project.annotators.all()]
+    return output
+
+@rpc_method_auth
+@transaction.atomic
+def add_project_annotator(request, proj_id, username):
+    annotator = User.objects.get(username=username)
+    project = Project.objects.get(pk=proj_id)
+    project.annotators.add(annotator)
+    project.save()
+    return True
+
+@rpc_method_auth
+@transaction.atomic
+def remove_project_annotator(request, proj_id, username):
+    annotator = User.objects.get(username=username)
+    project = Project.objects.get(pk=proj_id)
+    project.annotators.remove(annotator)
+    project.save()
+    return True

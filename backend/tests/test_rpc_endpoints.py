@@ -6,7 +6,8 @@ from django.test.client import RequestFactory
 import json
 
 from backend.models import Annotation, Document, Project
-from backend.rpc import create_project, update_project, add_project_document, add_document_annotation
+from backend.rpc import create_project, update_project, add_project_document, add_document_annotation, \
+    get_possible_annotators, add_project_annotator, remove_project_annotator, get_project_annotators
 from backend.rpcserver import rpc_method
 
 
@@ -227,3 +228,35 @@ class TestAnnotationExport(TestEndpoint):
         annotations = get_annotations(None, project.id)
         self.assertIsNotNone(annotations)
         self.assertEqual(type(annotations), list)
+
+class TestUsers(TestEndpoint):
+
+    def test_list_possible_annotators(self):
+        user = self.get_default_user()
+
+        ann1 = get_user_model().objects.create(username="ann1")
+        ann2 = get_user_model().objects.create(username="ann2")
+        ann3 = get_user_model().objects.create(username="ann3")
+
+        proj = Project.objects.create(owner=user)
+
+        possible_annotators = get_possible_annotators(self.get_loggedin_request())
+        self.assertEqual(len(possible_annotators), 4, "Should list all users")
+        project_annotators = get_project_annotators(self.get_loggedin_request(), proj_id=proj.pk)
+        self.assertEqual(len(project_annotators), 0)
+
+
+        add_project_annotator(self.get_loggedin_request(), proj.pk, ann1.username)
+        add_project_annotator(self.get_loggedin_request(), proj.pk, ann2.username)
+        possible_annotators = get_possible_annotators(self.get_loggedin_request())
+        self.assertEqual(len(possible_annotators), 2, "Associate 2 users with a project, should list 2 users")
+        project_annotators = get_project_annotators(self.get_loggedin_request(), proj_id=proj.pk)
+        self.assertEqual(len(project_annotators), 2)
+
+        remove_project_annotator(self.get_loggedin_request(), proj.pk, ann1.username)
+        possible_annotators = get_possible_annotators(self.get_loggedin_request())
+        self.assertEqual(len(possible_annotators), 3, "Remove 1 user from project, should list 3 users")
+        project_annotators = get_project_annotators(self.get_loggedin_request(), proj_id=proj.pk)
+        self.assertEqual(len(project_annotators), 1)
+
+
