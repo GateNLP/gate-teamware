@@ -1,0 +1,229 @@
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AnonymousUser
+from django.http import HttpRequest
+from django.test import TestCase, Client
+from django.test.client import RequestFactory
+import json
+
+from backend.models import Annotation, Document, Project
+from backend.rpc import create_project, update_project, add_project_document, add_document_annotation
+from backend.rpcserver import rpc_method
+
+
+@rpc_method
+def rpc_endpoint_for_test_call(request, a, b):
+    return a + b
+
+
+class TestEndpoint(TestCase):
+    username = "testuser"
+    password = "123456789"
+    user_email = "test@test.com"
+
+    factory = RequestFactory()
+
+    user = None
+    client = None
+
+    def get_default_user(self):
+
+        if not self.user:
+            self.user = get_user_model().objects.create(username=self.username)
+            self.user.set_password(self.password)
+            self.user.save()
+
+        return self.user
+
+    def get_request(self):
+        request = self.factory.get("/")
+        request.user = AnonymousUser()
+
+    def get_loggedin_request(self):
+        request = self.factory.get("/")
+        request.user = self.get_default_user()
+        return request
+
+    def get_client(self):
+        if not self.client:
+            self.client = Client()
+        return self.client
+
+    def get_loggedin_client(self):
+        client = self.get_client()
+        user = self.get_default_user()
+        self.assertTrue(client.login(username=self.username, password=self.password))
+        return client
+
+    def call_rpc(self, client, mehod_name, *params):
+        response = client.post("/rpc/", {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "method": mehod_name,
+            "params": list(params)
+        }, content_type="application/json")
+        return response
+
+
+class TestTestEndpoint(TestCase):
+    def test_call_rpc(self):
+        e = TestEndpoint()
+        c = e.get_client()
+        response = e.call_rpc(c, "rpc_endpoint_for_test_call", 2, 3)
+        self.assertEqual(response.status_code, 200)
+        msg = json.loads(response.content)
+        self.assertEqual(msg["result"], 5)
+
+    def test_client_loggedin(self):
+        e = TestEndpoint()
+        self.assertIsNotNone(e.get_loggedin_client())
+
+
+class TestUserAuth(TestCase):
+
+    def test_user_auth(self):
+        username = "testuser"
+        user_pass = "123456789"
+        user_email = "test@test.com"
+
+        c = Client()
+
+        # Register
+        params = {
+            "username": username,
+            "password": user_pass,
+            "email": user_email,
+        }
+        response = c.post("/rpc/",
+                          {"jsonrpc": "2.0", "method": "register", "id": 20, "params": [params]},
+                          content_type="application/json")
+        self.assertEqual(response.status_code, 200)
+        msg = json.loads(response.content)
+        self.assertEqual(msg["result"]["isAuthenticated"], True)
+
+        # Log in
+        params = {
+            "username": username,
+            "password": user_pass,
+        }
+        response = c.post("/rpc/",
+                          {"jsonrpc": "2.0", "method": "login", "id": 20, "params": [params]},
+                          content_type="application/json")
+        self.assertEqual(response.status_code, 200)
+        msg = json.loads(response.content)
+        self.assertEqual(msg["result"]["isAuthenticated"], True)
+
+        # Check authentication
+        response = c.post("/rpc/",
+                          {"jsonrpc": "2.0", "method": "is_authenticated", "id": 20},
+                          content_type="application/json")
+        self.assertEqual(response.status_code, 200)
+        msg = json.loads(response.content)
+        self.assertEqual(msg["result"]["isAuthenticated"], True)
+
+        # Log Out
+        response = c.post("/rpc/",
+                          {"jsonrpc": "2.0", "method": "logout", "id": 20},
+                          content_type="application/json")
+        self.assertEqual(response.status_code, 200)
+
+
+class TestProject(TestEndpoint):
+
+    def test_create_project(self):
+        proj_obj = create_project(self.get_loggedin_request())
+        self.assertIsNotNone(proj_obj)
+        self.assertTrue('id' in proj_obj)
+        self.assertTrue(proj_obj['id'] > 0)
+        self.assertTrue('name' in proj_obj)
+
+        saved_proj = Project.objects.get(pk=proj_obj['id'])
+        self.assertEqual(saved_proj.owner.pk, self.get_default_user().pk)  # Owner is project creator
+
+
+
+    def test_update_project(self):
+        project = Project.objects.create()
+
+        data = {
+            "id": project.pk,
+            "name": "Test project",
+            "configuration": [
+                {
+                    "name": "sentiment",
+                    "title": "Sentiment",
+                    "type": "radio",
+                    "options": {
+                        "positive": "Positive",
+                        "negative": "Negative",
+                        "neutral": "Neutral"
+                    }
+                },
+                {
+                    "name": "reason",
+                    "title": "Reason for your stated sentiment",
+                    "type": "textarea"
+                }
+            ],
+        }
+
+        self.assertTrue(update_project(self.get_loggedin_request(), data))
+
+        saved_proj = Project.objects.get(pk=project.pk)
+        self.assertEqual(len(saved_proj.configuration), 2)
+
+
+class TestDocument(TestEndpoint):
+
+    def test_create_document(self):
+        proj = Project.objects.create(owner=self.get_default_user())
+        test_doc = {
+            "text": "Test text"
+        }
+        doc_id = add_project_document(self.get_loggedin_request(), proj.pk, test_doc)
+        self.assertTrue(doc_id > 0)
+
+        doc = Document.objects.get(pk=doc_id)
+        self.assertEqual(doc.project.pk, proj.pk)
+        self.assertEqual(doc.data["text"], "Test text")  # Data check
+
+class TestAnnotation(TestEndpoint):
+
+    def test_add_annotation(self):
+        proj = Project.objects.create(owner=self.get_default_user())
+        doc = Document.objects.create(project=proj)
+
+        test_annote = {
+            "label1": "value1"
+        }
+
+        annote_id = add_document_annotation(self.get_loggedin_request(), doc.pk, test_annote)
+
+        annotation = Annotation.objects.get(pk=annote_id)
+        self.assertEqual(annotation.user.pk, self.get_default_user().pk)  # Annotation linked to user
+        self.assertEqual(annotation.data["label1"], "value1")  # Data check
+
+
+class TestAnnotationExport(TestEndpoint):
+
+    def test_rpc_get_annotations_endpoint(self):
+        user = self.get_default_user()
+        c = self.get_loggedin_client()
+
+        ##setup
+        project = Project.objects.create()
+
+        with open('examples/documents.json') as f:
+            for input_document in json.load(f):
+                document = Document.objects.create(project=project, data=input_document)
+                Annotation.objects.create(user=user, document=document, data={"testannotation": "test"})
+
+        # test the endpoint
+        response = c.post("/rpc/", {"jsonrpc": "2.0", "method": "get_annotations", "id": 20, "params": [project.id]},
+                          content_type="application/json")
+        self.assertEqual(response.status_code, 200)
+
+        # test the get_annotations function
+        from backend.rpc import get_annotations
+        annotations = get_annotations(None, project.id)
+        self.assertIsNotNone(annotations)
+        self.assertEqual(type(annotations), list)

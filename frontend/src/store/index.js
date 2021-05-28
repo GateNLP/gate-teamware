@@ -110,6 +110,13 @@ export default new Vuex.Store({
                 console.log(e)
             }
         },
+        async addProjectDocument({dispatch, commit}, { projectId, document}){
+            try{
+                let docId = await rpc.call("add_project_document", projectId, document)
+            }catch (e){
+                console.error(e)
+            }
+        },
         async addAnnotation({dispatch, commit}, {docId, annotation}){
             try {
 
@@ -117,8 +124,6 @@ export default new Vuex.Store({
             }catch (e){
                 console.log(e)
             }
-
-
         },
         async getAnnotations({dispatch, commit}, projectID){
             try{

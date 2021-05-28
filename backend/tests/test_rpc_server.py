@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
 import json
@@ -24,6 +25,11 @@ def rpc_test_raise_auth_error(request):
 @rpc_method_auth
 def rpc_test_raise_permission_error(request):
     raise PermissionError("Thrown to test permission error handling")
+
+@rpc_method
+@transaction.atomic
+def rpc_test_django_atomic(request, a, b):
+    return a+b
 
 class TestRPCServer(TestCase):
 
@@ -107,106 +113,19 @@ class TestRPCServer(TestCase):
         self.assertEqual(response.status_code, 401)
         self.assertEqual(msg["error"]["code"], backend.rpcserver.UNAUTHORIZED_ERROR)
 
-
-class TestUserAuth(TestCase):
-
-    def test_user_auth(self):
-        username = "testuser"
-        user_pass = "123456789"
-        user_email = "test@test.com"
-
+    def test_rpc_django_atomic(self):
         c = Client()
 
-        # Register
-        params = {
-            "username": username,
-            "password": user_pass,
-            "email": user_email,
-        }
         response = c.post("/rpc/",
-                          {"jsonrpc": "2.0", "method": "register", "id": 20,"params": [params]},
+                          {"jsonrpc": "2.0", "method": "rpc_test_django_atomic", "params": [30, 40], "id": 20},
                           content_type="application/json")
-        self.assertEqual(response.status_code, 200)
         msg = json.loads(response.content)
-        self.assertEqual(msg["result"]["isAuthenticated"], True)
-
-        # Log in
-        params = {
-            "username": username,
-            "password": user_pass,
-        }
-        response = c.post("/rpc/",
-                          {"jsonrpc": "2.0", "method": "login", "id": 20,"params": [params]},
-                          content_type="application/json")
         self.assertEqual(response.status_code, 200)
-        msg = json.loads(response.content)
-        self.assertEqual(msg["result"]["isAuthenticated"], True)
-
-        # Check authentication
-        response = c.post("/rpc/",
-                          {"jsonrpc": "2.0", "method": "is_authenticated", "id": 20},
-                          content_type="application/json")
-        self.assertEqual(response.status_code, 200)
-        msg = json.loads(response.content)
-        self.assertEqual(msg["result"]["isAuthenticated"], True)
-
-        # Log Out
-        response = c.post("/rpc/",
-                          {"jsonrpc": "2.0", "method": "logout", "id": 20},
-                          content_type="application/json")
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(msg["result"], 30 + 40)
+        self.assertEqual(msg["id"], 20)
 
 
 
-class TestRPCProjectCreate(TestCase):
-
-    def test_rpc_update_project(self):
-        username = "testuser"
-        user_pass = "123456789"
-        user = get_user_model().objects.create(username=username)
-        user.set_password(user_pass)
-        user.save()
-
-        project = Project.objects.create()
-
-        data = {
-            "id":project.pk,
-            "name":"Test project",
-            "data":"[\n  {\n    \"text\": \"Some text\"\n  },\n  {\n    \"text\": \"Document <b>with some html</b>\"\n  },\n  {\n    \"text\": \"Another document\"\n  }\n]\n",
-            "configuration":"[\n  {\n    \"name\": \"sentiment\",\n    \"title\": \"Sentiment\",\n    \"type\":\"radio\",\n    \"options\": {\n        \"positive\": \"Positive\",\n        \"negative\": \"Negative\",\n        \"neutral\": \"Neutral\"\n    }\n  },\n  {\n    \"name\": \"reason\",\n    \"title\": \"Reason for your stated sentiment\",\n    \"type\":\"textarea\"\n  }\n]",
-            }
-
-        c = Client()
-        response = c.post("/rpc/", {"jsonrpc": "2.0", "method": "update_project", "id": 20, "params": [data]},
-                          content_type="application/json")
-        self.assertEqual(response.status_code, 200)
 
 
-class TestRPCAnnotationExport(TestCase):
 
-    def test_rpc_get_annotations_endpoint(self):
-        username = "testuser"
-        user_pass = "123456789"
-        user = get_user_model().objects.create(username=username)
-        user.set_password(user_pass)
-        user.save()
-
-        ##setup
-        project = Project.objects.create()
-    
-        with open('examples/documents.json') as f:
-            for input_document in json.load(f):
-                document = Document.objects.create(project=project, data=input_document)
-                Annotation.objects.create(user=user,document=document,data={"testannotation":"test"})
-
-        # test the endpoint
-        c = Client()
-        response = c.post("/rpc/", {"jsonrpc": "2.0", "method": "get_annotations", "id": 20, "params": [project.id]},
-                    content_type="application/json")
-        self.assertEqual(response.status_code, 200)
-
-        # test the get_annotations function
-        from backend.rpc import get_annotations
-        annotations = get_annotations(None, project.id)
-        self.assertIsNotNone(annotations)
-        self.assertEqual(type(annotations),list)

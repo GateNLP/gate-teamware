@@ -1,6 +1,7 @@
 import json
 
 from django.contrib.auth import authenticate, get_user_model, login as djlogin, logout as djlogout
+from django.db import transaction
 from django.http import JsonResponse, HttpRequest
 from django.shortcuts import redirect, render
 
@@ -8,7 +9,7 @@ import gatenlp
 # https://pypi.org/project/gatenlp/
 
 from backend.errors import AuthError
-from backend.rpcserver import rpc_method
+from backend.rpcserver import rpc_method, rpc_method_auth
 from backend.models import Project, Document, Annotation
 from backend.utils.serialize import ModelSerializer
 
@@ -70,37 +71,38 @@ def register(request, payload):
 ### Project Management Methods ###
 ##################################
 
-@rpc_method
+@rpc_method_auth
+@transaction.atomic
 def create_project(request):
+
+
     proj = Project.objects.create()
+    proj.owner = request.user
+    proj.save()
 
     return serializer.serialize(proj)
 
-@rpc_method
+@rpc_method_auth
+@transaction.atomic
 def update_project(request, project_dict):
     project = serializer.deserialize(Project, project_dict)
 
-    for document in json.loads(project_dict["data"]):
-        Document.objects.get_or_create(
-                    project=project,
-                    data=document)
-
     return True
 
-@rpc_method
+@rpc_method_auth
 def get_project(request, pk):
 
     proj = Project.objects.get(pk=pk)
     return serializer.serialize(proj)
 
 
-@rpc_method
+@rpc_method_auth
 def get_projects(request):
 
     projects = Project.objects.all()
     return [serializer.serialize(proj) for proj in projects]
 
-@rpc_method
+@rpc_method_auth
 def get_project_documents(request, project_id):
 
     project = Project.objects.get(pk=project_id)
@@ -122,21 +124,27 @@ def get_project_documents(request, project_id):
 
     return documents_out
 
-@rpc_method
-def add_project_document(request, project_id, document):
+@rpc_method_auth
+@transaction.atomic
+def add_project_document(request, project_id, document_data):
+
     project = Project.objects.get(pk=project_id)
     document = Document.objects.create(project=project)
+    document.data = document_data
+    document.save()
 
     return document.pk
 
 
-@rpc_method
+@rpc_method_auth
+@transaction.atomic
 def add_document_annotation(request, doc_id, annotation):
+
     document = Document.objects.get(pk=doc_id)
-    annotation = Annotation.objects.create(document=document, data=annotation)
+    annotation = Annotation.objects.create(document=document, data=annotation, user=request.user)
     return annotation.pk
 
-@rpc_method
+@rpc_method_auth
 def get_annotations(request, project_id):
     """
     Serialize project annotations as GATENLP format JSON using the python-gatenlp interface.
@@ -156,7 +164,7 @@ def get_annotations(request, project_id):
             annset.add(start = 0,
                         end = len(document.data['text']),
                         anntype = "Document",
-                        features=dict(label=annotation.data,_id=annotation.pk),
+                        features=dict(label=annotation.data, _id=annotation.pk),
                         )
 
         # For each document, append the annotations

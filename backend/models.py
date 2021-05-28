@@ -52,6 +52,7 @@ class Document(models.Model):
     """
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="documents")
     data = models.JSONField(default=dict)
+    created_at = models.DateTimeField(default=timezone.now)
 
 
 class Annotation(models.Model):
@@ -61,3 +62,5 @@ class Annotation(models.Model):
     user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name="annotations", null=True)
     document = models.ForeignKey(Document, on_delete=models.CASCADE, related_name="annotations")
     data = models.JSONField(default=dict)
+    created_at = models.DateTimeField(default=timezone.now)
+
