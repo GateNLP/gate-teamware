@@ -7,6 +7,7 @@ from django.shortcuts import redirect, render
 import gatenlp
 # https://pypi.org/project/gatenlp/
 
+from backend.errors import AuthError
 from backend.rpcserver import rpc_method
 from backend.models import Project, Document, Annotation
 from backend.utils.serialize import ModelSerializer
@@ -29,7 +30,7 @@ def is_authenticated(request):
     return context
 
 @rpc_method
-def login(request,payload):
+def login(request, payload):
     context = {}
     user = authenticate(username=payload["username"], password=payload["password"])
     if user is not None:
@@ -38,9 +39,9 @@ def login(request,payload):
         context["isAuthenticated"] = True
         return context
     else:
-        context["error"] = "Invalid username or password."
+        raise AuthError("Invalid username or password.")
 
-    return JsonResponse(context)
+
 
 @rpc_method
 def logout(request):
@@ -48,7 +49,7 @@ def logout(request):
     return
 
 @rpc_method
-def register(request,payload):
+def register(request, payload):
     context = {}
     username = payload.get("username")
     password = payload.get("password")
@@ -61,9 +62,8 @@ def register(request,payload):
         context["isAuthenticated"] = True
         return context
     else:
-        context["error"] = "Username already exists"
+        raise ValueError("Username already exists")
 
-    return context
 
 
 ##################################
