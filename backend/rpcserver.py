@@ -104,7 +104,7 @@ class JSONRPCEndpoint(View):
             return self.error_response(INVALID_PARAMS, f"{e}", http_status=400)
 
         except AuthError as e:
-            log.error(f"Authentication failed trying to access {method_name}")
+            log.exception(f"Authentication failed trying to access {method_name}")
             return self.error_response(AUTHENTICATION_ERROR, f"{e}", http_status=401)
 
         except PermissionError as e:

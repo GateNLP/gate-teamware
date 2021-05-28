@@ -36,6 +36,9 @@ import CheckboxInput from "@/components/annotation/CheckboxInput";
 import SelectorInput from "@/components/annotation/SelectorInput";
 import HtmlDisplay from "@/components/annotation/HtmlDisplay";
 
+/**
+ * Renders annotation display and input capture from the config property
+ */
 export default {
   name: "AnnotationRenderer",
   components: {TextInput, TextareaInput, RadioInput, CheckboxInput, SelectorInput, HtmlDisplay},
