@@ -133,6 +133,38 @@ export default new Vuex.Store({
                 console.log(e)
             }
         },
+        async getPossibleAnnotators({dispatch, commit}){
+            try{
+                let response = await rpc.call("get_possible_annotators");
+                return response
+            }catch(e){
+                console.log(e)
+            }
+        },
+        async getProjectAnnotators({dispatch, commit}, projectID){
+            try{
+                let response = await rpc.call("get_project_annotators", projectID);
+                return response
+            }catch(e){
+                console.log(e)
+            }
+        },
+        async addProjectAnnotator({dispatch, commit}, {projectID, username}){
+            try{
+                let response = await rpc.call("add_project_annotator", projectID, username);
+                return response
+            }catch(e){
+                console.log(e)
+            }
+        },
+        async removeProjectAnnotator({dispatch, commit}, {projectID, username}){
+            try{
+                let response = await rpc.call("remove_project_annotator", projectID, username);
+                return response
+            }catch(e){
+                console.log(e)
+            }
+        },
 
     },
     modules: {}
