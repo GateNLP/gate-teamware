@@ -21,13 +21,14 @@ export default {
   methods:{
     ...mapActions(["getProjects", "createProject"]),
     async handleCreateProject(){
-      let projectObj = await this.createProject()
-      this.$router.push("/project/"+projectObj.id)
-
+      if (this.user && this.user.isAuthenticated){
+        let projectObj = await this.createProject()
+        this.$router.push("/project/"+projectObj.id)
+      }
     }
   },
   computed:{
-    ...mapState(["projects"])
+    ...mapState(["projects","user"])
   },
   beforeMount(){
     this.getProjects();

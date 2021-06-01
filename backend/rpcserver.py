@@ -5,6 +5,8 @@ from json.decoder import JSONDecodeError
 from django.http import JsonResponse, HttpRequest
 from django.views import View
 
+from backend.errors import AuthError
+
 log = logging.getLogger(__name__)
 
 REGISTERED_RPC_METHODS = {}
@@ -17,8 +19,7 @@ INTERNAL_ERROR = -32603
 AUTHENTICATION_ERROR = -32000
 UNAUTHORIZED_ERROR = -32001
 
-class AuthError(PermissionError):
-    pass
+
 
 class RPCMethod:
     def __init__(self, function, authenticate):
@@ -98,6 +99,10 @@ class JSONRPCEndpoint(View):
         except JSONDecodeError as e:
             log.exception(f"Unable to parse json string from request body {request.body}")
             return self.error_response(PARSE_ERROR, "Invalid JSON format in request")
+
+        except ValueError as e:
+            log.exception(f"Value error on rpc function {method_name}")
+            return self.error_response(INVALID_PARAMS, f"{e}", http_status=400)
 
         except TypeError as e:
             log.exception(f"Type error on rpc function {method_name}")

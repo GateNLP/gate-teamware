@@ -1,5 +1,3 @@
-import json
-from django.http import JsonResponse, HttpRequest
 from django.shortcuts import render
 from django.views import View
 
@@ -20,12 +18,3 @@ class MainView(View):
         context = {}
 
         return render(request, self.template_page, context=context)
-
-
-
-
-
-
-
-
-

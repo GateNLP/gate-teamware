@@ -2,6 +2,8 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
 import json
 
+from django.test.utils import TZ_SUPPORT
+
 from backend.models import Annotation, Document, Project
 from backend.rpcserver import rpc_method, rpc_method_auth, AuthError
 import backend.rpcserver
@@ -104,6 +106,56 @@ class TestRPCServer(TestCase):
         msg = json.loads(response.content)
         self.assertEqual(response.status_code, 401)
         self.assertEqual(msg["error"]["code"], backend.rpcserver.UNAUTHORIZED_ERROR)
+
+
+class TestUserAuth(TestCase):
+
+    def test_user_auth(self):
+        username = "testuser"
+        user_pass = "123456789"
+        user_email = "test@test.com"
+
+        c = Client()
+
+        # Register
+        params = {
+            "username": username,
+            "password": user_pass,
+            "email": user_email,
+        }
+        response = c.post("/rpc/",
+                          {"jsonrpc": "2.0", "method": "register", "id": 20,"params": [params]},
+                          content_type="application/json")
+        self.assertEqual(response.status_code, 200)
+        msg = json.loads(response.content)
+        self.assertEqual(msg["result"]["isAuthenticated"], True)
+
+        # Log in
+        params = {
+            "username": username,
+            "password": user_pass,
+        }
+        response = c.post("/rpc/",
+                          {"jsonrpc": "2.0", "method": "login", "id": 20,"params": [params]},
+                          content_type="application/json")
+        self.assertEqual(response.status_code, 200)
+        msg = json.loads(response.content)
+        self.assertEqual(msg["result"]["isAuthenticated"], True)
+
+        # Check authentication
+        response = c.post("/rpc/",
+                          {"jsonrpc": "2.0", "method": "is_authenticated", "id": 20},
+                          content_type="application/json")
+        self.assertEqual(response.status_code, 200)
+        msg = json.loads(response.content)
+        self.assertEqual(msg["result"]["isAuthenticated"], True)
+
+        # Log Out
+        response = c.post("/rpc/",
+                          {"jsonrpc": "2.0", "method": "logout", "id": 20},
+                          content_type="application/json")
+        self.assertEqual(response.status_code, 200)
+
 
 
 class TestRPCProjectCreate(TestCase):

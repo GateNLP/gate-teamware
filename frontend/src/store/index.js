@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
+import Cookies from 'js-cookie'
 import JSRPCClient from '../jrpc'
 
 const rpc = new JSRPCClient("/rpc/")
@@ -10,19 +11,70 @@ Vue.use(Vuex)
 export default new Vuex.Store({
     state: {
         projects: null,
+        user: {
+            username: "",
+            isAuthenticated: false,
+        },
     },
     mutations: {
+        updateUser(state, params) {
+            state.user.username = params.username;
+            state.user.isAuthenticated = params.isAuthenticated;
+        },
         updateProjects(state,projects) {
             state.projects = projects;
         }
     },
     actions: {
-        async login({dispatch, commit}, username, password) {
-
+        updateUser({commit}, params) {
+            commit("updateUser", params);
         },
-        async logout({dispatch, commit}) {
-
+        async login({dispatch, commit}, params) {
+            try{
+                const payload = {
+                    username: params.username,
+                    password: params.password,
+                }
+                let response = await rpc.call("login",payload);
+                dispatch("updateUser",response);
+                return response
+            }catch (e){
+                console.error(e);
+            }
         },
+        logout({dispatch, commit}) {
+            let params = {
+                username: "",
+                isAuthenticated: false,
+            }
+            rpc.call("logout");
+            commit("updateUser", params);
+        },
+        async register({dispatch, commit}, params) {
+            try{
+                const payload = {
+                    username: params.username,
+                    password: params.password,
+                    email: params.email,
+                }
+                let response = await rpc.call("register",payload);
+                dispatch("updateUser",response);
+                return response
+            }catch (e){
+                console.error(e);
+            }
+        },
+
+        async is_authenticated({dispatch, commit}) {
+            try{
+                let response = await rpc.call("is_authenticated");
+                dispatch("updateUser",response);
+                return response
+            }catch (e){
+                console.error(e);
+            }
+        },
+
         async getProjects({dispatch,commit}){
             try {
                 let projects = await rpc.call("get_projects");

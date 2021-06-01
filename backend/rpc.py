@@ -1,14 +1,74 @@
 import json
 
+from django.contrib.auth import authenticate, get_user_model, login as djlogin, logout as djlogout
+from django.http import JsonResponse, HttpRequest
+from django.shortcuts import redirect, render
+
 import gatenlp
 # https://pypi.org/project/gatenlp/
 
+from backend.errors import AuthError
 from backend.rpcserver import rpc_method
 from backend.models import Project, Document, Annotation
 from backend.utils.serialize import ModelSerializer
 
 
 serializer = ModelSerializer()
+
+#####################################
+### Login/Logout/Register Methods ###
+#####################################
+
+@rpc_method
+def is_authenticated(request):
+    context = {}
+    if request.user.is_authenticated:
+        context["isAuthenticated"] = True
+        context["username"] = request.user.username
+    else:
+        context["isAuthenticated"] = False
+    return context
+
+@rpc_method
+def login(request, payload):
+    context = {}
+    user = authenticate(username=payload["username"], password=payload["password"])
+    if user is not None:
+        djlogin(request, user)
+        context["username"] = payload["username"]
+        context["isAuthenticated"] = True
+        return context
+    else:
+        raise AuthError("Invalid username or password.")
+
+
+
+@rpc_method
+def logout(request):
+    djlogout(request)
+    return
+
+@rpc_method
+def register(request, payload):
+    context = {}
+    username = payload.get("username")
+    password = payload.get("password")
+    email = payload.get("email")
+
+    if not get_user_model().objects.filter(username=username).exists():
+        user = get_user_model().objects.create_user(username=username, password=password, email=email)
+        djlogin(request, user)
+        context["username"] = payload["username"]
+        context["isAuthenticated"] = True
+        return context
+    else:
+        raise ValueError("Username already exists")
+
+
+
+##################################
+### Project Management Methods ###
+##################################
 
 @rpc_method
 def create_project(request):
