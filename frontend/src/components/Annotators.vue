@@ -4,26 +4,44 @@
       <div class="col-6">
         <h5>Current annotators of the project</h5>
 
-        <b-list-group>
-          <b-list-group-item href="#" v-for="annotator in projectAnnotators" v-bind:key="annotator.id"
+        <b-form-input v-model="projectAnnotatorSearch" placeholder="Search annotators by username"></b-form-input>
+
+        <b-list-group id="projectAnnotators">
+          <b-list-group-item href="#" v-for="annotator in projectAnnotatorsPaginated" v-bind:key="annotator.id"
             @click="removeAnnotator(annotator.username)">
             <b-icon icon="person-x-fill" aria-hidden="true" variant="danger"></b-icon>
             {{ annotator.username }}
           </b-list-group-item>
         </b-list-group>
 
+        <b-pagination
+          v-model="currentPageProjectAnnotators"
+          :total-rows="rowsProjectAnnotators"
+          :per-page="perPage"
+          aria-controls="projectAnnotators"
+          align="center"
+        ></b-pagination>
+
       </div>
       <div class="col-6">
         <h5>Add annotator to project</h5>
 
-        <b-list-group>
-          <b-list-group-item href="#" v-for="annotator in possibleAnnotators" v-bind:key="annotator.id"
+        <b-form-input v-model="possibleAnnotatorSearch" placeholder="Search annotators by username"></b-form-input>
+        <b-list-group id="possibleAnnotators">
+          <b-list-group-item href="#" v-for="annotator in possibleAnnotatorsPaginated" v-bind:key="annotator.id"
             @click="addAnnotator(annotator.username)">
             <b-icon icon="person-plus-fill" aria-hidden="true" variant="success"></b-icon>
             {{ annotator.username }}
           </b-list-group-item>
         </b-list-group>
 
+        <b-pagination
+          v-model="currentPagePossibleAnnotators"
+          :total-rows="rowsPossibleAnnotators"
+          :per-page="perPage"
+          aria-controls="possibleAnnotators"
+          align="center"
+        ></b-pagination>
 
       </div>
     </div>
@@ -39,7 +57,12 @@ export default {
   data() {
     return {
       possibleAnnotators: [],
+      possibleAnnotatorSearch: '',
       projectAnnotators: [],
+      projectAnnotatorSearch: '',
+      currentPageProjectAnnotators: 1,
+      currentPagePossibleAnnotators: 1,
+      perPage: 10,
     }
   },
   props:{
@@ -47,9 +70,6 @@ export default {
       type: String,
       default: null,
     }
-  },
-  computed: {
-    ...mapState(["projects"]),
   },
   methods: {
     ...mapActions(["getPossibleAnnotators", "addProjectAnnotator", "removeProjectAnnotator", "getProjectAnnotators"]),
@@ -64,10 +84,41 @@ export default {
     async removeAnnotator(username){
       await this.removeProjectAnnotator({ projectID: this.projectID, username: username });
       this.updateAnnotators();
+    },
+    searchAnnotators(annotators,searchString){
+      const regEx = new RegExp(searchString);
+      const result = _.filter(annotators, ({username}) => !!username.match(regEx));
+      return result
     }
   },
   mounted(){
     this.updateAnnotators();
+  },
+  computed:{
+    possibleAnnotatorsFiltered(){
+      return this.searchAnnotators(this.possibleAnnotators,this.possibleAnnotatorSearch);
+    },
+    projectAnnotatorsFiltered(){
+      return this.searchAnnotators(this.projectAnnotators,this.projectAnnotatorSearch);
+    },
+    possibleAnnotatorsPaginated(){
+      return this.possibleAnnotatorsFiltered.slice(
+        (this.currentPagePossibleAnnotators - 1) * this.perPage,
+        this.currentPagePossibleAnnotators * this.perPage
+      )
+    },
+    projectAnnotatorsPaginated(){
+      return this.projectAnnotatorsFiltered.slice(
+        (this.currentPageProjectAnnotators - 1) * this.perPage,
+        this.currentPageProjectAnnotators * this.perPage
+      )
+    },
+    rowsPossibleAnnotators() {
+      return this.possibleAnnotatorsFiltered.length
+    },
+    rowsProjectAnnotators() {
+      return this.projectAnnotatorsFiltered.length
+    }
   }
 }
 </script>
