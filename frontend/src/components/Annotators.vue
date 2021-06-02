@@ -1,18 +1,23 @@
 <template>
   <div class="container">
     <div class="row">
-      <div class="col-6">
+      <div class="col-4">
         <h5>Current annotators of the project</h5>
 
         <b-form-input v-model="projectAnnotatorSearch" placeholder="Search annotators by username"></b-form-input>
 
+        <br>
+
         <b-list-group id="projectAnnotators">
           <b-list-group-item href="#" v-for="annotator in projectAnnotatorsPaginated" v-bind:key="annotator.id"
-            @click="removeAnnotator(annotator.username)">
-            <b-icon icon="person-x-fill" aria-hidden="true" variant="danger"></b-icon>
+            @click="removeAnnotator(annotator.username)"
+            class="d-flex justify-content-between align-items-center">
             {{ annotator.username }}
+            <b-icon icon="person-x-fill" aria-hidden="true" variant="danger"></b-icon>
           </b-list-group-item>
         </b-list-group>
+
+        <br>
 
         <b-pagination
           v-model="currentPageProjectAnnotators"
@@ -23,17 +28,23 @@
         ></b-pagination>
 
       </div>
-      <div class="col-6">
+      <div class="col-4">
         <h5>Add annotator to project</h5>
 
         <b-form-input v-model="possibleAnnotatorSearch" placeholder="Search annotators by username"></b-form-input>
+
+        <br>
+
         <b-list-group id="possibleAnnotators">
           <b-list-group-item href="#" v-for="annotator in possibleAnnotatorsPaginated" v-bind:key="annotator.id"
-            @click="addAnnotator(annotator.username)">
-            <b-icon icon="person-plus-fill" aria-hidden="true" variant="success"></b-icon>
+            @click="addAnnotator(annotator.username)"
+            class="d-flex justify-content-between align-items-center">
             {{ annotator.username }}
+            <b-icon icon="person-plus-fill" aria-hidden="true" variant="success"></b-icon>
           </b-list-group-item>
         </b-list-group>
+
+        <br>
 
         <b-pagination
           v-model="currentPagePossibleAnnotators"
