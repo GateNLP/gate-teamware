@@ -176,13 +176,13 @@ def get_annotations(request, project_id):
 @rpc_method_auth
 def get_possible_annotators(request):
     annotators = User.objects.filter(annotates=None)
-    output = [serializer.serialize(annotator, {"id", "username"}) for annotator in annotators]
+    output = [serializer.serialize(annotator, {"id", "username", "email"}) for annotator in annotators]
     return output
 
 @rpc_method_auth
 def get_project_annotators(request, proj_id):
     project = Project.objects.get(pk=proj_id)
-    output = [serializer.serialize(annotator, {"id", "username"}) for annotator in project.annotators.all()]
+    output = [serializer.serialize(annotator, {"id", "username", "email"}) for annotator in project.annotators.all()]
     return output
 
 @rpc_method_auth

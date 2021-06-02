@@ -4,7 +4,7 @@
       <div class="col-4">
         <h5>Current annotators of the project</h5>
 
-        <b-form-input v-model="projectAnnotatorSearch" placeholder="Search annotators by username"></b-form-input>
+        <b-form-input v-model="projectAnnotatorSearch" placeholder="Search by username or email"></b-form-input>
 
         <br>
 
@@ -31,7 +31,7 @@
       <div class="col-4">
         <h5>Add annotator to project</h5>
 
-        <b-form-input v-model="possibleAnnotatorSearch" placeholder="Search annotators by username"></b-form-input>
+        <b-form-input v-model="possibleAnnotatorSearch" placeholder="Search by username or email"></b-form-input>
 
         <br>
 
@@ -98,7 +98,7 @@ export default {
     },
     searchAnnotators(annotators,searchString){
       const regEx = new RegExp(searchString);
-      const result = _.filter(annotators, ({username}) => !!username.match(regEx));
+      const result = _.filter(annotators, ({username, email}) => !!username.match(regEx) || !!email.match(regEx));
       return result
     }
   },
