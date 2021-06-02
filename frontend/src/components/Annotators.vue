@@ -11,7 +11,8 @@
         <b-list-group id="projectAnnotators">
           <b-list-group-item href="#" v-for="annotator in projectAnnotatorsPaginated" v-bind:key="annotator.id"
             @click="removeAnnotator(annotator.username)"
-            class="d-flex justify-content-between align-items-center">
+            class="d-flex justify-content-between align-items-center"
+            v-b-tooltip.hover :title="annotator.email">
             {{ annotator.username }}
             <b-icon icon="person-x-fill" aria-hidden="true" variant="danger"></b-icon>
           </b-list-group-item>
@@ -38,7 +39,8 @@
         <b-list-group id="possibleAnnotators">
           <b-list-group-item href="#" v-for="annotator in possibleAnnotatorsPaginated" v-bind:key="annotator.id"
             @click="addAnnotator(annotator.username)"
-            class="d-flex justify-content-between align-items-center">
+            class="d-flex justify-content-between align-items-center"
+            v-b-tooltip.hover :title="annotator.email">
             {{ annotator.username }}
             <b-icon icon="person-plus-fill" aria-hidden="true" variant="success"></b-icon>
           </b-list-group-item>
