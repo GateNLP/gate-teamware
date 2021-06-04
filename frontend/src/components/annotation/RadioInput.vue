@@ -2,7 +2,6 @@
   <InputErrorDisplay :state="state" :msg-error="msgError" :msg-success="msgSuccess">
     <b-form-radio-group v-model="inputVal"  :name="config.name" :options="options" :state="state"></b-form-radio-group>
   </InputErrorDisplay>
-
 </template>
 
 <script>

@@ -7,7 +7,8 @@ import json
 
 from backend.models import Annotation, Document, Project
 from backend.rpc import create_project, update_project, add_project_document, add_document_annotation, \
-    get_possible_annotators, add_project_annotator, remove_project_annotator, get_project_annotators
+    get_possible_annotators, add_project_annotator, remove_project_annotator, get_project_annotators, \
+    get_annotation_task
 from backend.rpcserver import rpc_method
 
 
@@ -258,5 +259,34 @@ class TestUsers(TestEndpoint):
         self.assertEqual(len(possible_annotators), 3, "Remove 1 user from project, should list 3 users")
         project_annotators = get_project_annotators(self.get_loggedin_request(), proj_id=proj.pk)
         self.assertEqual(len(project_annotators), 1)
+
+class TestAnnotationTaskManager(TestEndpoint):
+
+    def test_annotation_task(self):
+        # Create users and project, add them as annotators
+        user = self.get_default_user()
+
+        ann1 = get_user_model().objects.create(username="ann1")
+        ann2 = get_user_model().objects.create(username="ann2")
+        ann3 = get_user_model().objects.create(username="ann3")
+
+        proj = Project.objects.create(owner=user)
+
+        # Create documents
+        num_docs = 15
+        docs = list()
+        for i in range(num_docs):
+            docs.append(Document.objects.create(project=proj))
+
+        self.assertEqual(proj.documents.count(), num_docs)
+
+        # Get blank annotation task, user has no project association
+        self.assertIsNone(get_annotation_task(self.get_loggedin_request(), ann1.username))
+
+        # Add ann1 as the project's annotator
+        self.assertTrue(add_project_annotator(self.get_loggedin_request(), proj.id, ann1.username))
+        task_object = get_annotation_task(self.get_loggedin_request(), ann1.username)
+
+
 
 

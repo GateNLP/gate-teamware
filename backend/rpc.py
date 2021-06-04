@@ -202,3 +202,55 @@ def remove_project_annotator(request, proj_id, username):
     project.annotators.remove(annotator)
     project.save()
     return True
+
+
+@rpc_method_auth
+def get_annotation_task(request, username):
+    """ Gets the annotator's current task """
+    # Gets project the user's associated with
+    user = User.objects.get(username=username)
+    project = user.annotates
+
+    # No project to annotate
+    if not project:
+        return None
+
+    annotation = project.get_current_annotator_task(user)
+
+    # Check project is not completed
+
+
+    # Find an annotation slot
+
+    if project.user_reached_quota(user):
+        # Reached annotation quota for project! Remove from project
+        user.annotates = None
+        user.save()
+        return None
+
+
+
+
+@rpc_method_auth
+def complete_annotation_task(request, username, annotation_data, get_next_task):
+    """ Complete the annotator's current task, with option to get the next task """
+    # Gets project the user's associated with
+    user = User.objects.get(username=username)
+    project = user.annotates
+    if project:
+        # Find an annotation slot
+        return True
+    else:
+        return None
+
+@rpc_method_auth
+def reject_annotation_task(request, username):
+    """  """
+    # Gets project the user's associated with
+    user = User.objects.get(username=username)
+    project = user.annotates
+    if project:
+        # Find an annotation slot
+        return True
+    else:
+        return None

@@ -16,13 +16,13 @@ class TestProjectModel(TestCase):
             "entry2": "val2"
         }
 
-        proj = Project(name=name, created_at=created_at, data=data)
+        proj = Project(name=name, created_at=created_at, configuration=data)
         proj.save()
 
         loaded_proj = Project.objects.get(pk=1)
         self.assertEqual(loaded_proj.name, name)
-        self.assertEqual(loaded_proj.created_at, created_at)
-        proj_data = loaded_proj.data
+        self.assertEqual(loaded_proj.created, created_at)
+        proj_data = loaded_proj.configuration
         self.assertEqual(proj_data["entry1"], data["entry1"])
         self.assertEqual(proj_data["entry2"], data["entry2"])
 
@@ -37,7 +37,7 @@ class TestProjectModel(TestCase):
             "entry1": "val1",
             "entry2": "val2"
         }
-        proj = Project(name=name, created_at=created_at, data=data)
+        proj = Project(name=name, created_at=created_at, configuration=data)
         proj.save()
 
         # One document
@@ -62,7 +62,7 @@ class TestProjectModel(TestCase):
         serialized_proj = serializer.serialize(proj)
 
         self.assertEqual(serialized_proj["name"], proj.name)
-        self.assertEqual(serialized_proj["data"], proj.data)
+        self.assertEqual(serialized_proj["configuration"], proj.configuration)
         self.assertEqual(serialized_proj["owner"], user1.id)
         self.assertEqual(serialized_proj["managers"], [user2.id])
         self.assertEqual(serialized_proj["documents"], [document.id, document2.id])

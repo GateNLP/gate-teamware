@@ -8,20 +8,32 @@
           <b-form-group label="Name">
             <b-form-input v-model="local_project.name" name="project_name"></b-form-input>
           </b-form-group>
+          <b-form-group label="Description">
+            <b-textarea v-model="local_project.description" name="project_description"></b-textarea>
+          </b-form-group>
+          <b-form-group label="Annotations per document">
+            <b-form-input v-model="local_project.annotations_per_doc"></b-form-input>
+          </b-form-group>
+          <b-form-group label="Maximum percentage of documents annotated per annotator">
+            <b-form-input v-model="local_project.annotator_max_annotation"></b-form-input>
+          </b-form-group>
           <b-form-row>
             <b-col>
               <h4>Project configuration</h4>
               <JsonEditor v-model="local_project.configuration"></JsonEditor>
-
-              <h5 class="mt-4">Document input preview</h5>
-              <VJsoneditor v-model="testDocument" :options="{mode: 'code'}" :plus="false" height="400px"></VJsoneditor>
-
             </b-col>
             <b-col>
               <h4>Annotation preview</h4>
               <AnnotationRenderer :config="local_project.configuration"
                                   @input="annotationOutputHandler"></AnnotationRenderer>
-
+            </b-col>
+          </b-form-row>
+          <b-form-row>
+            <b-col>
+              <h5 class="mt-4">Document input preview</h5>
+              <VJsoneditor v-model="testDocument" :options="{mode: 'code'}" :plus="false" height="400px"></VJsoneditor>
+            </b-col>
+            <b-col>
               <h5 class="mt-4">Annotation output preview</h5>
               <VJsoneditor v-model="annotationOutput" :options="{mode: 'preview', mainMenuBar: false}" :plus="false"
                            height="400px"></VJsoneditor>
@@ -37,9 +49,9 @@
           </b-form-row>
         </b-form>
       </b-tab>
-      <b-tab title="Documents" :disabled="documentTabDisabled">
+      <b-tab title="Documents">
 
-        <b-button variant="primary" v-if="local_project.configuration && documents && documents.length > 0"
+        <b-button variant="primary" v-if="projectConfigValid"
                   @click="goToAnnotatePage">Annotate documents
         </b-button>
 
@@ -101,6 +113,8 @@ export default {
         name: null,
         configuration: null,
         data: null,
+        annotations_per_doc: 3,
+        annotator_max_annotation: 0.6,
       },
       configurationStr: "",
       documents: null,
@@ -115,9 +129,13 @@ export default {
     projectId() {
       return this.$route.params.id
     },
-    documentTabDisabled() {
-      return !(this.local_project && this.local_project.configuration && this.local_project.configuration.length > 0)
+    projectConfigValid() {
+      return this.local_project && this.local_project.configuration && this.local_project.configuration.length > 0
+    },
+    projectReadyForAnnotation(){
+      return this.projectConfigValid()
     }
+
   },
   methods: {
     ...mapActions(["getProjects", "updateProject", "getProjectDocuments", "getAnnotations", "addProjectDocument"]),
