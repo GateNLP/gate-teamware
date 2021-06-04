@@ -64,6 +64,12 @@
           </div>
         </b-form>
       </b-tab>
+      <b-tab title="Annotators">
+        <Annotators :projectID="projectId"></Annotators>
+      </b-tab>
+      <b-tab title="Managers">
+
+      </b-tab>
 
     </b-tabs>
 
@@ -76,13 +82,14 @@ import _ from "lodash"
 import {mapActions, mapState} from "vuex";
 import VTable from "@/components/VTable";
 import AnnotationRenderer from "@/components/AnnotationRenderer";
+import Annotators from "@/components/Annotators";
 import JsonEditor from "@/components/JsonEditor";
 import VJsoneditor from "v-jsoneditor";
 import { readFileAsync} from "@/utils";
 
 export default {
   name: "Project",
-  components: {JsonEditor, AnnotationRenderer, VTable, VJsoneditor},
+  components: {JsonEditor, AnnotationRenderer, VTable, VJsoneditor, Annotators},
   data() {
     return {
       activeTab: 0,
