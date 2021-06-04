@@ -102,11 +102,15 @@ class JSONRPCEndpoint(View):
 
         except ValueError as e:
             log.exception(f"Value error on rpc function {method_name}")
-            return self.error_response(INVALID_PARAMS, f"{e}", http_status=400)
+            return self.error_response(INVALID_REQUEST, f"{e}", http_status=400)
 
         except TypeError as e:
             log.exception(f"Type error on rpc function {method_name}")
             return self.error_response(INVALID_PARAMS, f"{e}", http_status=400)
+
+        except RuntimeError as e:
+            log.exception(f"Runtime error on rpc function {method_name}")
+            return self.error_response(INVALID_REQUEST, f"{e}", http_status=400)
 
         except AuthError as e:
             log.exception(f"Authentication failed trying to access {method_name}")
@@ -117,7 +121,7 @@ class JSONRPCEndpoint(View):
             return self.error_response(UNAUTHORIZED_ERROR, f"Permission Denied: {e}", http_status=401)
 
         except Exception as e:
-            log.exception("Unknown rpc exception")
+            log.exception(f"Unknown rpc exception on method  {method_name}")
             return self.error_response(INTERNAL_ERROR, f"Unknown error: {e}", http_status=500)
 
 

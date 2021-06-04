@@ -56,7 +56,7 @@
 
         <b-form>
           <b-form-group label="Documents" class="mt-4">
-            <b-file @change="fileHandler" multiple></b-file>
+            <b-file @change="documentUploadHandler" multiple></b-file>
           </b-form-group>
 
           <div v-if="documents">
@@ -78,6 +78,7 @@ import VTable from "@/components/VTable";
 import AnnotationRenderer from "@/components/AnnotationRenderer";
 import JsonEditor from "@/components/JsonEditor";
 import VJsoneditor from "v-jsoneditor";
+import { readFileAsync} from "@/utils";
 
 export default {
   name: "Project",
@@ -112,22 +113,32 @@ export default {
     }
   },
   methods: {
-    ...mapActions(["getProjects", "updateProject", "getProjectDocuments", "getAnnotations"]),
+    ...mapActions(["getProjects", "updateProject", "getProjectDocuments", "getAnnotations", "addProjectDocument"]),
     async saveProjectHandler() {
       await this.updateProject(this.local_project);
       this.documents = await this.getProjectDocuments(this.projectId);
     },
-    fileHandler(e) {
-      const self = this
+    async documentUploadHandler(e) {
+
       const fileList = e.target.files
-      self.local_project.data = '';
+
       for (let file of fileList) {
-        const reader = new FileReader()
-        reader.onload = function (e) {
-          console.log(e.target.result)
-          self.local_project.data += e.target.result
-        }
-        reader.readAsText(file)
+        try{
+            const documentsStr = await readFileAsync(file)
+            const documents = JSON.parse(documentsStr)
+            // Uploaded file must be an array of docs
+            if(documents instanceof Array){
+              for(let document of documents){
+                await this.addProjectDocument({ projectId: this.projectId, document: document})
+              }
+            }
+
+          }catch (e){
+            console.error("Could not parse uploaded file")
+          console.error(e)
+          }
+
+          this.documents = await this.getProjectDocuments(this.projectId);
       }
     },
     async exportAnnotationsHandler() {
