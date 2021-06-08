@@ -16,7 +16,7 @@ class TestProjectModel(TestCase):
             "entry2": "val2"
         }
 
-        proj = Project(name=name, created_at=created_at, configuration=data)
+        proj = Project(name=name, created=created_at, configuration=data)
         proj.save()
 
         loaded_proj = Project.objects.get(pk=1)
@@ -37,7 +37,7 @@ class TestProjectModel(TestCase):
             "entry1": "val1",
             "entry2": "val2"
         }
-        proj = Project(name=name, created_at=created_at, configuration=data)
+        proj = Project(name=name, created=created_at, configuration=data)
         proj.save()
 
         # One document

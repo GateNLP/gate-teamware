@@ -8,7 +8,7 @@ import json
 from backend.models import Annotation, Document, Project
 from backend.rpc import create_project, update_project, add_project_document, add_document_annotation, \
     get_possible_annotators, add_project_annotator, remove_project_annotator, get_project_annotators, \
-    get_annotation_task
+    get_annotation_task, complete_annotation_task, reject_annotation_task
 from backend.rpcserver import rpc_method
 
 
@@ -39,6 +39,7 @@ class TestEndpoint(TestCase):
     def get_request(self):
         request = self.factory.get("/")
         request.user = AnonymousUser()
+        return request
 
     def get_loggedin_request(self):
         request = self.factory.get("/")
@@ -141,8 +142,6 @@ class TestProject(TestEndpoint):
         saved_proj = Project.objects.get(pk=proj_obj['id'])
         self.assertEqual(saved_proj.owner.pk, self.get_default_user().pk)  # Owner is project creator
 
-
-
     def test_update_project(self):
         project = Project.objects.create()
 
@@ -188,6 +187,7 @@ class TestDocument(TestEndpoint):
         self.assertEqual(doc.project.pk, proj.pk)
         self.assertEqual(doc.data["text"], "Test text")  # Data check
 
+
 class TestAnnotation(TestEndpoint):
 
     def test_add_annotation(self):
@@ -230,6 +230,7 @@ class TestAnnotationExport(TestEndpoint):
         self.assertIsNotNone(annotations)
         self.assertEqual(type(annotations), list)
 
+
 class TestUsers(TestEndpoint):
 
     def test_list_possible_annotators(self):
@@ -246,7 +247,6 @@ class TestUsers(TestEndpoint):
         project_annotators = get_project_annotators(self.get_loggedin_request(), proj_id=proj.pk)
         self.assertEqual(len(project_annotators), 0)
 
-
         add_project_annotator(self.get_loggedin_request(), proj.pk, ann1.username)
         add_project_annotator(self.get_loggedin_request(), proj.pk, ann2.username)
         possible_annotators = get_possible_annotators(self.get_loggedin_request())
@@ -260,20 +260,26 @@ class TestUsers(TestEndpoint):
         project_annotators = get_project_annotators(self.get_loggedin_request(), proj_id=proj.pk)
         self.assertEqual(len(project_annotators), 1)
 
+
 class TestAnnotationTaskManager(TestEndpoint):
 
     def test_annotation_task(self):
         # Create users and project, add them as annotators
-        user = self.get_default_user()
+        manager = self.get_default_user()
+        manager_request = self.get_loggedin_request()
 
         ann1 = get_user_model().objects.create(username="ann1")
+        ann1_request = self.get_request()
+        ann1_request.user = ann1
+
         ann2 = get_user_model().objects.create(username="ann2")
         ann3 = get_user_model().objects.create(username="ann3")
 
-        proj = Project.objects.create(owner=user)
+        proj = Project.objects.create(owner=manager)
+        proj.annotator_max_annotation = 0.6  # Annotator can annotator max of 60% of docs
 
         # Create documents
-        num_docs = 15
+        num_docs = 10
         docs = list()
         for i in range(num_docs):
             docs.append(Document.objects.create(project=proj))
@@ -281,12 +287,41 @@ class TestAnnotationTaskManager(TestEndpoint):
         self.assertEqual(proj.documents.count(), num_docs)
 
         # Get blank annotation task, user has no project association
-        self.assertIsNone(get_annotation_task(self.get_loggedin_request(), ann1.username))
+        self.assertIsNone(get_annotation_task(ann1_request))
 
         # Add ann1 as the project's annotator
-        self.assertTrue(add_project_annotator(self.get_loggedin_request(), proj.id, ann1.username))
-        task_object = get_annotation_task(self.get_loggedin_request(), ann1.username)
+        self.assertTrue(add_project_annotator(manager_request, proj.id, ann1.username))
 
+        ann1.refresh_from_db()
+        task_context = get_annotation_task(ann1_request)
+        print(f"Trying to annotate id {task_context['annotation_id']}")
+        self.assertEqual(proj.num_occupied_tasks, 1, "Num occupied must be 1")
+        reject_annotation_task(ann1_request, task_context["annotation_id"])
+        self.assertEqual(proj.num_occupied_tasks, 0, "Num occupied should be zero after rejection")
 
+        rejected_id = task_context['annotation_id']
 
+        for i in range(6):
+            ann1.refresh_from_db()
+            task_context = get_annotation_task(ann1_request)
+            print(f"Trying to annotate id {task_context['annotation_id']}")
+            current_annotation_id = task_context['annotation_id']
+            self.assertNotEqual(rejected_id, task_context['annotation_id'])
+            self.assertIsNotNone(task_context)
+            self.assertGreater(task_context["annotation_id"], 0)
+            self.assertEqual(proj.num_completed_tasks, i, "Num completed should be same as index ")
+            self.assertEqual(proj.num_occupied_tasks, i + 1, "Num occupied should be same as index +1")
 
+            second_context = get_annotation_task(ann1_request)
+            self.assertEqual(current_annotation_id, second_context['annotation_id'],
+                             "Calling get task again without completing must return the same annotation task")
+
+            complete_annotation_task(ann1_request, task_context["annotation_id"], {})
+            self.assertEqual(proj.num_completed_tasks, i + 1, "Num completed should be same as index +1")
+            self.assertEqual(proj.num_occupied_tasks, i + 1, "Num occupied should be same as index +1")
+
+        # Default ratio is set at 0.6 so after making 6 annotations out of 10 docs
+        # we expect the 7th one to be in reach of quota
+        ann1.refresh_from_db()
+        task_context = get_annotation_task(ann1_request)
+        self.assertIsNone(task_context)
