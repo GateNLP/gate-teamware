@@ -65,6 +65,7 @@ class Project(models.Model):
             if doc.user_completed_annotation_of_document(user):
                 num_user_annotated_docs += 1
 
+
         percentage_of_docs_annotated = num_user_annotated_docs / num_docs
         return percentage_of_docs_annotated >= self.annotator_max_annotation
 
@@ -75,7 +76,7 @@ class Project(models.Model):
 
     def get_current_annotator_task(self, user):
 
-        current_annotations = user.annotations.filter(completed=None, rejected=None)
+        current_annotations = user.annotations.filter(completed=None, rejected=None, timed_out=None)
         num_annotations = current_annotations.count()
         if num_annotations > 1:
             raise RuntimeError("Working on more than one annotation at a time! Should not be possible!")
@@ -95,7 +96,7 @@ class Project(models.Model):
             for doc in self.documents.all():
                 # Check that annotator hasn't annotated and that
                 # doc hasn't been fully annotated
-                if doc.user_can_annotate_document(user) and not self.annotator_reached_quota(user):
+                if doc.user_can_annotate_document(user):
                     # Returns a new annotation (task) if so
                     return Annotation.objects.create(user=user, document=doc)
 
@@ -132,20 +133,23 @@ class Document(models.Model):
             Q(completed__isnull=False) | Q(completed=None, rejected=None, timed_out=None)).count()
 
     def user_can_annotate_document(self, user):
-        num_user_annotation_in_doc = self.get_not_time_out_user_annotation(user)
+        num_user_annotation_in_doc = self.num_completed_and_pending_user_annotations(user)
         if num_user_annotation_in_doc > 1:
             raise RuntimeError(
                 f"The user {user.username} has more than one annotation ({num_user_annotation_in_doc}) in the document.")
 
         return num_user_annotation_in_doc < 1
 
-    def get_not_time_out_user_annotation(self, user):
-        return self.annotations.filter(user=user).exclude(timed_out__isnull=False).count()
+    def num_completed_and_pending_user_annotations(self, user):
+        return self.annotations.filter(
+            Q(user=user, completed__isnull=False) |
+            Q(user=user, completed=None, rejected=None, timed_out=None)).count()
 
     def user_completed_annotation_of_document(self, user):
         for annotation in self.annotations.all():
-            if annotation.user == user and annotation.completed:
-                return True
+            if annotation.user == user:
+                if annotation.completed:
+                    return True
 
         return False
 
