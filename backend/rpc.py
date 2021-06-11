@@ -114,13 +114,26 @@ def get_project_documents(request, project_id):
 
     # add additional and modified fields to the document json for the frontend
     for document in documents:
-        doc_out = serializer.serialize(document)
-        doc_out["text"] = document.data["text"]
-        doc_out["annotated_by"] = []
+
+        annotations_out = []
         for annotation in document.annotations.all():
-            if annotation.user:
-                doc_out["annotated_by"].append(annotation.user.username)
-        doc_out["annotation_count"] = len(document.annotations.all())
+            anno_out = {
+                "id": annotation.pk,
+                "annotated_by": annotation.user.username,
+                "created": annotation.created,
+            }
+            annotations_out.append(anno_out)
+
+        doc_out = {
+            "id": document.pk,
+            "annotations": annotations_out,
+            "created": document.created,
+            "completed": document.num_completed_annotations,
+            "rejected": document.num_rejected_annotations,
+            "timed_out": document.num_timed_out_annotations,
+            "pending": document.num_pending_annotations,
+        }
+
         documents_out.append(doc_out)
 
     return documents_out
@@ -193,7 +206,7 @@ def get_project_annotators(request, proj_id):
 def add_project_annotator(request, proj_id, username):
     annotator = User.objects.get(username=username)
     project = Project.objects.get(pk=proj_id)
-    project.annotators.add(annotator)
+    project.add_annotator(annotator)
     project.save()
     return True
 
@@ -203,14 +216,19 @@ def add_project_annotator(request, proj_id, username):
 def remove_project_annotator(request, proj_id, username):
     annotator = User.objects.get(username=username)
     project = Project.objects.get(pk=proj_id)
-    project.annotators.remove(annotator)
+    project.remove_annotator(annotator)
     project.save()
     return True
 
 
 @rpc_method_auth
+@transaction.atomic
 def get_annotation_task(request):
     """ Gets the annotator's current task """
+
+    # Times out any pending annotation
+    Annotation.check_for_timed_out_annotations()
+
     # Gets project the user's associated with
     user = request.user
     project = user.annotates
@@ -233,47 +251,39 @@ def get_annotation_task(request):
         annotation = project.assign_annotator_task(user)
 
     if annotation:
-        context = annotation.get_annotation_config()
-        return context
+        return annotation.get_annotation_task()
 
     return None
 
 
 @rpc_method_auth
-def complete_annotation_task(request, annotation_id, annotation_data, get_next_task=False):
+@transaction.atomic
+def complete_annotation_task(request, annotation_id, annotation_data):
     """ Complete the annotator's current task, with option to get the next task """
     # Gets project the user's associated with
     user = request.user
 
     annotation = Annotation.objects.get(pk=annotation_id)
-    if annotation.user != user:
+    if not annotation.user_allowed_to_annotate(user):
         raise PermissionError(
             f"User {user.username} trying to complete annotation id {annotation_id} that doesn't belong to them")
 
     if annotation:
         annotation.complete_annotation(annotation_data)
 
-    if get_next_task:
-        return get_annotation_task(request)
-
-    return None
-
 
 @rpc_method_auth
-def reject_annotation_task(request, annotation_id, get_next_task=False):
+@transaction.atomic
+def reject_annotation_task(request, annotation_id):
     """  """
     # Gets project the user's associated with
     user = request.user
 
     annotation = Annotation.objects.get(pk=annotation_id)
-    if annotation.user != user:
+    if not annotation.user_allowed_to_annotate(user):
         raise PermissionError(
             f"User {user.username} trying to complete annotation id {annotation_id} that doesn't belong to them")
 
     if annotation:
         annotation.reject_annotation()
 
-    if get_next_task:
-        return get_annotation_task(request)
-
-    return None

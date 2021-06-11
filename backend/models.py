@@ -5,8 +5,7 @@ from django.contrib.auth.models import AbstractUser
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils import timezone
-from django.db.models import Q
-
+from django.db.models import Q, F
 
 log = logging.getLogger(__name__)
 
@@ -18,7 +17,6 @@ class ServiceUser(AbstractUser):
     annotates = models.ForeignKey("Project", on_delete=models.SET_NULL, related_name="annotators", null=True)
     manages = models.ManyToManyField("Project", related_name="managers")
     created = models.DateTimeField(default=timezone.now)
-
 
 
 class Project(models.Model):
@@ -58,6 +56,14 @@ class Project(models.Model):
     def num_annotation_tasks_remaining(self):
         return self.num_annotation_tasks_total - self.num_occupied_tasks
 
+    def add_annotator(self, user):
+        self.annotators.add(user)
+        self.save()
+
+    def remove_annotator(self, user):
+        self.annotators.remove(user)
+        self.save()
+
     def annotator_reached_quota(self, user):
         num_docs = self.documents.count()
         num_user_annotated_docs = 0
@@ -65,14 +71,8 @@ class Project(models.Model):
             if doc.user_completed_annotation_of_document(user):
                 num_user_annotated_docs += 1
 
-
         percentage_of_docs_annotated = num_user_annotated_docs / num_docs
         return percentage_of_docs_annotated >= self.annotator_max_annotation
-
-
-    def remove_annotator(self, user):
-        self.annotators.remove(user)
-        self.save()
 
     def get_current_annotator_task(self, user):
 
@@ -98,7 +98,10 @@ class Project(models.Model):
                 # doc hasn't been fully annotated
                 if doc.user_can_annotate_document(user):
                     # Returns a new annotation (task) if so
-                    return Annotation.objects.create(user=user, document=doc)
+                    return Annotation.objects.create(user=user,
+                                                     document=doc,
+                                                     times_out_at=timezone.now() + timedelta(
+                                                         minutes=self.annotation_timeout))
 
         return None
 
@@ -161,29 +164,73 @@ class Annotation(models.Model):
     user = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, related_name="annotations", null=True)
     document = models.ForeignKey(Document, on_delete=models.CASCADE, related_name="annotations")
     data = models.JSONField(default=dict)
+    times_out_at = models.DateTimeField(default=None, null=True)
     created = models.DateTimeField(default=timezone.now)
     completed = models.DateTimeField(default=None, null=True)
     rejected = models.DateTimeField(default=None, null=True)
     timed_out = models.DateTimeField(default=None, null=True)
 
-    def get_annotation_config(self):
-
+    def get_annotation_task(self):
+        document = self.document
+        project = self.document.project
         return {
-            "config": self.document.project.configuration,
-            "annotation_id": self.pk
+            "project_name": project.name,
+            "project_description": project.description,
+            "project_config": project.configuration,
+            "project_id": project.pk,
+            "document_id": document.pk,
+            "document_data": document.data,
+            "annotation_id": self.pk,
+            "annotation_timeout": self.times_out_at
         }
 
-    def complete_annotation(self, data):
+    def complete_annotation(self, data, completed_time=timezone.now()):
+        self.check_not_completed_rejected_or_timed_out()
         self.data = data
-        self.completed = timezone.now()
+        self.completed = completed_time
         self.save()
 
-    def reject_annotation(self):
-        self.rejected = timezone.now()
+    def reject_annotation(self, rejected_time=timezone.now()):
+        self.check_not_completed_rejected_or_timed_out()
+        self.rejected = rejected_time
         self.save()
 
-    def check_timeout(self, timeout_period_minutes):
-        timeout_delta = timedelta(minutes=timeout_period_minutes)
-        if self.created+timeout_delta > timezone.now():
-            self.timed_out = timezone.now()
-            self.save()
+    def timeout_annotation(self, timeout_time=timezone.now()):
+        self.check_not_completed_rejected_or_timed_out()
+        self.timed_out = timeout_time
+        self.save()
+
+    def check_not_completed_rejected_or_timed_out(self):
+        if self.completed:
+            log.warning(f"Annotation id {self.id} is already completed.")
+            raise RuntimeError("The annotation is already completed.")
+
+        if self.rejected:
+            log.warning(f"Annotation id {self.id} is already rejected.")
+            raise RuntimeError("The annotation is already rejected.")
+
+        if self.timed_out:
+            log.warning(f"Annotation id {self.id} is already timed out.")
+            raise RuntimeError("The annotation is already timed out.")
+
+    def user_allowed_to_annotate(self, user):
+        return self.user.id == user.id
+
+
+    @staticmethod
+    def check_for_timed_out_annotations(current_time=timezone.now()):
+        """
+        Checks for any annotation that has timed out (times_out_at < current_time) and set the timed_out property
+        to the current_time.
+
+        Returns the of annotations that has become timed out.
+        """
+        timed_out_annotations = Annotation.objects.filter(times_out_at__lt=current_time,
+                                                          timed_out__isnull=True,
+                                                          completed__isnull=True,
+                                                          rejected__isnull=True)
+        for annotation in timed_out_annotations:
+            annotation.timeout_annotation(current_time)
+
+        return len(timed_out_annotations)
+

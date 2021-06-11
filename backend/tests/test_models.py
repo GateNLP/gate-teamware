@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
 from django.utils import timezone
@@ -46,6 +48,13 @@ class TestDocumentModel(TestCase):
 
 class TestProjectModel(TestCase):
 
+    def setUp(self):
+        self.annotations_per_doc = 3
+        self.annotator_max_annotation = 0.6
+        self.num_docs = 10
+        self.num_total_tasks = self.num_docs * self.annotations_per_doc
+
+
     def check_project_props(self, project, total_tasks, completed_tasks, occupied_tasks, remaining_tasks):
         self.assertEqual(total_tasks, project.num_annotation_tasks_total, "Total tasks check")
         self.assertEqual(completed_tasks, project.num_completed_tasks, "Completed tasks check")
@@ -55,66 +64,83 @@ class TestProjectModel(TestCase):
 
 
     def test_project_documents(self):
-        annotations_per_doc = 3
-        annotator_max_annotation = 0.6
-        num_docs = 10
-        num_total_tasks = num_docs * annotations_per_doc
-        annotator = get_user_model().objects.create(username="test1")
-        project = Project.objects.create(annotations_per_doc=annotations_per_doc,
-                                         annotator_max_annotation=annotator_max_annotation)
-        docs = [Document.objects.create(project=project) for i in range(num_docs)]
 
-        self.check_project_props(project, total_tasks=num_total_tasks,
+
+        annotator = get_user_model().objects.create(username="test1")
+        project = Project.objects.create(annotations_per_doc=self.annotations_per_doc,
+                                         annotator_max_annotation=self.annotator_max_annotation)
+        docs = [Document.objects.create(project=project) for i in range(self.num_docs)]
+
+        self.check_project_props(project, total_tasks=self.num_total_tasks,
                                  completed_tasks=0,
                                  occupied_tasks=0,
-                                 remaining_tasks=num_total_tasks)
+                                 remaining_tasks=self.num_total_tasks)
 
         doc = docs[0]
         reject_annotation = Annotation.objects.create(user=annotator, document=doc, rejected=timezone.now())
-        self.check_project_props(project, total_tasks=num_total_tasks,
+        self.check_project_props(project, total_tasks=self.num_total_tasks,
                                  completed_tasks=0,
                                  occupied_tasks=0,
-                                 remaining_tasks=num_total_tasks)
+                                 remaining_tasks=self.num_total_tasks)
 
         timeout_annotation = Annotation.objects.create(user=annotator, document=doc, timed_out=timezone.now())
-        self.check_project_props(project, total_tasks=num_total_tasks,
+        self.check_project_props(project, total_tasks=self.num_total_tasks,
                                  completed_tasks=0,
                                  occupied_tasks=0,
-                                 remaining_tasks=num_total_tasks)
+                                 remaining_tasks=self.num_total_tasks)
 
 
         pending_annotation = Annotation.objects.create(user=annotator, document=doc)
-        self.check_project_props(project, total_tasks=num_total_tasks,
+        self.check_project_props(project, total_tasks=self.num_total_tasks,
                                  completed_tasks=0,
                                  occupied_tasks=1,
-                                 remaining_tasks=num_total_tasks-1)
+                                 remaining_tasks=self.num_total_tasks-1)
 
         pending_annotation.completed = timezone.now()
         pending_annotation.save()
-        self.check_project_props(project, total_tasks=num_total_tasks,
+        self.check_project_props(project, total_tasks=self.num_total_tasks,
                                  completed_tasks=1,
                                  occupied_tasks=1,
-                                 remaining_tasks=num_total_tasks-1)
+                                 remaining_tasks=self.num_total_tasks-1)
 
 
         complete_annotation1 = Annotation.objects.create(user=annotator, document=doc, completed=timezone.now())
-        self.check_project_props(project, total_tasks=num_total_tasks,
+        self.check_project_props(project, total_tasks=self.num_total_tasks,
                                  completed_tasks=2,
                                  occupied_tasks=2,
-                                 remaining_tasks=num_total_tasks-2)
+                                 remaining_tasks=self.num_total_tasks-2)
 
 
         complete_annotation2 = Annotation.objects.create(user=annotator, document=docs[1], completed=timezone.now())
-        self.check_project_props(project, total_tasks=num_total_tasks,
+        self.check_project_props(project, total_tasks=self.num_total_tasks,
                                  completed_tasks=3,
                                  occupied_tasks=3,
-                                 remaining_tasks=num_total_tasks-3)
+                                 remaining_tasks=self.num_total_tasks-3)
 
         complete_annotation3 = Annotation.objects.create(user=annotator, document=docs[2], completed=timezone.now())
-        self.check_project_props(project, total_tasks=num_total_tasks,
+        self.check_project_props(project, total_tasks=self.num_total_tasks,
                                  completed_tasks=4,
                                  occupied_tasks=4,
-                                 remaining_tasks=num_total_tasks-4)
+                                 remaining_tasks=self.num_total_tasks-4)
+
+    def test_project_annotation_timeout(self):
+        annotator = get_user_model().objects.create(username="test1")
+        project = Project.objects.create(annotations_per_doc=self.annotations_per_doc,
+                                         annotator_max_annotation=self.annotator_max_annotation)
+        docs = [Document.objects.create(project=project) for i in range(self.num_docs)]
+        project.add_annotator(annotator)
+        project.save()
+
+        annotation = project.assign_annotator_task(annotator)
+
+        # Check timing out is set properly
+        self.assertIsNotNone(annotation)
+        self.assertIsNotNone(annotation.times_out_at)
+
+        # Timeout should be more than minutes set in project
+        self.assertTrue(annotation.times_out_at > annotation.created)
+
+
 
     def test_saving_and_loading(self):
 
@@ -210,7 +236,55 @@ class TestProjectModel(TestCase):
 
 
 
+class TestAnnotationModel(TestCase):
 
+    def test_timeout_check(self):
+        num_already_timedout = 12
+        num_completed = 50
+        num_rejected = 4
+        num_to_timeout = 23
+        current_time = timezone.now()
+        timeout_time = current_time + timedelta(minutes=30)
+        timeout_check_time = current_time + timedelta(minutes=31)
+
+        annotator = get_user_model().objects.create(username="test1")
+        project = Project.objects.create()
+        document = Document.objects.create(project=project)
+
+        for i in range(num_already_timedout):
+            Annotation.objects.create(document=document,
+                                      user=annotator,
+                                      times_out_at=timeout_time,
+                                      timed_out=timeout_time)
+
+        for i in range(num_completed):
+            Annotation.objects.create(document=document,
+                                      user=annotator,
+                                      times_out_at=timeout_time,
+                                      completed=timeout_time)
+
+        for i in range(num_rejected):
+            Annotation.objects.create(document=document,
+                                      user=annotator,
+                                      times_out_at=timeout_time,
+                                      rejected=timeout_time)
+
+        for i in range(num_to_timeout):
+            Annotation.objects.create(document=document,
+                                      user=annotator,
+                                      times_out_at=timeout_time)
+
+        self.assertEqual(num_already_timedout + num_completed + num_rejected + num_to_timeout,
+                         Annotation.objects.all().count(), "Must have this many number of annotations in total")
+
+        num_timed_out = Annotation.check_for_timed_out_annotations(current_time + timedelta(minutes=15))
+        self.assertEqual(0, num_timed_out, "There should be no timed out annotations yet")
+
+        num_timed_out = Annotation.check_for_timed_out_annotations(timeout_check_time)
+        self.assertEqual(num_to_timeout, num_timed_out, "Number of timed annotations to timeout must be equal")
+
+        num_timed_out = Annotation.check_for_timed_out_annotations(timeout_check_time + timedelta(hours=1))
+        self.assertEqual(0, num_timed_out, "Must not be anymore annotations to timeout")
 
 
 

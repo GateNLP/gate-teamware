@@ -42,12 +42,12 @@ export default new Vuex.Store({
                 console.error(e);
             }
         },
-        logout({dispatch, commit}) {
+        async logout({dispatch, commit}) {
             let params = {
                 username: "",
                 isAuthenticated: false,
             }
-            rpc.call("logout");
+            await rpc.call("logout");
             commit("updateUser", params);
         },
         async register({dispatch, commit}, params) {
@@ -119,7 +119,6 @@ export default new Vuex.Store({
         },
         async addAnnotation({dispatch, commit}, {docId, annotation}){
             try {
-
                 let annotateId = await rpc.call("add_document_annotation", docId, annotation)
             }catch (e){
                 console.log(e)
@@ -164,6 +163,18 @@ export default new Vuex.Store({
             }catch(e){
                 console.log(e)
             }
+        },
+
+        async getUserAnnotationTask({dispatch, commit}) {
+            let annotationTask = await rpc.call("get_annotation_task")
+            return annotationTask
+        },
+        async completeUserAnnotationTask({dispatch, commit}, {annotationID, data}) {
+            await rpc.call("complete_annotation_task", annotationID, data)
+
+        },
+        async rejectUserAnnotationTask({dispatch, commit}, annotationID) {
+            await rpc.call("reject_annotation_task", annotationID)
         },
 
     },

@@ -72,6 +72,7 @@
           </b-form-group>
 
           <div v-if="documents">
+            <DocumentsList :documents="documents"></DocumentsList>
             <VTable :data="documents" :column-display="tableColumnsDisplay"></VTable>
           </div>
         </b-form>
@@ -98,10 +99,11 @@ import Annotators from "@/components/Annotators";
 import JsonEditor from "@/components/JsonEditor";
 import VJsoneditor from "v-jsoneditor";
 import { readFileAsync} from "@/utils";
+import DocumentsList from "@/components/DocumentsList";
 
 export default {
   name: "Project",
-  components: {JsonEditor, AnnotationRenderer, VTable, VJsoneditor, Annotators},
+  components: {DocumentsList, JsonEditor, AnnotationRenderer, VTable, VJsoneditor, Annotators},
   data() {
     return {
       activeTab: 0,
