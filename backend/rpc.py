@@ -121,6 +121,10 @@ def get_project_documents(request, project_id):
                 "id": annotation.pk,
                 "annotated_by": annotation.user.username,
                 "created": annotation.created,
+                "completed": annotation.completed,
+                "rejected": annotation.rejected,
+                "timed_out": annotation.timed_out,
+                "times_out_at": annotation.times_out_at
             }
             annotations_out.append(anno_out)
 
@@ -287,3 +291,12 @@ def reject_annotation_task(request, annotation_id):
     if annotation:
         annotation.reject_annotation()
 
+@rpc_method_auth
+def get_document_content(request, document_id):
+    doc = Document.objects.get(pk=document_id)
+    return doc.data
+
+@rpc_method_auth
+def get_annotation_content(request, annotation_id):
+    annotation = Annotation.objects.get(pk=annotation_id)
+    return annotation.data

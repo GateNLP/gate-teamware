@@ -358,10 +358,6 @@ class TestAnnotationTaskManager(TestEndpoint):
 
         annotators = [get_user_model().objects.create(username=f"annotator{i}") for i in range(num_annotators)]
 
-        ann1 = get_user_model().objects.create(username="ann1")
-        ann1_request = self.get_request()
-        ann1_request.user = ann1
-
         proj = Project.objects.create(owner=manager)
         proj.annotations_per_doc = num_annotations_per_doc
         proj.annotator_max_annotation = annotator_max_annotation
@@ -415,3 +411,47 @@ class TestAnnotationTaskManager(TestEndpoint):
         self.annotation_info(annotation_id, "Rejected")
 
         reject_annotation_task(request, annotation_id)
+
+    def test_completing_project(self):
+        """ Case where project finishes before an annotator reaches quota """
+        num_annotators = 100
+        num_documents = 10
+        num_annotations_per_doc = 3
+        num_total_tasks = num_documents * num_annotations_per_doc
+        annotator_max_annotation = 0.6  # Annotator can annotator max of 60% of docs
+
+        # Create users and project, add them as annotators
+        manager = self.get_default_user()
+        manager_request = self.get_loggedin_request()
+
+        annotators = [get_user_model().objects.create(username=f"annotator{i}") for i in range(num_annotators)]
+
+        ann1 = get_user_model().objects.create(username="ann1")
+        ann1_request = self.get_request()
+        ann1_request.user = ann1
+
+        proj = Project.objects.create(owner=manager)
+        proj.annotations_per_doc = num_annotations_per_doc
+        proj.annotator_max_annotation = annotator_max_annotation
+        proj.save()
+
+        # Make them project annotator
+        for annotator in annotators:
+            self.assertTrue(add_project_annotator(manager_request, proj.id, annotator.username))
+
+        documents = [Document.objects.create(project=proj) for i in range(num_documents)]
+
+        annotation_count = 0
+        for i in range(num_annotations_per_doc):
+            for annotator in annotators:
+                self.assertFalse(proj.is_completed)
+                self.perform_annotation(annotator)
+                annotation_count += 1
+                if num_total_tasks - annotation_count < 1:
+                    break
+
+            if num_total_tasks - annotation_count < 1:
+                break
+
+        self.assertTrue(proj.is_completed)
+        self.assertEqual(0, proj.annotators.count())

@@ -176,6 +176,13 @@ export default new Vuex.Store({
         async rejectUserAnnotationTask({dispatch, commit}, annotationID) {
             await rpc.call("reject_annotation_task", annotationID)
         },
+        async getDocumentContent({dispatch, commit}, id) {
+            return await rpc.call("get_document_content", id)
+        },
+        async getAnnotationContent({dispatch, commit}, id) {
+            return await rpc.call("get_annotation_content", id)
+        },
+
 
     },
     modules: {}

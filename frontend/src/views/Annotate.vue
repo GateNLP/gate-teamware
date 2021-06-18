@@ -1,9 +1,6 @@
 <template>
   <div class="container">
-    <div v-if="!annotationTask">
-      No project!!
-    </div>
-    <div v-else>
+    <div v-if="annotationTask">
       <h1>Annotating: {{annotationTask.project_name}}</h1>
       <p>{{annotationTask.project_description}}</p>
 
@@ -12,6 +9,15 @@
                           @submit="submitHandler"
                           @reject="rejectHandler"
       ></AnnotationRenderer>
+    </div>
+    <div v-else>
+      <h1>Nothing to annotate!</h1>
+      <p>
+        Thank you for participating. Notify the project manger of your username in order to be added to an
+        annotation project.
+      </p>
+
+
     </div>
 
   </div>

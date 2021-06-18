@@ -4,6 +4,7 @@
 
     <b-tabs v-model="activeTab">
       <b-tab title="Configuration">
+        <h2 class="mt-2 mb-2">Project configuration</h2>
         <b-form class="mt-4 mb-4">
           <b-form-group label="Name">
             <b-form-input v-model="local_project.name" name="project_name"></b-form-input>
@@ -19,7 +20,7 @@
           </b-form-group>
           <b-form-row>
             <b-col>
-              <h4>Project configuration</h4>
+              <h4>Annotation configuration</h4>
               <JsonEditor v-model="local_project.configuration"></JsonEditor>
             </b-col>
             <b-col>
@@ -49,39 +50,35 @@
           </b-form-row>
         </b-form>
       </b-tab>
-      <b-tab title="Documents">
+      <b-tab title="Documents & Annotations">
+        <h2 class="mt-2 mb-2">Documents & Annotations</h2>
 
-        <b-button variant="primary" v-if="projectConfigValid"
-                  @click="goToAnnotatePage">Annotate documents
-        </b-button>
+        <b-button-toolbar class="mt-2 mb-2">
+          <b-button variant="primary" @click="exportAnnotationsHandler" class="mr-2">
+            <b-icon-download></b-icon-download>
+            Export Annotations (JSON)
+          </b-button>
+          <b-button variant="primary" @click="uploadBtnHandler">
+            <b-icon-upload></b-icon-upload>
+            Upload documents
+          </b-button>
+          <input ref="documentUploadInput" type="file" @change="documentUploadHandler" multiple hidden/>
+        </b-button-toolbar>
 
-        <b-button variant="primary" @click="exportAnnotationsHandler">
-          <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-download" fill="currentColor"
-               xmlns="http://www.w3.org/2000/svg">
-            <path fill-rule="evenodd"
-                  d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
-            <path fill-rule="evenodd"
-                  d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
-          </svg>
-          Export Annotations (JSON)
-        </b-button>
 
-        <b-form>
-          <b-form-group label="Documents" class="mt-4">
-            <b-file @change="documentUploadHandler" multiple></b-file>
-          </b-form-group>
 
-          <div v-if="documents">
+        <div v-if="documents">
+          <b-overlay :show="documentLoading">
             <DocumentsList :documents="documents"></DocumentsList>
-            <VTable :data="documents" :column-display="tableColumnsDisplay"></VTable>
-          </div>
-        </b-form>
+        </b-overlay>
+        </div>
+        <div v-else>
+          No documents uploaded
+        </div>
       </b-tab>
       <b-tab title="Annotators">
+        <h2 class="mt-2 mb-2">Annotators Management</h2>
         <Annotators :projectID="projectId"></Annotators>
-      </b-tab>
-      <b-tab title="Managers">
-
       </b-tab>
 
     </b-tabs>
@@ -98,7 +95,7 @@ import AnnotationRenderer from "@/components/AnnotationRenderer";
 import Annotators from "@/components/Annotators";
 import JsonEditor from "@/components/JsonEditor";
 import VJsoneditor from "v-jsoneditor";
-import { readFileAsync} from "@/utils";
+import {readFileAsync} from "@/utils";
 import DocumentsList from "@/components/DocumentsList";
 
 export default {
@@ -120,10 +117,7 @@ export default {
       },
       configurationStr: "",
       documents: null,
-      tableColumnsDisplay: {
-        'id': 'string',
-        'text': 'string',
-      },
+      documentLoading: false,
     }
   },
   computed: {
@@ -134,7 +128,7 @@ export default {
     projectConfigValid() {
       return this.local_project && this.local_project.configuration && this.local_project.configuration.length > 0
     },
-    projectReadyForAnnotation(){
+    projectReadyForAnnotation() {
       return this.projectConfigValid()
     }
 
@@ -145,28 +139,39 @@ export default {
       await this.updateProject(this.local_project);
       this.documents = await this.getProjectDocuments(this.projectId);
     },
+    async uploadBtnHandler(){
+      console.log(this.$refs)
+      this.$refs.documentUploadInput.click()
+    },
     async documentUploadHandler(e) {
+
+      this.setDocumentLoading(true)
 
       const fileList = e.target.files
 
       for (let file of fileList) {
-        try{
-            const documentsStr = await readFileAsync(file)
-            const documents = JSON.parse(documentsStr)
-            // Uploaded file must be an array of docs
-            if(documents instanceof Array){
-              for(let document of documents){
-                await this.addProjectDocument({ projectId: this.projectId, document: document})
-              }
+        try {
+          const documentsStr = await readFileAsync(file)
+          const documents = JSON.parse(documentsStr)
+          // Uploaded file must be an array of docs
+          if (documents instanceof Array) {
+            for (let document of documents) {
+              await this.addProjectDocument({projectId: this.projectId, document: document})
             }
-
-          }catch (e){
-            console.error("Could not parse uploaded file")
-          console.error(e)
           }
 
-          this.documents = await this.getProjectDocuments(this.projectId);
+        } catch (e) {
+          console.error("Could not parse uploaded file")
+          console.error(e)
+        }
+
+        this.documents = await this.getProjectDocuments(this.projectId);
       }
+
+      this.setDocumentLoading(false)
+    },
+    async setDocumentLoading(isLoading){
+      this.documentLoading = isLoading
     },
     async exportAnnotationsHandler() {
       this.getAnnotations(this.projectId)

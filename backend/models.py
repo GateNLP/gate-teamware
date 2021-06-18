@@ -56,6 +56,14 @@ class Project(models.Model):
     def num_annotation_tasks_remaining(self):
         return self.num_annotation_tasks_total - self.num_occupied_tasks
 
+    @property
+    def is_completed(self):
+        # Project must have documents to be completed
+        if self.num_annotation_tasks_total <= 0:
+            return False
+
+        return self.num_annotation_tasks_total - self.num_completed_tasks < 1
+
     def add_annotator(self, user):
         self.annotators.add(user)
         self.save()
@@ -104,6 +112,13 @@ class Project(models.Model):
                                                          minutes=self.annotation_timeout))
 
         return None
+
+    def check_project_complete(self):
+        """ Checks that all annotations have been completed, release all annotators from project. """
+        if self.is_completed:
+            for annotator in self.annotators.all():
+                self.remove_annotator(annotator)
+
 
 
 class Document(models.Model):
@@ -189,6 +204,9 @@ class Annotation(models.Model):
         self.data = data
         self.completed = completed_time
         self.save()
+
+        # Also check whether the project has been completed
+        self.document.project.check_project_complete()
 
     def reject_annotation(self, rejected_time=timezone.now()):
         self.check_not_completed_rejected_or_timed_out()
