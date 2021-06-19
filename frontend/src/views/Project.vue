@@ -4,7 +4,8 @@
 
     <b-tabs v-model="activeTab">
       <b-tab title="Configuration">
-        <h2 class="mt-2 mb-2">Project configuration</h2>
+
+          <h2 class="mt-2 mb-2">Project configuration</h2>
         <b-form class="mt-4 mb-4">
           <b-form-group label="Name">
             <b-form-input v-model="local_project.name" name="project_name"></b-form-input>
@@ -42,13 +43,16 @@
           </b-form-row>
           <b-form-row>
             <b-col class="mt-4">
-              <b-button @click="saveProjectHandler" variant="primary">
-                <b-icon-box-arrow-in-down></b-icon-box-arrow-in-down>
+              <b-button @click="saveProjectHandler" :variant="loadingVariant" :disabled="loading" >
+                <b-icon-box-arrow-in-down  :animation="loadingIconAnimation"></b-icon-box-arrow-in-down>
                 Save project configuration
               </b-button>
             </b-col>
           </b-form-row>
         </b-form>
+
+
+
       </b-tab>
       <b-tab title="Documents & Annotations">
         <h2 class="mt-2 mb-2">Documents & Annotations</h2>
@@ -58,9 +62,13 @@
             <b-icon-download></b-icon-download>
             Export Annotations (JSON)
           </b-button>
-          <b-button variant="primary" @click="uploadBtnHandler">
+          <b-button variant="primary" @click="uploadBtnHandler" class="mr-2">
             <b-icon-upload></b-icon-upload>
             Upload documents
+          </b-button>
+          <b-button :variant="loadingVariant" :disabled="loading" @click="refreshDocumentsHandler" class="mr-2">
+            <b-icon-arrow-clockwise :animation="loadingIconAnimation"></b-icon-arrow-clockwise>
+            Refresh documents
           </b-button>
           <input ref="documentUploadInput" type="file" @change="documentUploadHandler" multiple hidden/>
         </b-button-toolbar>
@@ -68,7 +76,7 @@
 
 
         <div v-if="documents">
-          <b-overlay :show="documentLoading">
+          <b-overlay :show="loading">
             <DocumentsList :documents="documents"></DocumentsList>
         </b-overlay>
         </div>
@@ -117,7 +125,8 @@ export default {
       },
       configurationStr: "",
       documents: null,
-      documentLoading: false,
+
+      loading: false,
     }
   },
   computed: {
@@ -130,14 +139,36 @@ export default {
     },
     projectReadyForAnnotation() {
       return this.projectConfigValid()
+    },
+    loadingVariant(){
+      if(this.loading){
+        return "secondary"
+      }
+      else{
+        return "primary"
+      }
+    },
+    loadingIconAnimation(){
+      if(this.loading){
+        return "throb"
+      }
+
+      return null
     }
 
   },
   methods: {
     ...mapActions(["getProjects", "updateProject", "getProjectDocuments", "getAnnotations", "addProjectDocument"]),
+    async refreshDocumentsHandler(){
+      this.setLoading(true)
+      this.documents = await this.getProjectDocuments(this.projectId);
+      this.setLoading(false)
+    },
     async saveProjectHandler() {
+      this.setLoading(true)
       await this.updateProject(this.local_project);
       this.documents = await this.getProjectDocuments(this.projectId);
+      this.setLoading(false)
     },
     async uploadBtnHandler(){
       console.log(this.$refs)
@@ -145,7 +176,7 @@ export default {
     },
     async documentUploadHandler(e) {
 
-      this.setDocumentLoading(true)
+      this.setLoading(true)
 
       const fileList = e.target.files
 
@@ -168,10 +199,10 @@ export default {
         this.documents = await this.getProjectDocuments(this.projectId);
       }
 
-      this.setDocumentLoading(false)
+      this.setLoading(false)
     },
-    async setDocumentLoading(isLoading){
-      this.documentLoading = isLoading
+    async setLoading(isLoading){
+      this.loading = isLoading
     },
     async exportAnnotationsHandler() {
       this.getAnnotations(this.projectId)

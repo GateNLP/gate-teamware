@@ -33,16 +33,33 @@ class Project(models.Model):
     annotation_timeout = models.IntegerField(default=60)
 
     @property
+    def num_documents(self):
+        return self.documents.count()
+
+    @property
     def num_annotation_tasks_total(self):
         return self.documents.count() * self.annotations_per_doc
 
     @property
     def num_completed_tasks(self):
-        num_tasks = 0
-        for doc in self.documents.all():
-            num_tasks += doc.num_completed_annotations
+        return Annotation.objects.filter(document__project_id=self.pk, status=Annotation.COMPLETED).count()
 
-        return num_tasks
+    @property
+    def num_pending_tasks(self):
+        return Annotation.objects.filter(document__project_id=self.pk, status=Annotation.PENDING).count()
+
+    @property
+    def num_rejected_tasks(self):
+        return Annotation.objects.filter(document__project_id=self.pk, status=Annotation.REJECTED).count()
+
+    @property
+    def num_timed_out_tasks(self):
+        return Annotation.objects.filter(document__project_id=self.pk, status=Annotation.TIMED_OUT).count()
+
+    @property
+    def num_aborted_tasks(self):
+        return Annotation.objects.filter(document__project_id=self.pk, status=Annotation.ABORTED).count()
+
 
     @property
     def num_occupied_tasks(self):
@@ -72,6 +89,8 @@ class Project(models.Model):
         self.annotators.remove(user)
         self.save()
 
+        Annotation.clear_all_pending_user_annotations(user)
+
     def annotator_reached_quota(self, user):
         num_docs = self.documents.count()
         num_user_annotated_docs = 0
@@ -84,7 +103,7 @@ class Project(models.Model):
 
     def get_current_annotator_task(self, user):
 
-        current_annotations = user.annotations.filter(completed=None, rejected=None, timed_out=None)
+        current_annotations = user.annotations.filter(status=Annotation.PENDING)
         num_annotations = current_annotations.count()
         if num_annotations > 1:
             raise RuntimeError("Working on more than one annotation at a time! Should not be possible!")
@@ -120,7 +139,6 @@ class Project(models.Model):
                 self.remove_annotator(annotator)
 
 
-
 class Document(models.Model):
     """
     Model to represent a document.
@@ -131,59 +149,85 @@ class Document(models.Model):
 
     @property
     def num_completed_annotations(self):
-        return self.annotations.filter(completed__isnull=False).count()
+        return self.annotations.filter(status=Annotation.COMPLETED).count()
 
     @property
     def num_rejected_annotations(self):
-        return self.annotations.filter(rejected__isnull=False).count()
+        return self.annotations.filter(status=Annotation.REJECTED).count()
 
     @property
     def num_timed_out_annotations(self):
-        return self.annotations.filter(timed_out__isnull=False).count()
+        return self.annotations.filter(status=Annotation.TIMED_OUT).count()
 
     @property
     def num_pending_annotations(self):
-        return self.annotations.filter(completed=None, rejected=None, timed_out=None).count()
+        return self.annotations.filter(status=Annotation.PENDING).count()
+
+    @property
+    def num_aborted_annotations(self):
+        return self.annotations.filter(status=Annotation.ABORTED).count()
 
     @property
     def num_completed_and_pending_annotations(self):
         return self.annotations.filter(
-            Q(completed__isnull=False) | Q(completed=None, rejected=None, timed_out=None)).count()
+            Q(status=Annotation.COMPLETED) | Q(status=Annotation.PENDING)).count()
 
     def user_can_annotate_document(self, user):
-        num_user_annotation_in_doc = self.num_completed_and_pending_user_annotations(user)
+        """ User must not have completed, pending or rejected the document"""
+        num_user_annotation_in_doc = self.num_user_completed_annotations(user) + self.num_user_rejected_annotations(
+            user) + self.num_user_pending_annotations(user)
+
         if num_user_annotation_in_doc > 1:
             raise RuntimeError(
                 f"The user {user.username} has more than one annotation ({num_user_annotation_in_doc}) in the document.")
 
         return num_user_annotation_in_doc < 1
 
-    def num_completed_and_pending_user_annotations(self, user):
-        return self.annotations.filter(
-            Q(user=user, completed__isnull=False) |
-            Q(user=user, completed=None, rejected=None, timed_out=None)).count()
+    def num_user_completed_annotations(self, user):
+        return self.annotations.filter(user_id=user.pk, status=Annotation.COMPLETED).count()
+
+    def num_user_pending_annotations(self, user):
+        return self.annotations.filter(user_id=user.pk, status=Annotation.PENDING).count()
+
+    def num_user_rejected_annotations(self, user):
+        return self.annotations.filter(user_id=user.pk, status=Annotation.REJECTED).count()
+
+    def num_user_timed_out_annotations(self, user):
+        return self.annotations.filter(user_id=user.pk, status=Annotation.TIMED_OUT).count()
+
+    def num_user_aborted_annotations(self, user):
+        return self.annotations.filter(user_id=user.pk, status=Annotation.ABORTED).count()
 
     def user_completed_annotation_of_document(self, user):
-        for annotation in self.annotations.all():
-            if annotation.user == user:
-                if annotation.completed:
-                    return True
-
-        return False
+        return self.num_user_completed_annotations(user) > 0
 
 
 class Annotation(models.Model):
     """
     Model to represent a single annotation.
     """
+
+    PENDING = 0
+    COMPLETED = 1
+    REJECTED = 2
+    TIMED_OUT = 3
+    ABORTED = 4
+
+    ANNOTATION_STATUS = (
+        (PENDING, 'Pending'),
+        (COMPLETED, 'Completed'),
+        (REJECTED, 'Rejected'),
+        (TIMED_OUT, 'Timed out'),
+        (ABORTED, 'Aborted')
+    )
+
     user = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, related_name="annotations", null=True)
     document = models.ForeignKey(Document, on_delete=models.CASCADE, related_name="annotations")
     data = models.JSONField(default=dict)
     times_out_at = models.DateTimeField(default=None, null=True)
     created = models.DateTimeField(default=timezone.now)
-    completed = models.DateTimeField(default=None, null=True)
-    rejected = models.DateTimeField(default=None, null=True)
-    timed_out = models.DateTimeField(default=None, null=True)
+    status = models.IntegerField(choices=ANNOTATION_STATUS, default=PENDING)
+    status_time = models.DateTimeField(default=None, null=True)
 
     def get_annotation_task(self):
         document = self.document
@@ -199,41 +243,56 @@ class Annotation(models.Model):
             "annotation_timeout": self.times_out_at
         }
 
-    def complete_annotation(self, data, completed_time=timezone.now()):
-        self.check_not_completed_rejected_or_timed_out()
+    def _set_new_status(self, status, time=timezone.now()):
+        self.ensure_status_pending()
+        self.status = status
+        self.status_time = time
+
+
+    def complete_annotation(self, data, time=timezone.now()):
         self.data = data
-        self.completed = completed_time
+        self._set_new_status(Annotation.COMPLETED, time)
         self.save()
 
         # Also check whether the project has been completed
         self.document.project.check_project_complete()
 
-    def reject_annotation(self, rejected_time=timezone.now()):
-        self.check_not_completed_rejected_or_timed_out()
-        self.rejected = rejected_time
+    def reject_annotation(self, time=timezone.now()):
+        self._set_new_status(Annotation.REJECTED, time)
         self.save()
 
-    def timeout_annotation(self, timeout_time=timezone.now()):
-        self.check_not_completed_rejected_or_timed_out()
-        self.timed_out = timeout_time
+    def timeout_annotation(self, time=timezone.now()):
+        self._set_new_status(Annotation.TIMED_OUT, time)
         self.save()
 
-    def check_not_completed_rejected_or_timed_out(self):
-        if self.completed:
+    def abort_annotation(self, time=timezone.now()):
+        self._set_new_status(Annotation.ABORTED, time)
+        self.save()
+
+
+    def ensure_status_pending(self):
+        if self.status == Annotation.PENDING and self.status_time is None:
+            # Ok if still pending and doesn't have status time
+            return
+
+        if self.status == Annotation.COMPLETED:
             log.warning(f"Annotation id {self.id} is already completed.")
             raise RuntimeError("The annotation is already completed.")
 
-        if self.rejected:
+        if self.status == Annotation.REJECTED:
             log.warning(f"Annotation id {self.id} is already rejected.")
             raise RuntimeError("The annotation is already rejected.")
 
-        if self.timed_out:
+        if self.status == Annotation.TIMED_OUT:
             log.warning(f"Annotation id {self.id} is already timed out.")
+            raise RuntimeError("The annotation is already timed out.")
+
+        if self.status == Annotation.ABORTED:
+            log.warning(f"Annotation id {self.id} is already aborted.")
             raise RuntimeError("The annotation is already timed out.")
 
     def user_allowed_to_annotate(self, user):
         return self.user.id == user.id
-
 
     @staticmethod
     def check_for_timed_out_annotations(current_time=timezone.now()):
@@ -243,12 +302,20 @@ class Annotation(models.Model):
 
         Returns the of annotations that has become timed out.
         """
-        timed_out_annotations = Annotation.objects.filter(times_out_at__lt=current_time,
-                                                          timed_out__isnull=True,
-                                                          completed__isnull=True,
-                                                          rejected__isnull=True)
+        timed_out_annotations = Annotation.objects.filter(times_out_at__lt=current_time, status=Annotation.PENDING)
         for annotation in timed_out_annotations:
             annotation.timeout_annotation(current_time)
 
         return len(timed_out_annotations)
+
+    @staticmethod
+    def clear_all_pending_user_annotations(user):
+        pending_annotations = Annotation.objects.filter(user_id=user.pk, status=Annotation.PENDING)
+
+        if pending_annotations.count() > 1:
+            raise RuntimeError("More than one pending annotation has been created for the user")
+
+        for annotation in pending_annotations:
+            annotation.abort_annotation()
+
 

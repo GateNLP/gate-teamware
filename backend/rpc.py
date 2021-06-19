@@ -101,7 +101,20 @@ def get_project(request, pk):
 @rpc_method_auth
 def get_projects(request):
     projects = Project.objects.all()
-    return [serializer.serialize(proj) for proj in projects]
+
+    output_projects = []
+    for proj in projects:
+        out_proj = serializer.serialize(proj)
+        out_proj["owned_by"] = proj.owner.username
+        out_proj["documents"] = proj.num_documents
+        out_proj["completed_tasks"] = proj.num_completed_tasks
+        out_proj["pending_tasks"] = proj.num_pending_tasks
+        out_proj["rejected_tasks"] = proj.num_rejected_tasks
+        out_proj["timed_out_tasks"] = proj.num_timed_out_tasks
+        out_proj["aborted_tasks"] = proj.num_aborted_tasks
+        out_proj["total_tasks"] = proj.num_annotation_tasks_total
+        output_projects.append(out_proj)
+    return output_projects
 
 
 @rpc_method_auth
@@ -121,9 +134,10 @@ def get_project_documents(request, project_id):
                 "id": annotation.pk,
                 "annotated_by": annotation.user.username,
                 "created": annotation.created,
-                "completed": annotation.completed,
-                "rejected": annotation.rejected,
-                "timed_out": annotation.timed_out,
+                "completed": annotation.status_time if annotation.status == Annotation.COMPLETED else None,
+                "rejected": annotation.status_time if annotation.status == Annotation.REJECTED else None,
+                "timed_out": annotation.status_time if annotation.status == Annotation.TIMED_OUT else None,
+                "aborted": annotation.status_time if annotation.status == Annotation.ABORTED else None,
                 "times_out_at": annotation.times_out_at
             }
             annotations_out.append(anno_out)
@@ -136,6 +150,7 @@ def get_project_documents(request, project_id):
             "rejected": document.num_rejected_annotations,
             "timed_out": document.num_timed_out_annotations,
             "pending": document.num_pending_annotations,
+            "aborted": document.num_aborted_annotations,
         }
 
         documents_out.append(doc_out)

@@ -14,10 +14,17 @@ class TestDocumentModel(TestCase):
         doc = Document.objects.create(project=project)
 
         # Annotation
-        reject_annotation = Annotation.objects.create(user=annotator, document=doc, rejected=timezone.now())
+
+        abort_annotation = Annotation.objects.create(user=annotator, document=doc)
+        abort_annotation.abort_annotation()
         self.assertFalse(doc.user_completed_annotation_of_document(annotator))
 
-        timeout_annotation = Annotation.objects.create(user=annotator, document=doc, timed_out=timezone.now())
+        reject_annotation = Annotation.objects.create(user=annotator, document=doc)
+        reject_annotation.reject_annotation()
+        self.assertFalse(doc.user_completed_annotation_of_document(annotator))
+
+        timeout_annotation = Annotation.objects.create(user=annotator, document=doc)
+        timeout_annotation.timeout_annotation()
         self.assertFalse(doc.user_completed_annotation_of_document(annotator))
 
         pending_annotation = Annotation.objects.create(user=annotator, document=doc)
@@ -25,20 +32,29 @@ class TestDocumentModel(TestCase):
         self.assertEqual(1, doc.num_completed_and_pending_annotations)
 
 
-        complete_annotation1 = Annotation.objects.create(user=annotator, document=doc, completed=timezone.now())
+        complete_annotation1 = Annotation.objects.create(user=annotator, document=doc)
+        complete_annotation1.complete_annotation({})
         self.assertTrue(doc.user_completed_annotation_of_document(annotator))
         self.assertEqual(2, doc.num_completed_and_pending_annotations)
 
-        complete_annotation2 = Annotation.objects.create(user=annotator, document=doc, completed=timezone.now())
-        complete_annotation3 = Annotation.objects.create(user=annotator, document=doc, completed=timezone.now())
+        complete_annotation2 = Annotation.objects.create(user=annotator, document=doc)
+        complete_annotation2.complete_annotation({})
+        complete_annotation3 = Annotation.objects.create(user=annotator, document=doc)
+        complete_annotation3.complete_annotation({})
 
         doc.refresh_from_db()
+        self.assertEqual(4, doc.num_completed_and_pending_annotations)
         self.assertEqual(3, doc.num_completed_annotations)
         self.assertEqual(1, doc.num_pending_annotations)
-        self.assertEqual(4, doc.num_completed_and_pending_annotations)
         self.assertEqual(1, doc.num_timed_out_annotations)
         self.assertEqual(1, doc.num_rejected_annotations)
-        self.assertEqual(4, doc.num_completed_and_pending_user_annotations(annotator))
+        self.assertEqual(1, doc.num_aborted_annotations)
+
+        self.assertEqual(3, doc.num_user_completed_annotations(annotator))
+        self.assertEqual(1, doc.num_user_pending_annotations(annotator))
+        self.assertEqual(1, doc.num_user_timed_out_annotations(annotator))
+        self.assertEqual(1, doc.num_user_rejected_annotations(annotator))
+        self.assertEqual(1, doc.num_user_aborted_annotations(annotator))
 
 
 
@@ -77,13 +93,15 @@ class TestProjectModel(TestCase):
                                  remaining_tasks=self.num_total_tasks)
 
         doc = docs[0]
-        reject_annotation = Annotation.objects.create(user=annotator, document=doc, rejected=timezone.now())
+        reject_annotation = Annotation.objects.create(user=annotator, document=doc)
+        reject_annotation.reject_annotation()
         self.check_project_props(project, total_tasks=self.num_total_tasks,
                                  completed_tasks=0,
                                  occupied_tasks=0,
                                  remaining_tasks=self.num_total_tasks)
 
-        timeout_annotation = Annotation.objects.create(user=annotator, document=doc, timed_out=timezone.now())
+        timeout_annotation = Annotation.objects.create(user=annotator, document=doc)
+        timeout_annotation.timeout_annotation()
         self.check_project_props(project, total_tasks=self.num_total_tasks,
                                  completed_tasks=0,
                                  occupied_tasks=0,
@@ -96,28 +114,30 @@ class TestProjectModel(TestCase):
                                  occupied_tasks=1,
                                  remaining_tasks=self.num_total_tasks-1)
 
-        pending_annotation.completed = timezone.now()
-        pending_annotation.save()
+        pending_annotation.complete_annotation({})
         self.check_project_props(project, total_tasks=self.num_total_tasks,
                                  completed_tasks=1,
                                  occupied_tasks=1,
                                  remaining_tasks=self.num_total_tasks-1)
 
 
-        complete_annotation1 = Annotation.objects.create(user=annotator, document=doc, completed=timezone.now())
+        complete_annotation1 = Annotation.objects.create(user=annotator, document=doc)
+        complete_annotation1.complete_annotation({})
         self.check_project_props(project, total_tasks=self.num_total_tasks,
                                  completed_tasks=2,
                                  occupied_tasks=2,
                                  remaining_tasks=self.num_total_tasks-2)
 
 
-        complete_annotation2 = Annotation.objects.create(user=annotator, document=docs[1], completed=timezone.now())
+        complete_annotation2 = Annotation.objects.create(user=annotator, document=docs[1])
+        complete_annotation2.complete_annotation({})
         self.check_project_props(project, total_tasks=self.num_total_tasks,
                                  completed_tasks=3,
                                  occupied_tasks=3,
                                  remaining_tasks=self.num_total_tasks-3)
 
-        complete_annotation3 = Annotation.objects.create(user=annotator, document=docs[2], completed=timezone.now())
+        complete_annotation3 = Annotation.objects.create(user=annotator, document=docs[2])
+        complete_annotation3.complete_annotation({})
         self.check_project_props(project, total_tasks=self.num_total_tasks,
                                  completed_tasks=4,
                                  occupied_tasks=4,
@@ -255,19 +275,22 @@ class TestAnnotationModel(TestCase):
             Annotation.objects.create(document=document,
                                       user=annotator,
                                       times_out_at=timeout_time,
-                                      timed_out=timeout_time)
+                                      status=Annotation.TIMED_OUT,
+                                      status_time=timeout_time)
 
         for i in range(num_completed):
             Annotation.objects.create(document=document,
                                       user=annotator,
                                       times_out_at=timeout_time,
-                                      completed=timeout_time)
+                                      status=Annotation.COMPLETED,
+                                      status_time=timeout_time)
 
         for i in range(num_rejected):
             Annotation.objects.create(document=document,
                                       user=annotator,
                                       times_out_at=timeout_time,
-                                      rejected=timeout_time)
+                                      status=Annotation.REJECTED,
+                                      status_time=timeout_time)
 
         for i in range(num_to_timeout):
             Annotation.objects.create(document=document,

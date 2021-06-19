@@ -1,14 +1,25 @@
 <template>
   <div class="container">
     <div v-if="annotationTask">
-      <h1>Annotating: {{annotationTask.project_name}}</h1>
-      <p>{{annotationTask.project_description}}</p>
+      <h1>Annotate</h1>
+      <b-card class="mb-4">
+        <h2>Current project: {{ annotationTask.project_name }}</h2>
+        <p>{{ annotationTask.project_description }}</p>
+      </b-card>
 
-      <AnnotationRenderer :config="annotationTask.project_config"
+      <b-card class="mt-4">
+        <h4 class="mb-4">Annotating document ID{{annotationTask.document_id}}</h4>
+
+        <AnnotationRenderer :config="annotationTask.project_config"
                           :document="annotationTask.document_data"
                           @submit="submitHandler"
                           @reject="rejectHandler"
       ></AnnotationRenderer>
+
+      </b-card>
+
+
+
     </div>
     <div v-else>
       <h1>Nothing to annotate!</h1>
@@ -36,40 +47,36 @@ export default {
       annotationTask: null
     }
   },
-  computed: {
-
-
-  },
+  computed: {},
   methods: {
     ...mapActions(["getUserAnnotationTask", "completeUserAnnotationTask", "rejectUserAnnotationTask"]),
-    async submitHandler(value){
-      try{
+    async submitHandler(value) {
+      try {
         this.completeUserAnnotationTask({
           annotationID: this.annotationTask.annotation_id,
           data: value
         })
-        console.log("Annotation completed")
 
-
-      }catch (e){
+      } catch (e) {
         console.warn(e)
       }
 
       await this.getAnnotationTask()
 
     },
-    async rejectHandler(){
-      try{
-        this.rejectUserAnnotationTask(this.annotationTask.annotation_id)
-        console.log("Annotation completed")
+    async rejectHandler() {
+      try {
+        await this.rejectUserAnnotationTask(this.annotationTask.annotation_id)
 
 
-      }catch (e){
+      } catch (e) {
         console.warn(e)
       }
 
+      await this.getAnnotationTask()
+
     },
-    async getAnnotationTask(){
+    async getAnnotationTask() {
       this.annotationTask = await this.getUserAnnotationTask()
 
     }

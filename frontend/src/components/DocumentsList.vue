@@ -18,7 +18,7 @@
               <strong>ID:{{ doc.id }}</strong>
             </div>
             <div>
-              {{ doc.created | datetime }}
+              <b-icon-clock class="mr-2"></b-icon-clock>{{ doc.created | datetime }}
             </div>
           </div>
 
@@ -34,6 +34,10 @@
             <b-badge variant="warning" class="mr-2" title="Timed out annotations">
               <b-icon-clock></b-icon-clock>
               {{ doc.timed_out }}
+            </b-badge>
+            <b-badge variant="secondary" class="mr-2" title="Aborted annotations">
+              <b-icon-stop-fill></b-icon-stop-fill>
+              {{ doc.aborted }}
             </b-badge>
             <b-badge variant="primary" class="mr-2" title="Pending annotations">
               <b-icon-play-fill></b-icon-play-fill>
@@ -57,17 +61,20 @@
 
           <BMedia>
             <template v-slot:aside>
-              <b-badge v-if="anno.completed" variant="success" class="mr-2" style="width: 3em; height: auto;" title="Annotation completed">
-                <b-icon-pencil-fill></b-icon-pencil-fill>
+              <b-badge v-if="anno.completed" variant="success" class="mr-2"  title="Annotation completed">
+                <b-icon-pencil-fill style="width: 1.5em; height: auto;"></b-icon-pencil-fill>
               </b-badge>
               <b-badge v-else-if="anno.rejected" variant="danger" class="mr-2" title="Annotation rejected">
-                <b-icon-x-square-fill></b-icon-x-square-fill>
+                <b-icon-x-square-fill style="width: 1.5em; height: auto;"></b-icon-x-square-fill>
               </b-badge>
               <b-badge v-else-if="anno.timed_out" variant="warning" class="mr-2" title="Annotation timed out">
-                <b-icon-clock></b-icon-clock>
+                <b-icon-clock style="width: 1.5em; height: auto;"></b-icon-clock>
+              </b-badge>
+              <b-badge v-else-if="anno.aborted" variant="secondary" class="mr-2" title="Annotation aborted">
+                <b-icon-stop-fill style="width: 1.5em; height: auto;"></b-icon-stop-fill>
               </b-badge>
               <b-badge v-else variant="primary" class="mr-2" title="Annotation still pending">
-                <b-icon-play-fill></b-icon-play-fill>
+                <b-icon-play-fill style="width: 1.5em; height: auto;"></b-icon-play-fill>
               </b-badge>
             </template>
             <div>
@@ -94,12 +101,16 @@
               <b-icon-clock></b-icon-clock>
               Time out: {{ anno.timed_out | datetime }}
             </div>
+            <div v-else-if="anno.aborted">
+              <b-icon-clock></b-icon-clock>
+              Aborted at: {{ anno.aborted | datetime }}
+            </div>
             <div v-else>
               <b-icon-clock></b-icon-clock>
               Will time out at: {{ anno.times_out_at | datetime }}
             </div>
 
-            <AsyncJsonDisplay
+            <AsyncJsonDisplay v-if="anno.completed"
                 class="mt-2"
                 :fetch-function="getAnnotationContent"
                 :fetch-param="anno.id"
