@@ -69,6 +69,21 @@ def register(request, payload):
     else:
         raise ValueError("Username already exists")
 
+@rpc_method
+def change_password(request, payload):
+    user = request.user
+
+    user.password = payload.get("password")
+    user.save()
+    return        
+
+@rpc_method
+def change_email(request, payload):
+    user = request.user
+
+    user.email = payload.get("email")
+    user.save()
+    return
 
 ##################################
 ### Project Management Methods ###
@@ -315,3 +330,15 @@ def get_document_content(request, document_id):
 def get_annotation_content(request, annotation_id):
     annotation = Annotation.objects.get(pk=annotation_id)
     return annotation.data
+
+@rpc_method
+def get_user_details(request):
+    user = request.user
+
+    data = {
+        "username": user.username,
+        "email": user.email,
+        "created": user.created,
+    }
+
+    return data

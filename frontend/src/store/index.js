@@ -64,12 +64,42 @@ export default new Vuex.Store({
                 console.error(e);
             }
         },
+        async changeEmail({dispatch, commit}, params) {
+            try{
+                const payload = {
+                    email: params.email,
+                }
+                await rpc.call("change_email",payload);
+            }catch (e){
+                console.error(e);
+            }
+        },
+        async changePassword({dispatch, commit}, params) {
+            try{
+                const payload = {
+                    password: params.password,
+                }
+                let response = await rpc.call("change_password",payload);
+                return
+            }catch (e){
+                console.error(e);
+            }
+        },
 
         async is_authenticated({dispatch, commit}) {
             try{
                 let response = await rpc.call("is_authenticated");
                 dispatch("updateUser",response);
                 return response
+            }catch (e){
+                console.error(e);
+            }
+        },
+
+        async getUser({dispatch, commit}) {
+            try{
+                let user = await rpc.call("get_user_details");
+                return user
             }catch (e){
                 console.error(e);
             }

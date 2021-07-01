@@ -18,7 +18,7 @@
         </b-navbar-nav>
 
         <b-navbar-nav  class="ml-auto" v-else>
-          <b-nav-text variant="dark">Logged in as: {{ user.username }}</b-nav-text>
+          <b-nav-text variant="dark">Logged in as: <router-link to="/profile">{{ user.username }}</router-link></b-nav-text>
           <b-nav-item @click="logoutHandler" right>Sign Out</b-nav-item>
         </b-navbar-nav>
 
