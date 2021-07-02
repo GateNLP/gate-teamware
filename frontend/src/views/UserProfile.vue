@@ -3,7 +3,7 @@
         <h3>My Account</h3>
         <div class="container">
             <div class="row mt-3">
-                <b>Username: </b>{{user.username}}
+                <b>Username:</b> {{user.username}}
             </div>
 
             <div class="row mt-3">
@@ -50,7 +50,9 @@
         </div>
         </div>
 
-        <h3>My Annotations</h3>
+        <div class="row my-3">
+            <h3>My Annotations</h3>
+        </div>
         <div v-if="annotation_documents">
             <DocumentsList :documents="annotation_documents"></DocumentsList>
         </div>
