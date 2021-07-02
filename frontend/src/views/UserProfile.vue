@@ -1,5 +1,6 @@
 <template>
     <div class="container">
+        <h3>My Account</h3>
         <div class="container">
             <div class="row mt-3">
                 <b>Username: </b>{{user.username}}
@@ -48,13 +49,23 @@
             </b-form>
         </div>
         </div>
+
+        <h3>My Annotations</h3>
+        <div v-if="annotation_documents">
+            <DocumentsList :documents="annotation_documents"></DocumentsList>
+        </div>
+        <div v-else>
+            No annotations yet
+        </div>
     </div>
 </template> 
 <script>
 import {mapState, mapActions} from "vuex";
+import DocumentsList from "@/components/DocumentsList";
 
 export default {
     name: "UserProfile",
+    components: {DocumentsList},
     data(){
         return{
             error: "",
@@ -68,11 +79,12 @@ export default {
                 email: null,
                 password: null,
                 confirmpassword: null,
-            }
+            },
+            annotation_documents: [],
         }
     },
     methods: {
-    ...mapActions(["getUser","changeEmail","changePassword"]),
+    ...mapActions(["getUser","changeEmail","changePassword","getUserAnnotations"]),
         async EmailSubmitHandler(){
             await this.changeEmail(this.form);
             this.user = await this.getUser();
@@ -89,6 +101,8 @@ export default {
     },
     async mounted(){
         this.user = await this.getUser();
+        this.annotation_documents = await this.getUserAnnotations();
+        console.log(typeof(annotation_documents))
     },
     watch: {
         form: {

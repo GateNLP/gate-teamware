@@ -105,6 +105,15 @@ export default new Vuex.Store({
             }
         },
 
+        async getUserAnnotations({dispatch,commit}){
+            try {
+                let annotations = await rpc.call("get_user_annotations");
+                return annotations
+            } catch (e){
+                console.log(e)
+            }
+        },
+
         async getProjects({dispatch,commit}){
             try {
                 let projects = await rpc.call("get_projects");
