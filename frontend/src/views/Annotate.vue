@@ -52,7 +52,7 @@ export default {
     ...mapActions(["getUserAnnotationTask", "completeUserAnnotationTask", "rejectUserAnnotationTask"]),
     async submitHandler(value) {
       try {
-        this.completeUserAnnotationTask({
+        await this.completeUserAnnotationTask({
           annotationID: this.annotationTask.annotation_id,
           data: value
         })
