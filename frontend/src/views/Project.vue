@@ -103,7 +103,7 @@ import AnnotationRenderer from "@/components/AnnotationRenderer";
 import Annotators from "@/components/Annotators";
 import JsonEditor from "@/components/JsonEditor";
 import VJsoneditor from "v-jsoneditor";
-import {readFileAsync} from "@/utils";
+import {readFileAsync, toastError, toastSuccess} from "@/utils";
 import DocumentsList from "@/components/DocumentsList";
 
 export default {
@@ -161,13 +161,22 @@ export default {
     ...mapActions(["getProjects", "updateProject", "getProjectDocuments", "getAnnotations", "addProjectDocument"]),
     async refreshDocumentsHandler(){
       this.setLoading(true)
-      this.documents = await this.getProjectDocuments(this.projectId);
+      try{
+        this.documents = await this.getProjectDocuments(this.projectId)
+      }catch(e){
+        toastError(this, "Reloading document", e)
+      }
       this.setLoading(false)
     },
     async saveProjectHandler() {
       this.setLoading(true)
-      await this.updateProject(this.local_project);
-      this.documents = await this.getProjectDocuments(this.projectId);
+      try{
+        await this.updateProject(this.local_project);
+        this.documents = await this.getProjectDocuments(this.projectId)
+        toastSuccess(this, "Save project configuration", "Save successful")
+      }catch (e){
+        toastError(this, "Save project configuration", e)
+      }
       this.setLoading(false)
     },
     async uploadBtnHandler(){
@@ -177,8 +186,8 @@ export default {
     async documentUploadHandler(e) {
 
       this.setLoading(true)
-
-      const fileList = e.target.files
+      try{
+        const fileList = e.target.files
 
       for (let file of fileList) {
         try {
@@ -194,9 +203,14 @@ export default {
         } catch (e) {
           console.error("Could not parse uploaded file")
           console.error(e)
+          toastError(this, "Document upload - Could not parse uploaded file "+file, e)
         }
 
         this.documents = await this.getProjectDocuments(this.projectId);
+      }
+
+      }catch (e){
+        toastError(this, "Document upload", e)
       }
 
       this.setLoading(false)
@@ -205,18 +219,17 @@ export default {
       this.loading = isLoading
     },
     async exportAnnotationsHandler() {
-      this.getAnnotations(this.projectId)
-          .then((response) => {
-            var fileURL = window.URL.createObjectURL(new Blob([response]));
-            var fileLink = document.createElement('a');
+      let response = await this.getAnnotations(this.projectId)
+      let fileURL = window.URL.createObjectURL(new Blob([response]));
+      let fileLink = document.createElement('a');
 
 
-            fileLink.href = fileURL;
-            fileLink.setAttribute('download', 'annotations.json');
-            document.body.appendChild(fileLink);
+      fileLink.href = fileURL;
+      fileLink.setAttribute('download', 'annotations.json');
+      document.body.appendChild(fileLink);
 
-            fileLink.click();
-          });
+      fileLink.click();
+
     },
     goToAnnotatePage(e) {
       this.$router.push(`/annotate/${this.projectId}/${this.documents[0].id}`)
