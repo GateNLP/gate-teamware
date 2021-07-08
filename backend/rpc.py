@@ -73,8 +73,7 @@ def register(request, payload):
 @rpc_method
 def change_password(request, payload):
     user = request.user
-
-    user.password = payload.get("password")
+    user.set_password(payload.get("password"))
     user.save()
     return        
 

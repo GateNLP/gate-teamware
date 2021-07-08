@@ -95,10 +95,7 @@ export default {
             if (this.error){
                 return
             }
-            let response = await this.changePassword(this.form);
-            if (response.error){
-                this.error = response.error;
-            }
+            await this.changePassword(this.form);
         }
     },
     async mounted(){
