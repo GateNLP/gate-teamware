@@ -6,6 +6,7 @@ from django.http import JsonResponse, HttpRequest
 from django.shortcuts import redirect, render
 from django.utils import timezone
 import gatenlp
+from gatenlp import annotation_set
 # https://pypi.org/project/gatenlp/
 
 from backend.errors import AuthError
@@ -69,6 +70,71 @@ def register(request, payload):
     else:
         raise ValueError("Username already exists")
 
+@rpc_method
+def change_password(request, payload):
+    user = request.user
+    user.set_password(payload.get("password"))
+    user.save()
+    return        
+
+@rpc_method
+def change_email(request, payload):
+    user = request.user
+
+    user.email = payload.get("email")
+    user.save()
+    return
+
+#############################
+### User specific methods ###
+#############################
+
+@rpc_method
+def get_user_details(request):
+    user = request.user
+
+    data = {
+        "username": user.username,
+        "email": user.email,
+        "created": user.created,
+    }
+
+    return data
+
+@rpc_method
+def get_user_annotations(request):
+    user = request.user
+
+    annotation_out = []
+    documents_out = []
+    for annotation in Annotation.objects.filter(user=user):
+        document = annotation.document
+
+        annotation_out = {
+            "id": annotation.pk,
+            "annotated_by": annotation.user.username,
+            "created": annotation.created,
+            "completed": annotation.status_time if annotation.status == Annotation.COMPLETED else None,
+            "rejected": annotation.status_time if annotation.status == Annotation.REJECTED else None,
+            "timed_out": annotation.status_time if annotation.status == Annotation.TIMED_OUT else None,
+            "aborted": annotation.status_time if annotation.status == Annotation.ABORTED else None,
+            "times_out_at": annotation.times_out_at,
+        }
+
+        doc_out = {
+            "id": document.pk,
+            "annotations": [annotation_out],
+            "created": document.created,
+            "completed": document.num_completed_annotations,
+            "rejected": document.num_rejected_annotations,
+            "timed_out": document.num_timed_out_annotations,
+            "pending": document.num_pending_annotations,
+            "aborted": document.num_aborted_annotations,
+        }
+
+        documents_out.append(doc_out)
+    
+    return documents_out
 
 ##################################
 ### Project Management Methods ###
