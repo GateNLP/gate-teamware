@@ -7,6 +7,7 @@
         <b-navbar-nav>
           <b-nav-item to="/projects" v-if="user && user.isAuthenticated">Projects</b-nav-item>
           <b-nav-item to="/annotate" v-if="user && user.isAuthenticated">Annotate</b-nav-item>
+          <b-nav-item to="/app_config" v-if="user && user.isAuthenticated">Settings</b-nav-item>
           <b-nav-item to="/about">About</b-nav-item>
         </b-navbar-nav>
 

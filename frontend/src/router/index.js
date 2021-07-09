@@ -43,6 +43,11 @@ const routes = [
     name: 'Annotate',
     component: () => import('../views/Annotate'),
   },
+     {
+    path: '/app_config',
+    name: 'App Configuration',
+    component: () => import('../views/AppConfig'),
+  },
 
 ]
 
