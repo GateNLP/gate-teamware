@@ -21,7 +21,8 @@
     <b-row>
       <b-col>
         <BButton @click.prevent="submitHandler" class="mr-4" variant="success">Submit</BButton>
-        <BButton @click.prevent="clearFormHandler" variant="danger">Clear</BButton>
+        <BButton @click.prevent="clearFormHandler" class="mr-4" variant="warning">Clear</BButton>
+        <BButton @click.prevent="rejectHandler" variant="danger">Reject document</BButton>
       </b-col>
     </b-row>
   </div>
@@ -155,8 +156,6 @@ export default {
         this.$emit('submit', this.annotationOutput)
         this.clearForm()
       }
-
-
     },
     clearForm() {
       this.annotationOutput = {}
@@ -165,6 +164,9 @@ export default {
     },
     clearFormHandler(e) {
       this.clearForm()
+    },
+    rejectHandler(e){
+      this.$emit('reject')
     }
 
   },

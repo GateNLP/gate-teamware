@@ -39,7 +39,7 @@ const routes = [
     component: () => import('../views/Project'),
   },
      {
-    path: '/annotate/:pid/:did',
+    path: '/annotate',
     name: 'Annotate',
     component: () => import('../views/Annotate'),
   },

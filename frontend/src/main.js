@@ -21,6 +21,11 @@ Vue.use(VJsoneditor)
 
 Vue.config.productionTip = false
 
+Vue.filter('datetime', function (dateString){
+  let date = new Date(dateString)
+  return date.toLocaleDateString() + " " + date.toLocaleTimeString()
+})
+
 new Vue({
   router,
   store,

@@ -6,8 +6,11 @@
 
         <b-navbar-nav>
           <b-nav-item to="/projects" v-if="user && user.isAuthenticated">Projects</b-nav-item>
+          <b-nav-item to="/annotate" v-if="user && user.isAuthenticated">Annotate</b-nav-item>
           <b-nav-item to="/about">About</b-nav-item>
         </b-navbar-nav>
+
+
 
         <b-navbar-nav  class="ml-auto" v-if="!user || !user.isAuthenticated">
           <b-nav-item to="/login" right>Sign In</b-nav-item>

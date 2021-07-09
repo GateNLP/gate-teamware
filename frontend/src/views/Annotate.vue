@@ -1,25 +1,35 @@
 <template>
   <div class="container">
-    <h1>Annotating: {{local_project.name}}</h1>
-    <b-row>
-      <b-col md="4">
-        <b-list-group v-if="local_project && local_project.configuration && documents">
-          <b-list-group-item v-for="document in documents">
-            <b-link :to="`/annotate/${projectId}/${document.id}`">Document {{document.id}}</b-link>
-          </b-list-group-item>
-        </b-list-group>
-      </b-col>
-      <b-col>
-        <div v-if="local_project && local_project.configuration && annotateDocument">
-      <AnnotationRenderer :config="local_project.configuration" :document="annotateDocument" @submit="submitHandler"></AnnotationRenderer>
+    <div v-if="annotationTask">
+      <h1>Annotate</h1>
+      <b-card class="mb-4">
+        <h2>Current project: {{ annotationTask.project_name }}</h2>
+        <p>{{ annotationTask.project_description }}</p>
+      </b-card>
+
+      <b-card class="mt-4">
+        <h4 class="mb-4">Annotating document ID{{annotationTask.document_id}}</h4>
+
+        <AnnotationRenderer :config="annotationTask.project_config"
+                          :document="annotationTask.document_data"
+                          @submit="submitHandler"
+                          @reject="rejectHandler"
+      ></AnnotationRenderer>
+
+      </b-card>
+
+
+
     </div>
     <div v-else>
-      Invalid document for annotation
+      <h1>Nothing to annotate!</h1>
+      <p>
+        Thank you for participating. Notify the project manger of your username in order to be added to an
+        annotation project.
+      </p>
+
+
     </div>
-
-      </b-col>
-    </b-row>
-
 
   </div>
 </template>
@@ -34,46 +44,45 @@ export default {
   components: {AnnotationRenderer},
   data() {
     return {
-      local_project: null,
-      documents: null,
+      annotationTask: null
     }
   },
-  computed: {
-    ...mapState(["projects"]),
-    projectId() {
-      return this.$route.params.pid
-    },
-    docId() {
-      return this.$route.params.did
-    },
-    annotateDocument(){
-      if(this.docId && this.documents){
-        for(let doc of this.documents){
-          if(String(doc.id) === this.docId){
-            return doc.data
-          }
-        }
+  computed: {},
+  methods: {
+    ...mapActions(["getUserAnnotationTask", "completeUserAnnotationTask", "rejectUserAnnotationTask"]),
+    async submitHandler(value) {
+      try {
+        await this.completeUserAnnotationTask({
+          annotationID: this.annotationTask.annotation_id,
+          data: value
+        })
+
+      } catch (e) {
+        console.warn(e)
       }
 
-      return null
-    }
-  },
-  methods: {
-    ...mapActions(["getProjects", "getProjectDocuments", "addAnnotation"]),
-    submitHandler(value){
-      this.addAnnotation({docId: this.docId, annotation: value})
+      await this.getAnnotationTask()
+
+    },
+    async rejectHandler() {
+      try {
+        await this.rejectUserAnnotationTask(this.annotationTask.annotation_id)
+
+
+      } catch (e) {
+        console.warn(e)
+      }
+
+      await this.getAnnotationTask()
+
+    },
+    async getAnnotationTask() {
+      this.annotationTask = await this.getUserAnnotationTask()
+
     }
   },
   async mounted() {
-    await this.getProjects();
-    if (this.projectId) {
-      for (let project of this.projects) {
-        if (String(project.id) === this.projectId) {
-          this.local_project = _.cloneDeep(project)
-        }
-      }
-      this.documents = await this.getProjectDocuments(this.projectId)
-    }
+    await this.getAnnotationTask()
   }
 }
 </script>
