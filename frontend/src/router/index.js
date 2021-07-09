@@ -56,6 +56,12 @@ const routes = [
     component: () => import('../views/Annotate'),
     meta: { requiresAuth: true },
   },
+  {
+    path: '/manageusers',
+    name: 'ManageUsers',
+    component: () => import('../views/ManageUsers'),
+    meta: { requiresAdmin: true },
+  },
 
 ]
 
@@ -92,6 +98,18 @@ router.beforeEach((to, from, next) => {
 router.beforeEach((to, from, next) => {
   if (to.matched.some((record) => record.meta.requiresManager)) {
     if (store.getters.isManager) {
+      next();
+      return;
+    }
+    next("/");
+  } else {
+    next();
+  }
+});
+
+router.beforeEach((to, from, next) => {
+  if (to.matched.some((record) => record.meta.requiresAdmin)) {
+    if (store.getters.isAdmin) {
       next();
       return;
     }

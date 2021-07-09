@@ -32,6 +32,7 @@ def is_authenticated(request):
     context = {
         "isAuthenticated": False,
         "isManager": False,
+        "isAdmin": False,
     }
     if request.user.is_authenticated:
         context["isAuthenticated"] = True
@@ -39,6 +40,9 @@ def is_authenticated(request):
 
     if request.user.manager or request.user.is_staff:
         context["isManager"] = True
+
+    if request.user.is_staff:
+        context["isAdmin"] = True
     
     return context
 
@@ -409,3 +413,38 @@ def toggle_manager(request, username):
     user = User.objects.get(username=username)
     user.manager = not user.manager # toggle the boolean property
     user.save()
+
+@rpc_method_auth
+@staff_member_required
+def get_all_users(request):
+    users = User.objects.all()
+    output = [serializer.serialize(user, {"id", "username", "email", "manager", "is_staff"}) for user in users]
+    return output
+
+@rpc_method_auth
+@staff_member_required
+def get_user(request, username):
+    user = User.objects.get(username=username)
+
+    data = {
+        "id": user.id,
+        "username": user.username,
+        "email": user.email,
+        "is_manager": user.manager,
+        "is_admin": user.is_staff,
+    }
+
+    return data
+
+@rpc_method_auth
+@staff_member_required
+def admin_update_user(request,user_dict):
+    user = User.objects.get(id=user_dict["id"])
+
+    user.username = user_dict["username"]
+    user.email = user_dict["email"]
+    user.manager = user_dict["is_manager"]
+    user.is_staff = user_dict["is_admin"]
+    user.save()
+
+    return user_dict
