@@ -14,12 +14,18 @@ export default new Vuex.Store({
         user: {
             username: "",
             isAuthenticated: false,
+            isManager: false,
         },
+    },
+    getters:{
+        isAuthenticated: state => state.user.isAuthenticated,
+        isManager: state => state.user.isManager,
     },
     mutations: {
         updateUser(state, params) {
             state.user.username = params.username;
             state.user.isAuthenticated = params.isAuthenticated;
+            state.user.isManager = params.isManager;
         },
         updateProjects(state,projects) {
             state.projects = projects;

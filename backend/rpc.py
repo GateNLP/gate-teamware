@@ -29,12 +29,17 @@ User = get_user_model()
 
 @rpc_method
 def is_authenticated(request):
-    context = {}
+    context = {
+        "isAuthenticated": False,
+        "isManager": False,
+    }
     if request.user.is_authenticated:
         context["isAuthenticated"] = True
         context["username"] = request.user.username
-    else:
-        context["isAuthenticated"] = False
+
+    if request.user.manager or request.user.is_staff:
+        context["isManager"] = True
+    
     return context
 
 
@@ -101,6 +106,14 @@ def get_user_details(request):
         "email": user.email,
         "created": user.created,
     }
+
+    user_role = "annotator"
+    if user.is_staff:
+        user_role = "admin"
+    elif user.manager:
+        user_role = "manager"
+
+    data["user_role"] = user_role
 
     return data
 
