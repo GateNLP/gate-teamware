@@ -1,7 +1,10 @@
 import logging
 import json
 from django.contrib.auth import authenticate, get_user_model, login as djlogin, logout as djlogout
+from django.contrib.auth.decorators import permission_required
+from django.contrib.admin.views.decorators import staff_member_required
 from django.db import transaction
+from django.db.models import manager
 from django.http import JsonResponse, HttpRequest
 from django.shortcuts import redirect, render
 from django.utils import timezone
@@ -381,3 +384,15 @@ def get_document_content(request, document_id):
 def get_annotation_content(request, annotation_id):
     annotation = Annotation.objects.get(pk=annotation_id)
     return annotation.data
+
+
+###############################
+### User Management Methods ###
+###############################
+
+@rpc_method_auth
+@staff_member_required
+def toggle_manager(request, username):
+    user = User.objects.get(username=username)
+    user.manager = not user.manager # toggle the boolean property
+    user.save()
