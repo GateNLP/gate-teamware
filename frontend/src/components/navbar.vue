@@ -1,7 +1,7 @@
 <template>
   <div id="navbar">
     <div>
-      <b-navbar variant="light">
+      <b-navbar type="light" variant="light">
         <b-navbar-brand to="/">GATE Annotate</b-navbar-brand>
 
         <b-navbar-nav>
@@ -18,10 +18,14 @@
         </b-navbar-nav>
 
         <b-navbar-nav  class="ml-auto" v-else>
-          <b-nav-text variant="dark">Logged in as: {{ user.username }}</b-nav-text>
-          <b-nav-item @click="logoutHandler" right>Sign Out</b-nav-item>
+          <b-nav-item-dropdown right>
+            <template #button-content>
+              <b-icon icon="person-circle"></b-icon> {{ user.username }}
+            </template>
+            <b-dropdown-item to="/profile">Profile</b-dropdown-item>
+            <b-dropdown-item @click="logoutHandler" right>Sign Out</b-dropdown-item>
+          </b-nav-item-dropdown>
         </b-navbar-nav>
-
       </b-navbar>
     </div>
 
