@@ -409,13 +409,6 @@ def get_annotation_content(request, annotation_id):
 
 @rpc_method_auth
 @staff_member_required
-def toggle_manager(request, username):
-    user = User.objects.get(username=username)
-    user.manager = not user.manager # toggle the boolean property
-    user.save()
-
-@rpc_method_auth
-@staff_member_required
 def get_all_users(request):
     users = User.objects.all()
     output = [serializer.serialize(user, {"id", "username", "email", "manager", "is_staff"}) for user in users]
