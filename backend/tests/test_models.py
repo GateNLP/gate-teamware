@@ -207,9 +207,6 @@ class TestProjectModel(TestCase):
         user1.owns.add(proj)
         user1.save()
 
-        # User 2 as manager
-        user2.manages.add(proj)
-
         # Load a fresh project model to serialize
         proj = Project.objects.get(pk=1)
 
@@ -219,7 +216,6 @@ class TestProjectModel(TestCase):
         self.assertEqual(serialized_proj["name"], proj.name)
         self.assertEqual(serialized_proj["configuration"], proj.configuration)
         self.assertEqual(serialized_proj["owner"], user1.id)
-        self.assertEqual(serialized_proj["managers"], [user2.id])
         self.assertEqual(serialized_proj["documents"], [document.id, document2.id])
 
 

@@ -58,11 +58,11 @@ class TestEndpoint(TestCase):
         self.assertTrue(client.login(username=self.username, password=self.password))
         return client
 
-    def call_rpc(self, client, mehod_name, *params):
+    def call_rpc(self, client, method_name, *params):
         response = client.post("/rpc/", {
             "jsonrpc": "2.0",
             "id": 0,
-            "method": mehod_name,
+            "method": method_name,
             "params": list(params)
         }, content_type="application/json")
         return response
@@ -260,6 +260,49 @@ class TestUsers(TestEndpoint):
         self.assertEqual(len(possible_annotators), 3, "Remove 1 user from project, should list 3 users")
         project_annotators = get_project_annotators(self.get_loggedin_request(), proj_id=proj.pk)
         self.assertEqual(len(project_annotators), 1)
+
+
+class TestUserManagement(TestEndpoint):
+
+    def setUp(self):
+        user = self.get_default_user()
+        user.is_staff = True
+        user.save()
+
+        get_user_model().objects.create(username="ann1")
+        get_user_model().objects.create(username="ann2")
+        get_user_model().objects.create(username="ann3")
+
+    def test_get_all_users(self):
+
+        c = self.get_loggedin_client()
+
+        response = self.call_rpc(c, "get_all_users")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(json.loads(response.content)["result"]), 4)
+
+    def test_get_user(self):
+
+        c = self.get_loggedin_client()
+
+        response = self.call_rpc(c, "get_user", "ann1")
+        self.assertEqual(response.status_code, 200)
+
+    def test_admin_update_user(self):
+
+        c = self.get_loggedin_client()
+
+        data = {
+            "id": 2,
+            "username": "ann1",
+            "email": "ann1@test.com",
+            "is_manager": True,
+            "is_admin": False,
+        }
+
+        response = self.call_rpc(c, "admin_update_user", data)
+        self.assertEqual(response.status_code, 200)
 
 
 class TestAnnotationTaskManager(TestEndpoint):
