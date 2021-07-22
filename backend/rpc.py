@@ -38,11 +38,12 @@ def is_authenticated(request):
         context["isAuthenticated"] = True
         context["username"] = request.user.username
 
-    if request.user.manager or request.user.is_staff:
-        context["isManager"] = True
+    if not request.user.is_anonymous:
+        if request.user.manager or request.user.is_staff:
+            context["isManager"] = True
 
-    if request.user.is_staff:
-        context["isAdmin"] = True
+        if request.user.is_staff:
+            context["isAdmin"] = True
     
     return context
 
