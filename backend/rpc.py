@@ -39,7 +39,7 @@ def is_authenticated(request):
         context["username"] = request.user.username
 
     if not request.user.is_anonymous:
-        if request.user.manager or request.user.is_staff:
+        if request.user.is_manager or request.user.is_staff:
             context["isManager"] = True
 
         if request.user.is_staff:
@@ -56,7 +56,7 @@ def login(request, payload):
         djlogin(request, user)
         context["username"] = user.username
         context["isAuthenticated"] = user.is_authenticated
-        context["isManager"] = user.manager
+        context["isManager"] = user.is_manager
         context["isAdmin"] = user.is_staff
         return context
     else:
@@ -117,7 +117,7 @@ def get_user_details(request):
     user_role = "annotator"
     if user.is_staff:
         user_role = "admin"
-    elif user.manager:
+    elif user.is_manager:
         user_role = "manager"
 
     data["user_role"] = user_role
@@ -414,7 +414,7 @@ def get_annotation_content(request, annotation_id):
 @staff_member_required
 def get_all_users(request):
     users = User.objects.all()
-    output = [serializer.serialize(user, {"id", "username", "email", "manager", "is_staff"}) for user in users]
+    output = [serializer.serialize(user, {"id", "username", "email", "is_manager", "is_staff"}) for user in users]
     return output
 
 @rpc_method_auth
@@ -426,7 +426,7 @@ def get_user(request, username):
         "id": user.id,
         "username": user.username,
         "email": user.email,
-        "is_manager": user.manager,
+        "is_manager": user.is_manager,
         "is_admin": user.is_staff,
     }
 
@@ -439,7 +439,7 @@ def admin_update_user(request,user_dict):
 
     user.username = user_dict["username"]
     user.email = user_dict["email"]
-    user.manager = user_dict["is_manager"]
+    user.is_manager = user_dict["is_manager"]
     user.is_staff = user_dict["is_admin"]
     user.save()
 

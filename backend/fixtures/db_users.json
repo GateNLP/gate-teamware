@@ -11,7 +11,7 @@
             "email": "admin@test.com",
             "is_staff": true,
             "is_active": true,
-            "manager": true,
+            "is_manager": true,
             "groups": [],
             "user_permissions": []
         }
@@ -28,7 +28,7 @@
             "email": "manager@test.com",
             "is_staff": false,
             "is_active": true,
-            "manager": true,
+            "is_manager": true,
             "groups": [],
             "user_permissions": []
         }
@@ -45,7 +45,7 @@
             "email": "annotator@test.com",
             "is_staff": false,
             "is_active": true,
-            "manager": false,
+            "is_manager": false,
             "groups": [],
             "user_permissions": []
         }
