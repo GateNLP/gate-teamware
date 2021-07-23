@@ -54,8 +54,10 @@ def login(request, payload):
     user = authenticate(username=payload["username"], password=payload["password"])
     if user is not None:
         djlogin(request, user)
-        context["username"] = payload["username"]
-        context["isAuthenticated"] = True
+        context["username"] = user.username
+        context["isAuthenticated"] = user.is_authenticated
+        context["isManager"] = user.manager
+        context["isAdmin"] = user.is_staff
         return context
     else:
         raise AuthError("Invalid username or password.")

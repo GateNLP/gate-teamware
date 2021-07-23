@@ -6,7 +6,7 @@
   "scripts": {
     "postinstall": "(cd frontend && npm install) #Install npm packages in frontend also",
     "migrate": "./manage.py migrate",
-    "migrate:integration": "./manage.py flush --noinput --settings='annotation_tool.settings.integration' && ./manage.py migrate --settings='annotation_tool.settings.integration'",
+    "migrate:integration": "./manage.py flush --noinput --settings='annotation_tool.settings.integration' && ./manage.py migrate --settings='annotation_tool.settings.integration' &&  ./manage.py loaddata --settings='annotation_tool.settings.integration' --app backend backend/fixtures/db_users.json",
     "serve:frontend": "cd frontend && npm run serve",
     "serve:server": "python manage.py runserver",
     "serve:integration": "python manage.py runserver --settings='annotation_tool.settings.integration'",
