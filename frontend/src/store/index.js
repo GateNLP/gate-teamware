@@ -14,12 +14,14 @@ export default new Vuex.Store({
         user: {
             username: "",
             isAuthenticated: false,
+            isActivated: false,
         },
     },
     mutations: {
         updateUser(state, params) {
             state.user.username = params.username;
             state.user.isAuthenticated = params.isAuthenticated;
+            state.user.isActivated = params.isActivated;
         },
         updateProjects(state,projects) {
             state.projects = projects;
@@ -47,6 +49,7 @@ export default new Vuex.Store({
             let params = {
                 username: "",
                 isAuthenticated: false,
+                isActivated: false,
             }
             await rpc.call("logout");
             commit("updateUser", params);

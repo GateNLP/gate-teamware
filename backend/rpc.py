@@ -1,11 +1,20 @@
+import secrets
 import logging
+import datetime
 import json
+
+from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model, login as djlogin, logout as djlogout
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
+from django.core import mail
+from django.db.models import Q
 from django.http import JsonResponse, HttpRequest
 from django.shortcuts import redirect, render
+from django.template.loader import render_to_string
 from django.utils import timezone
 import gatenlp
+from django.utils.html import strip_tags
 from gatenlp import annotation_set
 # https://pypi.org/project/gatenlp/
 
@@ -29,6 +38,7 @@ def is_authenticated(request):
     context = {}
     if request.user.is_authenticated:
         context["isAuthenticated"] = True
+        context["isActivated"] = request.user.is_activated
         context["username"] = request.user.username
     else:
         context["isAuthenticated"] = False
@@ -43,6 +53,7 @@ def login(request, payload):
         djlogin(request, user)
         context["username"] = payload["username"]
         context["isAuthenticated"] = True
+        context["isActivated"] = user.is_activated
         return context
     else:
         raise AuthError("Invalid username or password.")
@@ -63,19 +74,134 @@ def register(request, payload):
 
     if not get_user_model().objects.filter(username=username).exists():
         user = get_user_model().objects.create_user(username=username, password=password, email=email)
+        if settings.REGISTER_WITH_EMAIL_ACTIVATION:
+            generate_user_activation(user)
         djlogin(request, user)
         context["username"] = payload["username"]
         context["isAuthenticated"] = True
+        context["isActivated"] = user.is_activated
         return context
     else:
         raise ValueError("Username already exists")
+
+
+def generate_user_activation(user):
+    register_token = secrets.token_urlsafe(settings.REGISTER_TOKEN_LENGTH)
+    user.activate_account_token = register_token
+    user.activate_account_token_expire = timezone.now() + \
+                                         datetime.timedelta(days=settings.REGISTER_ACTIVATION_EMAIL_TIMEOUT_DAYS)
+    user.save()
+
+    app_name = settings.APP_NAME
+    activate_url = f"{settings.APP_URL}/activate?user={user.username}&token={user.activate_account_token}"
+    context = {
+        "app_name": app_name,
+        "activate_url": activate_url,
+    }
+
+    message = render_to_string("registration_mail.html", context)
+
+    num_sent = mail.send_mail(subject=f"Activate your account at {app_name}",
+                              message=strip_tags(message),
+                              html_message=message,
+                              from_email=settings.ADMIN_EMAIL,
+                              recipient_list=[user.email],
+                              fail_silently=False
+                              )
+
+    if num_sent < 1:
+        log.warning(f"Could not send registration email for user {user.username}")
+
+
+
+@rpc_method
+def activate_account(request, username, token):
+    try:
+
+        if token is None or len(token) < settings.REGISTER_TOKEN_LENGTH:
+            log.error(f"Token of invalid length provided: {token} username: {username}")
+            raise ValueError("Invalid token provided")
+
+        user = get_user_model().objects.get(username=username, activate_account_token=token)
+
+        if user.activate_account_token_expire < timezone.now():
+            raise ValueError("Token has expired")
+
+        user.is_account_activated = True
+        user.activate_account_token = None
+        user.activate_account_token_expire = None
+        user.save()
+
+    except User.DoesNotExist as e:
+        log.exception(f"Activate account, invalid token provided: {token}")
+        raise ValueError("Invalid token provided")
+
+
+@rpc_method
+def generate_password_reset(request, username):
+    user = None
+
+    try:
+        user = get_user_model().objects.get(username=username)
+        register_token = secrets.token_urlsafe(settings.PASSWORD_RESET_TOKEN_LENGTH)
+        user.reset_password_token = register_token
+        user.reset_password_token_expire = timezone.now() + \
+                                           datetime.timedelta(hours=settings.PASSWORD_RESET_TIMEOUT_HOURS)
+        user.save()
+
+        app_name = settings.APP_NAME
+        reset_url = f"{settings.APP_URL}/passwordreset?user={user.username}&token={user.reset_password_token}"
+        context = {
+            "app_name": app_name,
+            "reset_url": reset_url,
+        }
+
+        message = render_to_string("password_reset_mail.html", context)
+
+        num_sent = mail.send_mail(subject=f"Reset your password at {app_name}",
+                                  message=strip_tags(message),
+                                  html_message=message,
+                                  from_email=settings.ADMIN_EMAIL,
+                                  recipient_list=[user.email],
+                                  fail_silently=False
+                                  )
+        if num_sent < 1:
+            log.warning(f"Could not send password reset email for user {user.username}")
+
+
+    except User.DoesNotExist as e:
+        raise ValueError("Username does not exist.")
+
+
+@rpc_method
+def reset_password(request, username, token, new_password):
+    try:
+
+        if token is None or len(token) < settings.PASSWORD_RESET_TOKEN_LENGTH:
+            log.error(f"Token of invalid length provided: {token} username: {username}")
+            raise ValueError("Invalid token provided")
+
+        user = get_user_model().objects.get(username=username, reset_password_token=token)
+        if user.reset_password_token_expire < timezone.now():
+            raise ValueError("Token has expired")
+
+        user.set_password(new_password)
+        user.reset_password_token = None
+        user.reset_password_token_expire = None
+        user.save()
+
+    except User.DoesNotExist as e:
+        log.exception(f"Reset password, invalid token provided: {token}")
+        raise ValueError("Invalid token provided")
+
 
 @rpc_method
 def change_password(request, payload):
     user = request.user
     user.set_password(payload.get("password"))
     user.save()
-    return        
+    return
+
 
 @rpc_method
 def change_email(request, payload):
@@ -84,6 +210,7 @@ def change_email(request, payload):
     user.email = payload.get("email")
     user.save()
     return
+
 
 #############################
 ### User specific methods ###
@@ -100,6 +227,7 @@ def get_user_details(request):
     }
 
     return data
+
 
 @rpc_method
 def get_user_annotations(request):
@@ -133,8 +261,9 @@ def get_user_annotations(request):
         }
 
         documents_out.append(doc_out)
-    
+
     return documents_out
+
 
 ##################################
 ### Project Management Methods ###
@@ -372,10 +501,12 @@ def reject_annotation_task(request, annotation_id):
     if annotation:
         annotation.reject_annotation()
 
+
 @rpc_method_auth
 def get_document_content(request, document_id):
     doc = Document.objects.get(pk=document_id)
     return doc.data
+
 
 @rpc_method_auth
 def get_annotation_content(request, annotation_id):

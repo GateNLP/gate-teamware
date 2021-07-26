@@ -45,6 +45,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'gmailapi_backend',
+    'registration'
 ]
 
 MIDDLEWARE = [
@@ -65,6 +67,7 @@ TEMPLATES = [
         'DIRS':
             [
                 os.path.join(BASE_DIR, 'templates'),
+                os.path.join(BASE_DIR, 'backend/templates'),
                 os.path.join(BASE_DIR, 'frontend/templates')
             ],
         'APP_DIRS': True,
@@ -128,7 +131,6 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
-
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "frontend/public/static"),
@@ -146,7 +148,6 @@ WEBPACK_LOADER = {
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
@@ -155,3 +156,22 @@ AUTH_USER_MODEL = 'backend.ServiceUser'
 
 CSRF_USE_SESSIONS = False
 CSRF_COOKIE_HTTPONLY = False
+
+APP_NAME = "Gate Annotation Service"
+APP_URL = "https://test.com"
+
+# Admin email - The mail address to be used for contacting
+# users of the system
+ADMIN_EMAIL = 'admin@test.com'
+
+# User registration settings
+REGISTER_WITH_EMAIL_ACTIVATION = True
+REGISTER_ACTIVATION_EMAIL_TIMEOUT_DAYS = 7
+REGISTER_TOKEN_LENGTH = 512
+
+# Password reset settings
+PASSWORD_RESET_TIMEOUT_HOURS = 10
+PASSWORD_RESET_TOKEN_LENGTH = 512
+
+
+

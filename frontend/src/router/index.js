@@ -28,6 +28,16 @@ const routes = [
     name: 'Register',
     component: () => import('../views/Register.vue')
   },
+    {
+    path: '/activate',
+    name: 'ActivateAccount',
+    component: () => import('../views/ActivateAccount')
+  },
+    {
+    path: '/passwordreset',
+    name: 'PasswordReset',
+    component: () => import('../views/PasswordReset')
+  },
   {
     path: '/profile',
     name: 'UserProfile',

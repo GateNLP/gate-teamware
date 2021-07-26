@@ -1,3 +1,4 @@
+from django.conf import settings
 import logging
 import django
 from datetime import timedelta
@@ -17,6 +18,24 @@ class ServiceUser(AbstractUser):
     annotates = models.ForeignKey("Project", on_delete=models.SET_NULL, related_name="annotators", null=True)
     manages = models.ManyToManyField("Project", related_name="managers")
     created = models.DateTimeField(default=timezone.now)
+    is_account_activated = models.BooleanField(default=False)
+    activate_account_token = models.TextField(null=True)
+    activate_account_token_expire = models.DateTimeField(null=True)
+    reset_password_token = models.TextField(null=True)
+    reset_password_token_expire = models.DateTimeField(null=True)
+
+    @property
+    def is_activated(self):
+        """
+        Checks whether the user has activated their account, but also takes into account
+        of the REGISTER_WITH_EMAIL_ACTIVATION settings.
+        """
+        if settings.REGISTER_WITH_EMAIL_ACTIVATION:
+            return self.is_account_activated
+        else:
+            return True
+
+
 
 
 class Project(models.Model):
