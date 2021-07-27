@@ -14,12 +14,21 @@ export default new Vuex.Store({
         user: {
             username: "",
             isAuthenticated: false,
+            isManager: false,
+            isAdmin: false,
         },
+    },
+    getters:{
+        isAuthenticated: state => state.user.isAuthenticated,
+        isManager: state => state.user.isManager,
+        isAdmin: state => state.user.isAdmin,
     },
     mutations: {
         updateUser(state, params) {
             state.user.username = params.username;
             state.user.isAuthenticated = params.isAuthenticated;
+            state.user.isManager = params.isManager;
+            state.user.isAdmin = params.isAdmin;
         },
         updateProjects(state,projects) {
             state.projects = projects;
@@ -105,6 +114,41 @@ export default new Vuex.Store({
                 return user
             }catch (e){
                 console.error(e);
+            }
+        },
+
+        async adminGetUser({dispatch, commit}, username) {
+            try{
+                let user = await rpc.call("get_user", username);
+                return user
+            }catch (e){
+                console.error(e);
+            }
+        },
+
+        async adminUpdateUser({dispatch, commit}, params) {
+            try{
+                const payload = {
+                    id: params.id,
+                    username: params.username,
+                    email: params.email,
+                    is_manager: params.is_manager,
+                    is_admin: params.is_admin,
+                }
+                let user = await rpc.call("admin_update_user",payload);
+                return user
+            }catch (e){
+                console.error(e)
+                throw e
+            }
+        },
+
+        async getAllUsers({dispatch,commit}){
+            try {
+                let users = await rpc.call("get_all_users");
+                return users
+            } catch (e){
+                console.log(e)
             }
         },
 

@@ -1,7 +1,10 @@
 import logging
 import json
 from django.contrib.auth import authenticate, get_user_model, login as djlogin, logout as djlogout
+from django.contrib.auth.decorators import permission_required
+from django.contrib.admin.views.decorators import staff_member_required
 from django.db import transaction
+from django.db.models import manager
 from django.http import JsonResponse, HttpRequest
 from django.shortcuts import redirect, render
 from django.utils import timezone
@@ -26,12 +29,22 @@ User = get_user_model()
 
 @rpc_method
 def is_authenticated(request):
-    context = {}
+    context = {
+        "isAuthenticated": False,
+        "isManager": False,
+        "isAdmin": False,
+    }
     if request.user.is_authenticated:
         context["isAuthenticated"] = True
         context["username"] = request.user.username
-    else:
-        context["isAuthenticated"] = False
+
+    if not request.user.is_anonymous:
+        if request.user.is_manager or request.user.is_staff:
+            context["isManager"] = True
+
+        if request.user.is_staff:
+            context["isAdmin"] = True
+    
     return context
 
 
@@ -41,8 +54,10 @@ def login(request, payload):
     user = authenticate(username=payload["username"], password=payload["password"])
     if user is not None:
         djlogin(request, user)
-        context["username"] = payload["username"]
-        context["isAuthenticated"] = True
+        context["username"] = user.username
+        context["isAuthenticated"] = user.is_authenticated
+        context["isManager"] = user.is_manager
+        context["isAdmin"] = user.is_staff
         return context
     else:
         raise AuthError("Invalid username or password.")
@@ -98,6 +113,14 @@ def get_user_details(request):
         "email": user.email,
         "created": user.created,
     }
+
+    user_role = "annotator"
+    if user.is_staff:
+        user_role = "admin"
+    elif user.is_manager:
+        user_role = "manager"
+
+    data["user_role"] = user_role
 
     return data
 
@@ -381,3 +404,43 @@ def get_document_content(request, document_id):
 def get_annotation_content(request, annotation_id):
     annotation = Annotation.objects.get(pk=annotation_id)
     return annotation.data
+
+
+###############################
+### User Management Methods ###
+###############################
+
+@rpc_method_auth
+@staff_member_required
+def get_all_users(request):
+    users = User.objects.all()
+    output = [serializer.serialize(user, {"id", "username", "email", "is_manager", "is_staff"}) for user in users]
+    return output
+
+@rpc_method_auth
+@staff_member_required
+def get_user(request, username):
+    user = User.objects.get(username=username)
+
+    data = {
+        "id": user.id,
+        "username": user.username,
+        "email": user.email,
+        "is_manager": user.is_manager,
+        "is_admin": user.is_staff,
+    }
+
+    return data
+
+@rpc_method_auth
+@staff_member_required
+def admin_update_user(request,user_dict):
+    user = User.objects.get(id=user_dict["id"])
+
+    user.username = user_dict["username"]
+    user.email = user_dict["email"]
+    user.is_manager = user_dict["is_manager"]
+    user.is_staff = user_dict["is_admin"]
+    user.save()
+
+    return user_dict
