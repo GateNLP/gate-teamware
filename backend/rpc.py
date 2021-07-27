@@ -1,8 +1,9 @@
 import secrets
 import logging
 import datetime
-import json
 
+import json
+from urllib.parse import urljoin
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model, login as djlogin, logout as djlogout
 from django.core.exceptions import ObjectDoesNotExist
@@ -75,7 +76,7 @@ def register(request, payload):
     if not get_user_model().objects.filter(username=username).exists():
         user = get_user_model().objects.create_user(username=username, password=password, email=email)
         if settings.REGISTER_WITH_EMAIL_ACTIVATION:
-            generate_user_activation(user)
+            _generate_user_activation(user)
         djlogin(request, user)
         context["username"] = payload["username"]
         context["isAuthenticated"] = True
@@ -85,7 +86,23 @@ def register(request, payload):
         raise ValueError("Username already exists")
 
 
-def generate_user_activation(user):
+@rpc_method
+def generate_user_activation(request, username):
+    try:
+        user = get_user_model().objects.get(username=username)
+
+        if user.is_activated:
+            raise ValueError(f"User {username}'s account is already activated.")
+
+        _generate_user_activation(user)
+
+
+    except User.DoesNotExist:
+        log.exception(f"Trying to generate activation code for user: {username} that doesn't exist")
+        raise ValueError("User does not exist.")
+
+
+def _generate_user_activation(user):
     register_token = secrets.token_urlsafe(settings.REGISTER_TOKEN_LENGTH)
     user.activate_account_token = register_token
     user.activate_account_token_expire = timezone.now() + \
@@ -93,7 +110,8 @@ def generate_user_activation(user):
     user.save()
 
     app_name = settings.APP_NAME
-    activate_url = f"{settings.APP_URL}/activate?user={user.username}&token={user.activate_account_token}"
+    activate_url_base = urljoin(settings.APP_URL, settings.REGISTER_URL_PATH)
+    activate_url = f"{activate_url_base}?user={user.username}&token={user.activate_account_token}"
     context = {
         "app_name": app_name,
         "activate_url": activate_url,
@@ -150,7 +168,8 @@ def generate_password_reset(request, username):
         user.save()
 
         app_name = settings.APP_NAME
-        reset_url = f"{settings.APP_URL}/passwordreset?user={user.username}&token={user.reset_password_token}"
+        reset_url_base = urljoin(settings.APP_URL, settings.PASSWORD_RESET_URL_PATH)
+        reset_url = f"{reset_url_base}?user={user.username}&token={user.reset_password_token}"
         context = {
             "app_name": app_name,
             "reset_url": reset_url,

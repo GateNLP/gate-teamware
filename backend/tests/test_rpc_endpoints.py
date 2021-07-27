@@ -13,7 +13,7 @@ from backend.models import Annotation, Document, Project
 from backend.rpc import create_project, update_project, add_project_document, add_document_annotation, \
     get_possible_annotators, add_project_annotator, remove_project_annotator, get_project_annotators, \
     get_annotation_task, complete_annotation_task, reject_annotation_task, register, activate_account, \
-    generate_password_reset, reset_password
+    generate_password_reset, reset_password, generate_user_activation
 from backend.rpcserver import rpc_method
 
 
@@ -151,7 +151,7 @@ class TestUserRegistration(TestEndpoint):
         })
 
         # Check that mail is sent
-        self.assertTrue(len(mail.outbox) > 0)
+        self.assertTrue(len(mail.outbox) > 0, "Mail to user must have been sent")
 
         test_user = get_user_model().objects.get(username=username)
 
@@ -159,18 +159,16 @@ class TestUserRegistration(TestEndpoint):
         self.assertTrue(len(test_user.activate_account_token) > settings.REGISTER_TOKEN_LENGTH)
         self.assertTrue(test_user.activate_account_token_expire > timezone.now())
 
-        # Should raise an error if user doesn't exist
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ValueError, msg="Should raise an error if user doesn't exist"):
             activate_account(self.get_request(), "doesnotexist", "tokendoesnotexist")
 
-        # Should raise error if token is wrong or expired
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ValueError, msg="Should raise error if token is wrong or expired"):
             activate_account(self.get_request(), test_user.username, "tokendoesnotexist")
 
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ValueError, msg="Should raise an error if token doesn't exist"):
             activate_account(self.get_request(), test_user.username, None)
 
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ValueError, msg="Should raise an error if token is blank"):
             activate_account(self.get_request(), test_user.username, "")
 
         # Should activate properly this time
@@ -181,6 +179,30 @@ class TestUserRegistration(TestEndpoint):
         self.assertTrue(test_user.is_account_activated)
         self.assertTrue(test_user.activate_account_token is None)
         self.assertTrue(test_user.activate_account_token_expire is None)
+
+    def test_generate_user_activation(self):
+
+        with self.assertRaises(ValueError, msg="Raise an error if user doesn't exist"):
+            generate_user_activation(self.get_request(), "doesnotexist")
+
+        # Gets a test user
+        test_user = self.get_default_user()
+
+        # Generates
+        generate_user_activation(self.get_request(), test_user.username)
+
+        test_user.refresh_from_db()
+        self.assertTrue(len(test_user.activate_account_token) > settings.REGISTER_TOKEN_LENGTH)
+        self.assertTrue(test_user.activate_account_token_expire > timezone.now())
+
+
+        test_user.is_account_activated = True
+        test_user.save()
+
+        with self.assertRaises(ValueError, msg="Raises an error if user is already activated"):
+            generate_user_activation(self.get_request(), test_user.username)
+
+
 
 class TestUserPasswordReset(TestEndpoint):
 
