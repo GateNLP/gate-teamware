@@ -16,7 +16,7 @@ class ServiceUser(AbstractUser):
     Custom user class.
     """
     annotates = models.ForeignKey("Project", on_delete=models.SET_NULL, related_name="annotators", null=True)
-    manages = models.ManyToManyField("Project", related_name="managers")
+    is_manager = models.BooleanField(default=False)
     created = models.DateTimeField(default=timezone.now)
     is_account_activated = models.BooleanField(default=False)
     activate_account_token = models.TextField(null=True)

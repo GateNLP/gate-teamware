@@ -1,0 +1,53 @@
+[
+    {
+        "model": "backend.serviceuser",
+        "pk": 1,
+        "fields": {
+            "password": "pbkdf2_sha256$260000$ymabGPFSj3Jv2lRd8bUKo8$Stkw8DotCRywZOx0UG11MFPe/Hzm6Pvp4xTdiSmSg14=",
+            "is_superuser": true,
+            "username": "admin",
+            "first_name": "",
+            "last_name": "",
+            "email": "admin@test.com",
+            "is_staff": true,
+            "is_active": true,
+            "is_manager": true,
+            "groups": [],
+            "user_permissions": []
+        }
+    },
+    {
+        "model": "backend.serviceuser",
+        "pk": 2,
+        "fields": {
+            "password": "pbkdf2_sha256$260000$ymabGPFSj3Jv2lRd8bUKo8$Stkw8DotCRywZOx0UG11MFPe/Hzm6Pvp4xTdiSmSg14=",
+            "is_superuser": false,
+            "username": "manager",
+            "first_name": "",
+            "last_name": "",
+            "email": "manager@test.com",
+            "is_staff": false,
+            "is_active": true,
+            "is_manager": true,
+            "groups": [],
+            "user_permissions": []
+        }
+    },
+    {
+        "model": "backend.serviceuser",
+        "pk": 3,
+        "fields": {
+            "password": "pbkdf2_sha256$260000$ymabGPFSj3Jv2lRd8bUKo8$Stkw8DotCRywZOx0UG11MFPe/Hzm6Pvp4xTdiSmSg14=",
+            "is_superuser": false,
+            "username": "annotator",
+            "first_name": "",
+            "last_name": "",
+            "email": "annotator@test.com",
+            "is_staff": false,
+            "is_active": true,
+            "is_manager": false,
+            "groups": [],
+            "user_permissions": []
+        }
+    }
+  ]

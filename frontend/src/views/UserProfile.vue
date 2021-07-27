@@ -7,6 +7,10 @@
             </div>
 
             <div class="row mt-3">
+                <b>User Role:</b> {{user.user_role}}
+            </div>
+
+            <div class="row mt-3">
                 <b>Email: </b> {{user.email}}
                 <b-icon icon="pencil-square" @click="editEmail = !editEmail" variant="primary"></b-icon>
             </div>
@@ -74,6 +78,7 @@ export default {
             editEmail: false,
             user: {
                 username: null,
+                user_role: "annotator",
                 created: null,
                 email: null,
             },
@@ -101,7 +106,6 @@ export default {
     async mounted(){
         this.user = await this.getUser();
         this.annotation_documents = await this.getUserAnnotations();
-        console.log(typeof(annotation_documents))
     },
     watch: {
         form: {
