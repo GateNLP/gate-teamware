@@ -5,10 +5,10 @@
         <b-navbar-brand to="/">GATE Annotate</b-navbar-brand>
 
         <b-navbar-nav>
-          <b-nav-item to="/projects" v-if="user && user.isManager">Projects</b-nav-item>
-          <b-nav-item to="/annotate" v-if="user && user.isAuthenticated">Annotate</b-nav-item>
-          <b-nav-item to="/manageusers" v-if="user && user.isAdmin">Manage Users</b-nav-item>
-          <b-nav-item to="/app_config" v-if="user && user.isAuthenticated">Settings</b-nav-item>
+          <b-nav-item to="/projects" v-if="user && user.isManager && user.isActivated">Projects</b-nav-item>
+          <b-nav-item to="/annotate" v-if="user && user.isAuthenticated && user.isActivated">Annotate</b-nav-item>
+          <b-nav-item to="/manageusers" v-if="user && user.isAdmin && user.isActivated">Manage Users</b-nav-item>
+          <b-nav-item to="/app_config" v-if="user && user.isAuthenticated && user.isActivated">Settings</b-nav-item>
           <b-nav-item to="/about">About</b-nav-item>
         </b-navbar-nav>
 

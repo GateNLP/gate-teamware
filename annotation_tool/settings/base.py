@@ -158,17 +158,17 @@ CSRF_USE_SESSIONS = False
 CSRF_COOKIE_HTTPONLY = False
 
 APP_NAME = "Gate Annotation Service"
-APP_URL = "https://test.com"
+APP_URL = "http://127.0.0.1:8000"
 
 # Admin email - The mail address to be used for contacting
 # users of the system
 ADMIN_EMAIL = 'admin@test.com'
 
-# User registration settings
-REGISTER_URL_PATH = "/register"
-REGISTER_WITH_EMAIL_ACTIVATION = True
-REGISTER_ACTIVATION_EMAIL_TIMEOUT_DAYS = 7
-REGISTER_TOKEN_LENGTH = 128
+# User account activation settings
+ACTIVATION_URL_PATH = "/activate"
+ACTIVATION_WITH_EMAIL = True
+ACTIVATION_EMAIL_TIMEOUT_DAYS = 7
+ACTIVATION_TOKEN_LENGTH = 128
 
 # Password reset settings
 PASSWORD_RESET_URL_PATH = "/passwordreset"

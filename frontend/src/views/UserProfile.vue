@@ -54,6 +54,31 @@
         </div>
         </div>
 
+        <b-row class="row mt-3" v-if="!isActivated">
+          <b-col>
+            <p class="alert-warning p-2">
+              Your account must be activated before you can use the website. If you have not received the
+              activation e-mail, you can re-generate it using the button below.
+            </p>
+            <div>
+              <b-button variant="primary" @click="generateActivationCodeBtnHandler">
+                  Re-send verification e-mail.
+              </b-button>
+
+            </div>
+
+            <p v-if="activationEmailSent" class="alert-success p-4 mb-4 mt-3">
+              The activation token has been re-sent to the e-mail address you used to
+              register your account.
+            </p>
+
+            <p v-if="activationEmailError" class="alert-warning p-4 mb-4 mt-3">
+              {{activationEmailError}}
+            </p>
+          </b-col>
+
+        </b-row>
+
         <div class="row my-3">
             <h3>My Annotations</h3>
         </div>
@@ -66,7 +91,7 @@
     </div>
 </template> 
 <script>
-import {mapState, mapActions} from "vuex";
+import {mapState, mapActions, mapGetters} from "vuex";
 import DocumentsList from "@/components/DocumentsList";
 
 export default {
@@ -87,11 +112,16 @@ export default {
                 password: null,
                 confirmpassword: null,
             },
+            activationEmailSent: false,
+            activationEmailError: null,
             annotation_documents: [],
         }
     },
+    computed: {
+      ...mapGetters(["isActivated"]),
+    },
     methods: {
-    ...mapActions(["getUser","changeEmail","changePassword","getUserAnnotations"]),
+    ...mapActions(["getUser","changeEmail","changePassword","getUserAnnotations", "generateUserActivation"]),
         async EmailSubmitHandler(){
             await this.changeEmail(this.form);
             this.user = await this.getUser();
@@ -101,6 +131,17 @@ export default {
                 return
             }
             await this.changePassword(this.form);
+        },
+        async generateActivationCodeBtnHandler(){
+            try{
+              await this.generateUserActivation(this.user.username)
+              this.activationEmailSent = true
+              this.activationEmailError = null
+            }catch(e){
+              this.activationEmailSent = false
+              this.activationEmailError = e.message
+            }
+
         }
     },
     async mounted(){

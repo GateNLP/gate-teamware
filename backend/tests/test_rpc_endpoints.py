@@ -156,7 +156,7 @@ class TestUserRegistration(TestEndpoint):
         test_user = get_user_model().objects.get(username=username)
 
         # Check that a token has been generated with length specified by the settings
-        self.assertTrue(len(test_user.activate_account_token) > settings.REGISTER_TOKEN_LENGTH)
+        self.assertTrue(len(test_user.activate_account_token) > settings.ACTIVATION_TOKEN_LENGTH)
         self.assertTrue(test_user.activate_account_token_expire > timezone.now())
 
         with self.assertRaises(ValueError, msg="Should raise an error if user doesn't exist"):
@@ -192,7 +192,7 @@ class TestUserRegistration(TestEndpoint):
         generate_user_activation(self.get_request(), test_user.username)
 
         test_user.refresh_from_db()
-        self.assertTrue(len(test_user.activate_account_token) > settings.REGISTER_TOKEN_LENGTH)
+        self.assertTrue(len(test_user.activate_account_token) > settings.ACTIVATION_TOKEN_LENGTH)
         self.assertTrue(test_user.activate_account_token_expire > timezone.now())
 
 
@@ -222,7 +222,7 @@ class TestUserPasswordReset(TestEndpoint):
 
         # Check that token generaet is valid
         test_user.refresh_from_db()
-        self.assertTrue(len(test_user.reset_password_token) > settings.REGISTER_TOKEN_LENGTH)
+        self.assertTrue(len(test_user.reset_password_token) > settings.ACTIVATION_TOKEN_LENGTH)
         self.assertTrue(test_user.reset_password_token_expire > timezone.now())
 
         # Check that mail is sent

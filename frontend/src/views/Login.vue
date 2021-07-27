@@ -23,6 +23,13 @@
         </b-col>
       </b-form-row>
     </b-form>
+
+    <b-row class="mt-3 small">
+      <b-col>
+        <b-link to="/passwordreset">Forgotten your password? Reset it here.</b-link>
+      </b-col>
+    </b-row>
+
   </div>
 </template>
 <script>

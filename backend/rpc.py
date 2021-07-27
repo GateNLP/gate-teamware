@@ -90,7 +90,7 @@ def register(request, payload):
 
     if not get_user_model().objects.filter(username=username).exists():
         user = get_user_model().objects.create_user(username=username, password=password, email=email)
-        if settings.REGISTER_WITH_EMAIL_ACTIVATION:
+        if settings.ACTIVATION_WITH_EMAIL:
             _generate_user_activation(user)
         djlogin(request, user)
         context["username"] = payload["username"]
@@ -118,15 +118,15 @@ def generate_user_activation(request, username):
 
 
 def _generate_user_activation(user):
-    register_token = secrets.token_urlsafe(settings.REGISTER_TOKEN_LENGTH)
+    register_token = secrets.token_urlsafe(settings.ACTIVATION_TOKEN_LENGTH)
     user.activate_account_token = register_token
     user.activate_account_token_expire = timezone.now() + \
-                                         datetime.timedelta(days=settings.REGISTER_ACTIVATION_EMAIL_TIMEOUT_DAYS)
+                                         datetime.timedelta(days=settings.ACTIVATION_EMAIL_TIMEOUT_DAYS)
     user.save()
 
     app_name = settings.APP_NAME
-    activate_url_base = urljoin(settings.APP_URL, settings.REGISTER_URL_PATH)
-    activate_url = f"{activate_url_base}?user={user.username}&token={user.activate_account_token}"
+    activate_url_base = urljoin(settings.APP_URL, settings.ACTIVATION_URL_PATH)
+    activate_url = f"{activate_url_base}?username={user.username}&token={user.activate_account_token}"
     context = {
         "app_name": app_name,
         "activate_url": activate_url,
@@ -151,7 +151,7 @@ def _generate_user_activation(user):
 def activate_account(request, username, token):
     try:
 
-        if token is None or len(token) < settings.REGISTER_TOKEN_LENGTH:
+        if token is None or len(token) < settings.ACTIVATION_TOKEN_LENGTH:
             log.error(f"Token of invalid length provided: {token} username: {username}")
             raise ValueError("Invalid token provided")
 
@@ -184,7 +184,7 @@ def generate_password_reset(request, username):
 
         app_name = settings.APP_NAME
         reset_url_base = urljoin(settings.APP_URL, settings.PASSWORD_RESET_URL_PATH)
-        reset_url = f"{reset_url_base}?user={user.username}&token={user.reset_password_token}"
+        reset_url = f"{reset_url_base}?username={user.username}&token={user.reset_password_token}"
         context = {
             "app_name": app_name,
             "reset_url": reset_url,

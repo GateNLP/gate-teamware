@@ -30,7 +30,7 @@ class ServiceUser(AbstractUser):
         Checks whether the user has activated their account, but also takes into account
         of the REGISTER_WITH_EMAIL_ACTIVATION settings.
         """
-        if settings.REGISTER_WITH_EMAIL_ACTIVATION:
+        if settings.ACTIVATION_WITH_EMAIL:
             return self.is_account_activated
         else:
             return True

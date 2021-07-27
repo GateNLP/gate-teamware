@@ -23,8 +23,12 @@ export default new Vuex.Store({
         isAuthenticated: state => state.user.isAuthenticated,
         isManager: state => state.user.isManager,
         isAdmin: state => state.user.isAdmin,
+        isActivated: state => state.user.isActivated,
     },
     mutations: {
+        activateUser(state){
+          state.user.isActivated = true
+        },
         updateUser(state, params) {
             state.user.username = params.username;
             state.user.isAuthenticated = params.isAuthenticated;
@@ -78,6 +82,25 @@ export default new Vuex.Store({
                 throw e
             }
         },
+        async generateUserActivation({dispatch, commit}, username){
+            try{
+                let response = await rpc.call("generate_user_activation", username)
+
+            }catch (e){
+                console.error(e)
+                throw e
+            }
+        },
+        async activateAccount({dispatch, commit}, {username, token}){
+            try{
+                let response = await rpc.call("activate_account", username, token)
+                dispatch("activateUser")
+
+            }catch (e){
+                console.error(e)
+                throw e
+            }
+        },
         async changeEmail({dispatch, commit}, params) {
             try{
                 const payload = {
@@ -96,10 +119,32 @@ export default new Vuex.Store({
                 let response = await rpc.call("change_password",payload);
                 return
             }catch (e){
-                console.error(e);
+                console.error(e)
+                throw e
             }
         },
+        async generatePasswordReset({dispatch, commit}, username){
+            try{
 
+                let response = await rpc.call("generate_password_reset", username)
+
+            }catch(e){
+                console.error(e)
+                throw e
+            }
+
+        },
+        async resetPassword({dispatch, commit}, {username, token, newPassword}){
+            try{
+
+                let response = await rpc.call("reset_password", username, token, newPassword)
+
+            }catch(e){
+                console.error(e)
+                throw e
+            }
+
+        },
         async is_authenticated({dispatch, commit}) {
             try{
                 let response = await rpc.call("is_authenticated");
