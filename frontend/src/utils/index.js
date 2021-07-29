@@ -1,3 +1,5 @@
+import JSRPCClient from '../jrpc'
+
 export function generateBVOptions(options) {
     let optionsList = []
     for (let optionKey in options) {
@@ -39,8 +41,13 @@ export async function toastSuccess(vueOrComponentInstance, title, message){
     await showToast(vueOrComponentInstance, title, message, "success")
 }
 
-export async function toastError(vueOrComponentInstance, title, message){
-    await showToast(vueOrComponentInstance, title, message, "danger")
+export async function toastError(vueOrComponentInstance, title, errorObj){
+    if(errorObj.code === JSRPCClient.AUTHENTICATION_ERROR){
+        // Diverts to login page if it's an authentication error
+        vueOrComponentInstance.$router.push("/login")
+    }else{
+        await showToast(vueOrComponentInstance, title, errorObj.message, "danger")
+    }
 }
 
 export async function toastInfo(vueOrComponentInstance, title, message){

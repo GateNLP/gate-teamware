@@ -15,14 +15,15 @@ class ServiceUser(AbstractUser):
     """
     Custom user class.
     """
-    annotates = models.ForeignKey("Project", on_delete=models.SET_NULL, related_name="annotators", null=True)
+    annotates = models.ForeignKey("Project", on_delete=models.SET_NULL, related_name="annotators", null=True, blank=True)
     is_manager = models.BooleanField(default=False)
     created = models.DateTimeField(default=timezone.now)
     is_account_activated = models.BooleanField(default=False)
-    activate_account_token = models.TextField(null=True)
-    activate_account_token_expire = models.DateTimeField(null=True)
-    reset_password_token = models.TextField(null=True)
-    reset_password_token_expire = models.DateTimeField(null=True)
+    activate_account_token = models.TextField(null=True, blank=True)
+    activate_account_token_expire = models.DateTimeField(null=True, blank=True)
+    reset_password_token = models.TextField(null=True, blank=True)
+    reset_password_token_expire = models.DateTimeField(null=True, blank=True)
+    receive_mail_notifications = models.BooleanField(default=True)
 
     @property
     def is_activated(self):

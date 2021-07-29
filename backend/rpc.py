@@ -90,8 +90,7 @@ def register(request, payload):
 
     if not get_user_model().objects.filter(username=username).exists():
         user = get_user_model().objects.create_user(username=username, password=password, email=email)
-        if settings.ACTIVATION_WITH_EMAIL:
-            _generate_user_activation(user)
+        _generate_user_activation(user)
         djlogin(request, user)
         context["username"] = payload["username"]
         context["isAuthenticated"] = True
@@ -118,32 +117,37 @@ def generate_user_activation(request, username):
 
 
 def _generate_user_activation(user):
-    register_token = secrets.token_urlsafe(settings.ACTIVATION_TOKEN_LENGTH)
-    user.activate_account_token = register_token
-    user.activate_account_token_expire = timezone.now() + \
-                                         datetime.timedelta(days=settings.ACTIVATION_EMAIL_TIMEOUT_DAYS)
-    user.save()
 
-    app_name = settings.APP_NAME
-    activate_url_base = urljoin(settings.APP_URL, settings.ACTIVATION_URL_PATH)
-    activate_url = f"{activate_url_base}?username={user.username}&token={user.activate_account_token}"
-    context = {
-        "app_name": app_name,
-        "activate_url": activate_url,
-    }
+    if settings.ACTIVATION_WITH_EMAIL:
+        register_token = secrets.token_urlsafe(settings.ACTIVATION_TOKEN_LENGTH)
+        user.activate_account_token = register_token
+        user.activate_account_token_expire = timezone.now() + \
+                                             datetime.timedelta(days=settings.ACTIVATION_EMAIL_TIMEOUT_DAYS)
+        user.save()
 
-    message = render_to_string("registration_mail.html", context)
+        app_name = settings.APP_NAME
+        activate_url_base = urljoin(settings.APP_URL, settings.ACTIVATION_URL_PATH)
+        activate_url = f"{activate_url_base}?username={user.username}&token={user.activate_account_token}"
+        context = {
+            "app_name": app_name,
+            "activate_url": activate_url,
+        }
 
-    num_sent = mail.send_mail(subject=f"Activate your account at {app_name}",
-                              message=strip_tags(message),
-                              html_message=message,
-                              from_email=settings.ADMIN_EMAIL,
-                              recipient_list=[user.email],
-                              fail_silently=False
-                              )
+        message = render_to_string("registration_mail.html", context)
 
-    if num_sent < 1:
-        log.warning(f"Could not send registration email for user {user.username}")
+        num_sent = mail.send_mail(subject=f"Activate your account at {app_name}",
+                                  message=strip_tags(message),
+                                  html_message=message,
+                                  from_email=settings.ADMIN_EMAIL,
+                                  recipient_list=[user.email],
+                                  fail_silently=False
+                                  )
+
+        if num_sent < 1:
+            log.warning(f"Could not send registration email for user {user.username}")
+    else:
+        user.is_account_activated = True
+        user.save()
 
 
 
@@ -242,8 +246,17 @@ def change_email(request, payload):
     user = request.user
 
     user.email = payload.get("email")
+    user.is_account_activated = False  # User needs to re-verify their e-mail again
     user.save()
+    _generate_user_activation(user)  # Generate
     return
+
+@rpc_method
+def set_user_receive_mail_notifications(request, do_receive_notifications):
+    user = request.user
+    user.receive_mail_notifications = do_receive_notifications
+    user.save()
+
 
 
 #############################
@@ -258,6 +271,7 @@ def get_user_details(request):
         "username": user.username,
         "email": user.email,
         "created": user.created,
+        "receive_mail_notifications": user.receive_mail_notifications,
     }
 
     user_role = "annotator"
@@ -578,19 +592,28 @@ def get_user(request, username):
         "email": user.email,
         "is_manager": user.is_manager,
         "is_admin": user.is_staff,
+        "is_activated": user.is_activated
     }
 
     return data
 
 @rpc_method_auth
 @staff_member_required
-def admin_update_user(request,user_dict):
+def admin_update_user(request, user_dict):
     user = User.objects.get(id=user_dict["id"])
 
     user.username = user_dict["username"]
     user.email = user_dict["email"]
     user.is_manager = user_dict["is_manager"]
     user.is_staff = user_dict["is_admin"]
+    user.is_account_activated = user_dict["is_activated"]
     user.save()
 
     return user_dict
+
+
+@rpc_method_auth
+def admin_update_user_password(request, username, password):
+    user = User.objects.get(username=username)
+    user.set_password(password)
+    user.save()

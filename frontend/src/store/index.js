@@ -24,6 +24,7 @@ export default new Vuex.Store({
         isManager: state => state.user.isManager,
         isAdmin: state => state.user.isAdmin,
         isActivated: state => state.user.isActivated,
+        username: state => state.user.username,
     },
     mutations: {
         activateUser(state){
@@ -94,7 +95,7 @@ export default new Vuex.Store({
         async activateAccount({dispatch, commit}, {username, token}){
             try{
                 let response = await rpc.call("activate_account", username, token)
-                dispatch("activateUser")
+                await dispatch("is_authenticated")
 
             }catch (e){
                 console.error(e)
@@ -145,6 +146,14 @@ export default new Vuex.Store({
             }
 
         },
+        async setUserReceiveMailNotification({dispatch, commit}, do_receive_notification){
+            try{
+                let response = await rpc.call("set_user_receive_mail_notifications", do_receive_notification)
+            }catch(e){
+                console.error(e)
+                throw e
+            }
+        },
         async is_authenticated({dispatch, commit}) {
             try{
                 let response = await rpc.call("is_authenticated");
@@ -185,6 +194,14 @@ export default new Vuex.Store({
                 }
                 let user = await rpc.call("admin_update_user",payload);
                 return user
+            }catch (e){
+                console.error(e)
+                throw e
+            }
+        },
+        async adminUpdateUserPassword({dispatch, commit}, {username, password}){
+            try{
+                await rpc.call("admin_update_user_password", username, password)
             }catch (e){
                 console.error(e)
                 throw e
