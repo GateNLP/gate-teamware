@@ -36,6 +36,11 @@ class ServiceUser(AbstractUser):
         else:
             return True
 
+    @is_activated.setter
+    def is_activated(self, value):
+        self.is_account_activated = value
+
+
 
 
 
