@@ -11,3 +11,6 @@ DATABASES = {
         'NAME': BASE_DIR / 'integrationdb.sqlite3',
     }
 }
+
+# Turn off e-mail activation for testing
+ACTIVATION_WITH_EMAIL = False

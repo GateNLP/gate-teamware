@@ -21,7 +21,7 @@
 
       <transition name="fade">
         <div class="alert alert-warning" role="alert" v-if="error">
-          {{ error }}
+          {{ error.message }}
         </div>
       </transition>
 
