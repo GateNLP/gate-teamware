@@ -76,11 +76,6 @@ const routes = [
         component: () => import('../views/ManageUsers'),
         meta: {requiresAdmin: true},
     },
-    {
-        path: '/app_config',
-        name: 'App Configuration',
-        component: () => import('../views/AppConfig'),
-    },
 
 ]
 
