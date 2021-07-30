@@ -13,7 +13,8 @@ from backend.models import Annotation, Document, Project
 from backend.rpc import create_project, update_project, add_project_document, add_document_annotation, \
     get_possible_annotators, add_project_annotator, remove_project_annotator, get_project_annotators, \
     get_annotation_task, complete_annotation_task, reject_annotation_task, register, activate_account, \
-    generate_password_reset, reset_password, generate_user_activation
+    generate_password_reset, reset_password, generate_user_activation, change_password, change_email, \
+    set_user_receive_mail_notifications
 from backend.rpcserver import rpc_method
 
 
@@ -248,6 +249,33 @@ class TestUserPasswordReset(TestEndpoint):
         self.assertTrue(test_user.reset_password_token is None)
         self.assertTrue(test_user.reset_password_token_expire is None)
 
+class TestUserConfig(TestEndpoint):
+
+    def test_change_password(self):
+        changed_password = "1234567test*"
+        change_password(self.get_loggedin_request(), {"password": changed_password})
+        user = self.get_default_user()
+        user.refresh_from_db()
+        self.assertTrue(check_password(changed_password, user.password))
+
+    def test_change_email(self):
+        changed_email = "test@mailchange.com"
+        change_email(self.get_loggedin_request(), {"email": changed_email})
+        user = self.get_default_user()
+        user.refresh_from_db()
+        self.assertEqual(user.email, changed_email)
+
+    def test_change_receive_mail_notification(self):
+        user = self.get_default_user()
+
+        set_user_receive_mail_notifications(self.get_loggedin_request(), False)
+        user.refresh_from_db()
+        self.assertEqual(user.receive_mail_notifications, False)
+
+        set_user_receive_mail_notifications(self.get_loggedin_request(), True)
+        user.refresh_from_db()
+        self.assertEqual(user.receive_mail_notifications, True)
+
 
 
 class TestProject(TestEndpoint):
@@ -418,10 +446,21 @@ class TestUserManagement(TestEndpoint):
             "email": "ann1@test.com",
             "is_manager": True,
             "is_admin": False,
+            "is_activated": False
         }
 
         response = self.call_rpc(c, "admin_update_user", data)
         self.assertEqual(response.status_code, 200)
+
+    def test_admin_change_user_password(self):
+        changed_password = "1234567test*"
+        c = self.get_loggedin_client()
+        self.call_rpc(c, "admin_update_user_password", "ann1", changed_password)
+
+        ann1_user = get_user_model().objects.get(username="ann1")
+        self.assertTrue(check_password(changed_password, ann1_user.password))
+
+
 
 
 class TestAnnotationTaskManager(TestEndpoint):
