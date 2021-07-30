@@ -41,6 +41,12 @@ class ServiceUser(AbstractUser):
         self.is_account_activated = value
 
 
+    def is_associated_with_document(self, document):
+        pass
+
+    def is_associated_with_annotation(self, annotation):
+        pass
+
 
 
 
