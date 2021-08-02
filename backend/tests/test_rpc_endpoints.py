@@ -2,10 +2,10 @@ from django.core import mail
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import check_password
-from django.contrib.auth.models import AnonymousUser
+
 from django.http import HttpRequest
 from django.test import TestCase, Client
-from django.test.client import RequestFactory
+
 from django.utils import timezone
 import json
 
@@ -18,75 +18,9 @@ from backend.rpc import create_project, update_project, add_project_document, ad
 from backend.rpcserver import rpc_method
 
 
-@rpc_method
-def rpc_endpoint_for_test_call(request, a, b):
-    return a + b
+from backend.tests.test_rpc_server import TestEndpoint
 
 
-class TestEndpoint(TestCase):
-    username = "testuser"
-    password = "123456789"
-    user_email = "test@test.com"
-
-    factory = RequestFactory()
-
-    user = None
-    client = None
-
-    def get_default_user(self):
-
-        if not self.user:
-            self.user = get_user_model().objects.create(username=self.username,
-                                                        password=self.password,
-                                                        email=self.user_email)
-            self.user.set_password(self.password)
-            self.user.save()
-
-        return self.user
-
-    def get_request(self):
-        request = self.factory.get("/")
-        request.user = AnonymousUser()
-        return request
-
-    def get_loggedin_request(self):
-        request = self.factory.get("/")
-        request.user = self.get_default_user()
-        return request
-
-    def get_client(self):
-        if not self.client:
-            self.client = Client()
-        return self.client
-
-    def get_loggedin_client(self):
-        client = self.get_client()
-        user = self.get_default_user()
-        self.assertTrue(client.login(username=self.username, password=self.password))
-        return client
-
-    def call_rpc(self, client, method_name, *params):
-        response = client.post("/rpc/", {
-            "jsonrpc": "2.0",
-            "id": 0,
-            "method": method_name,
-            "params": list(params)
-        }, content_type="application/json")
-        return response
-
-
-class TestTestEndpoint(TestCase):
-    def test_call_rpc(self):
-        e = TestEndpoint()
-        c = e.get_client()
-        response = e.call_rpc(c, "rpc_endpoint_for_test_call", 2, 3)
-        self.assertEqual(response.status_code, 200)
-        msg = json.loads(response.content)
-        self.assertEqual(msg["result"], 5)
-
-    def test_client_loggedin(self):
-        e = TestEndpoint()
-        self.assertIsNotNone(e.get_loggedin_client())
 
 
 class TestUserAuth(TestCase):
@@ -357,6 +291,9 @@ class TestAnnotationExport(TestEndpoint):
 
     def test_rpc_get_annotations_endpoint(self):
         user = self.get_default_user()
+        user.is_manager = True
+        user.is_account_activated = True
+        user.save()
         c = self.get_loggedin_client()
 
         ##setup

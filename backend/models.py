@@ -42,10 +42,20 @@ class ServiceUser(AbstractUser):
 
 
     def is_associated_with_document(self, document):
-        pass
+
+        if self.is_manager or self.is_staff or self.is_superuser:
+            return True
+
+        return self.annotations.filter(document_id=document.pk).count() > 0 or \
+               (self.annotates and self.annotates.documents.filter(pk=document.pk).count() > 0)
+
 
     def is_associated_with_annotation(self, annotation):
-        pass
+
+        if self.is_manager or self.is_staff or self.is_superuser:
+            return True
+
+        return self.annotations.filter(pk=annotation.pk).count() > 0
 
 
 
