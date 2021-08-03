@@ -2,9 +2,11 @@ import Vue from 'vue'
 import AnnotationApp from './AnnotationApp.vue'
 import router from './router'
 import store from './store'
+import titleMixin from "@/utils/titleMixin";
 import {mapActions} from 'vuex'
 import { BootstrapVue, BootstrapVueIcons, IconsPlugin } from 'bootstrap-vue'
 import VJsoneditor from 'v-jsoneditor'
+
 
 
 // Import Bootstrap an BootstrapVue CSS files (order is important)
@@ -18,6 +20,8 @@ Vue.use(BootstrapVue)
 Vue.use(BootstrapVueIcons)
 Vue.use(VJsoneditor)
 // Vue.use(IconsPlugin) //optional
+
+Vue.mixin(titleMixin)
 
 Vue.config.productionTip = false
 

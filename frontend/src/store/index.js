@@ -10,7 +10,7 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
     state: {
-        projects: null,
+        projects: [],
         user: {
             username: "",
             isAuthenticated: false,
