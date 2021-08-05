@@ -6,7 +6,8 @@
       <BSelect v-model="itemsPerPage" :options="itemsPerPageOption" style="max-width: 6em" title="Items per page"></BSelect>
     </div>
 
-    <slot :pageItems="pageItems"></slot>
+
+      <slot :pageItems="pageItems"></slot>
 
     <div class="d-flex justify-content-between">
       <div></div>

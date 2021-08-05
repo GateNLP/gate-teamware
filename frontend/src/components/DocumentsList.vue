@@ -1,6 +1,7 @@
 <template>
   <div>
-    <Pagination :items="documents" v-slot:default="{ pageItems }">
+    <Search class="mt-4" @input="searchDocs"></Search>
+    <Pagination class="mt-4" :items="filteredDocuments" v-slot:default="{ pageItems }">
       <BCard v-for="doc in pageItems" :key="doc.id" class="mb-2">
         <BMedia>
           <template v-slot:aside>
@@ -137,20 +138,50 @@ import VueJsonPretty from 'vue-json-pretty';
 import 'vue-json-pretty/lib/styles.css';
 import AsyncJsonDisplay from "@/components/AsyncJsonDisplay";
 import Pagination from "@/components/Pagination";
+import Search from "@/components/Search";
+import _ from "lodash"
 
 export default {
   name: "DocumentsList",
-  components: {Pagination, AsyncJsonDisplay},
+  components: {Search, Pagination, AsyncJsonDisplay},
+  data(){
+    return {
+      searchStr: "",
+    }
+  },
   props: {
     documents: {
       type: Array,
       default() {
         return []
       }
+    },
+  },
+  computed: {
+    filteredDocuments(){
+
+      //Returns all if no or empty search string
+      if(!this.searchStr || this.searchStr.trim().length < 1)
+        return this.documents
+
+      let searchStr = this.searchStr
+
+      // Currently searching for project names only
+      let result = _.filter(
+          this.documents,
+          function (o){ return _.includes(_.lowerCase(o.id), _.lowerCase(searchStr)) }
+          )
+      return result
+
+
+
     }
   },
   methods: {
-    ...mapActions(["getDocumentContent", "getAnnotationContent"])
+    ...mapActions(["getDocumentContent", "getAnnotationContent"]),
+    searchDocs(searchStr){
+      this.searchStr = searchStr
+    }
   }
 }
 </script>

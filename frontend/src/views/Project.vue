@@ -5,7 +5,7 @@
     <b-tabs v-model="activeTab">
       <b-tab title="Configuration">
 
-          <h2 class="mt-2 mb-2">Project configuration</h2>
+        <h2 class="mt-2 mb-2">Project configuration</h2>
         <b-form class="mt-4 mb-4">
           <b-form-group label="Name">
             <b-form-input v-model="local_project.name" name="project_name"></b-form-input>
@@ -43,14 +43,13 @@
           </b-form-row>
           <b-form-row>
             <b-col class="mt-4">
-              <b-button @click="saveProjectHandler" :variant="loadingVariant" :disabled="loading" >
-                <b-icon-box-arrow-in-down  :animation="loadingIconAnimation"></b-icon-box-arrow-in-down>
+              <b-button @click="saveProjectHandler" :variant="loadingVariant" :disabled="loading">
+                <b-icon-box-arrow-in-down :animation="loadingIconAnimation"></b-icon-box-arrow-in-down>
                 Save project configuration
               </b-button>
             </b-col>
           </b-form-row>
         </b-form>
-
 
 
       </b-tab>
@@ -74,11 +73,10 @@
         </b-button-toolbar>
 
 
-
         <div v-if="documents">
           <b-overlay :show="loading">
             <DocumentsList :documents="documents"></DocumentsList>
-        </b-overlay>
+          </b-overlay>
         </div>
         <div v-else>
           No documents uploaded
@@ -140,16 +138,15 @@ export default {
     projectReadyForAnnotation() {
       return this.projectConfigValid()
     },
-    loadingVariant(){
-      if(this.loading){
+    loadingVariant() {
+      if (this.loading) {
         return "secondary"
-      }
-      else{
+      } else {
         return "primary"
       }
     },
-    loadingIconAnimation(){
-      if(this.loading){
+    loadingIconAnimation() {
+      if (this.loading) {
         return "throb"
       }
 
@@ -159,63 +156,63 @@ export default {
   },
   methods: {
     ...mapActions(["getProjects", "updateProject", "getProjectDocuments", "getAnnotations", "addProjectDocument"]),
-    async refreshDocumentsHandler(){
+    async refreshDocumentsHandler() {
       this.setLoading(true)
-      try{
+      try {
         this.documents = await this.getProjectDocuments(this.projectId)
-      }catch(e){
+      } catch (e) {
         toastError(this, "Could not reload document", e)
       }
       this.setLoading(false)
     },
     async saveProjectHandler() {
       this.setLoading(true)
-      try{
+      try {
         await this.updateProject(this.local_project);
         this.documents = await this.getProjectDocuments(this.projectId)
         toastSuccess(this, "Save project configuration", "Save successful")
-      }catch (e){
+      } catch (e) {
         toastError(this, "Could not save project configuration", e)
       }
       this.setLoading(false)
     },
-    async uploadBtnHandler(){
+    async uploadBtnHandler() {
       console.log(this.$refs)
       this.$refs.documentUploadInput.click()
     },
     async documentUploadHandler(e) {
 
       this.setLoading(true)
-      try{
+      try {
         const fileList = e.target.files
 
-      for (let file of fileList) {
-        try {
-          const documentsStr = await readFileAsync(file)
-          const documents = JSON.parse(documentsStr)
-          // Uploaded file must be an array of docs
-          if (documents instanceof Array) {
-            for (let document of documents) {
-              await this.addProjectDocument({projectId: this.projectId, document: document})
+        for (let file of fileList) {
+          try {
+            const documentsStr = await readFileAsync(file)
+            const documents = JSON.parse(documentsStr)
+            // Uploaded file must be an array of docs
+            if (documents instanceof Array) {
+              for (let document of documents) {
+                await this.addProjectDocument({projectId: this.projectId, document: document})
+              }
             }
+
+          } catch (e) {
+            console.error("Could not parse uploaded file")
+            console.error(e)
+            toastError(this, "Could not parse uploaded file " + file, e)
           }
 
-        } catch (e) {
-          console.error("Could not parse uploaded file")
-          console.error(e)
-          toastError(this, "Could not parse uploaded file "+file, e)
+          this.documents = await this.getProjectDocuments(this.projectId);
         }
 
-        this.documents = await this.getProjectDocuments(this.projectId);
-      }
-
-      }catch (e){
+      } catch (e) {
         toastError(this, "Could not upload document", e)
       }
 
       this.setLoading(false)
     },
-    async setLoading(isLoading){
+    async setLoading(isLoading) {
       this.loading = isLoading
     },
     async exportAnnotationsHandler() {

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <b-form @submit.prevent="$emit('search', searchStr )">
+    <b-form @submit.prevent="$emit('input', searchStr )">
       <b-input-group>
         <b-input v-model="searchStr" name="searchItem" value="" placeholder="Search..."></b-input>
         <b-input-group-append>

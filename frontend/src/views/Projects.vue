@@ -2,9 +2,9 @@
   <div class="projects container">
     <h1>Projects</h1>
 
-    <Search @search="searchProject"></Search>
+    <Search @input="searchProject"></Search>
 
-    <Pagination class="mt-4" :items="filteredProject" v-slot:default="{ pageItems }">
+    <Pagination class="mt-4" :items="filteredProjects" v-slot:default="{ pageItems }">
       <b-list-group class="mb-4">
         <b-list-group-item v-for="project in pageItems" :key="project.id">
           <div class="d-flex justify-content-between">
@@ -58,7 +58,6 @@
 
         </b-list-group-item>
       </b-list-group>
-
     </Pagination>
 
 
@@ -95,18 +94,17 @@ export default {
   },
   computed: {
     ...mapState(["projects", "user"]),
-    filteredProject(){
-      if(!this.searchStr || this.searchStr.length < 1)
+    filteredProjects(){
+      if(!this.searchStr || this.searchStr.trim().length < 1)
         return this.projects
 
       let searchStr = this.searchStr
 
+      // Currently searching for project names only
       let result = _.filter(
           this.projects,
           function (o){ return _.includes(_.lowerCase(o.name), _.lowerCase(searchStr)) }
           )
-      console.log(searchStr)
-      console.log(result)
       return result
 
     }
