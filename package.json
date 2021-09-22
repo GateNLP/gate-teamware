@@ -4,7 +4,7 @@
   "description": "A service for collaborative document annotation. Project plan can be found here:",
   "main": "index.js",
   "scripts": {
-    "postinstall": "(cd frontend && npm install) #Install npm packages in frontend also",
+    "postinstall": "(cd frontend && npm install --unsafe-perm) #Install npm packages in frontend also",
     "migrate": "./manage.py migrate",
     "migrate:integration": "./manage.py flush --noinput --settings='annotation_tool.settings.integration' && ./manage.py migrate --noinput --settings='annotation_tool.settings.integration' &&  ./manage.py loaddata --settings='annotation_tool.settings.integration' backend/fixtures/db_users.json",
     "serve:frontend": "cd frontend && npm run serve",
@@ -13,6 +13,7 @@
     "serve:cypress": "npx cypress open",
     "serve:frontendintegration": "run-p serve:frontend serve:integration",
     "serve:cypressintegration": "run-p serve:frontendintegration serve:cypress",
+    "serve:gunicorn": "gunicorn annotation_tool.wsgi -b 0.0.0.0:8000",
     "serve": "run-p serve:frontend serve:server",
     "build:frontend": "cd frontend && npm run build",
     "build:server": "",
