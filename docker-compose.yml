@@ -3,17 +3,17 @@ version: "3.8"
 services:
 
   backend:
-    image: backend:latest
     build: .
     command: ./run-server.sh
     restart: always
     environment:
+      - DJANGO_SETTINGS_MODULE
       - DJANGO_SECRET_KEY
       - DJANGO_DB_NAME
       - DB_USERNAME
       - DB_PASSWORD
-    ports:
-      - "127.0.0.1:8000:8000"
+    # ports:
+    #   - "127.0.0.1:8000:8000"
     secrets:
       - django-secrets
     # depends_on:
@@ -30,7 +30,6 @@ services:
       context: .
       dockerfile: ./nginx/Dockerfile
     volumes:
-      # - ./nginx/production.conf:/etc/nginx/conf.d/
       - django-static:/usr/share/nginx/html
     ports:
       - 80:80
