@@ -19,7 +19,6 @@ services:
     # depends_on:
     #   - db
     volumes:
-      - ./:/code
       - django-static:/app/static
       - logs/:/logs/
     networks:
