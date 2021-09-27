@@ -2,14 +2,21 @@
   <div>
     <Search class="mt-4" @input="searchDocs"></Search>
     <Pagination class="mt-4" :items="filteredDocuments" v-slot:default="{ pageItems }">
-      <BCard v-for="doc in pageItems" :key="doc.id" class="mb-2">
+      <BCard v-for="doc in pageItems" :key="doc.id" :class="{ 'mb-2': true, 'selectedDoc': isDocSelected(doc)}">
         <BMedia>
           <template v-slot:aside>
-            <div>
-              <b-icon-file-earmark-text-fill style="width: 1.5em; height: auto"></b-icon-file-earmark-text-fill>
+            <div @click="toggleDocument(doc)" style="cursor: pointer">
+              <b-badge variant="primary" :class="{'docBgSelected': isDocSelected(doc)}">
+                <b-icon-file-earmark-check v-if="isDocSelected(doc)"
+                                         :class="{ 'docIcon': true, 'docIconSelected': isDocSelected(doc)}"></b-icon-file-earmark-check>
+              <b-icon-file-earmark-text-fill v-else
+                                             :class="{ 'docIcon': true, 'docIconSelected': isDocSelected(doc)}"></b-icon-file-earmark-text-fill>
+
+              </b-badge>
+
+
             </div>
           </template>
-
           <div class="d-flex justify-content-between">
             <div>
               <div>
@@ -56,25 +63,28 @@
           </AsyncJsonDisplay>
 
 
-          <BCard v-for="anno in doc.annotations" :key="anno.id" class="mt-4">
+          <BCard v-for="anno in doc.annotations" :key="anno.id"
+                 :class="{ 'mt-4': true, 'selectedAnnotation': isAnnotationSelected(anno)}">
 
             <BMedia>
               <template v-slot:aside>
-                <b-badge v-if="anno.completed" variant="success" class="mr-2" title="Annotation completed">
-                  <b-icon-pencil-fill style="width: 1.5em; height: auto;"></b-icon-pencil-fill>
-                </b-badge>
-                <b-badge v-else-if="anno.rejected" variant="danger" class="mr-2" title="Annotation rejected">
-                  <b-icon-x-square-fill style="width: 1.5em; height: auto;"></b-icon-x-square-fill>
-                </b-badge>
-                <b-badge v-else-if="anno.timed_out" variant="warning" class="mr-2" title="Annotation timed out">
-                  <b-icon-clock style="width: 1.5em; height: auto;"></b-icon-clock>
-                </b-badge>
-                <b-badge v-else-if="anno.aborted" variant="secondary" class="mr-2" title="Annotation aborted">
-                  <b-icon-stop-fill style="width: 1.5em; height: auto;"></b-icon-stop-fill>
-                </b-badge>
-                <b-badge v-else variant="primary" class="mr-2" title="Annotation still pending">
-                  <b-icon-play-fill style="width: 1.5em; height: auto;"></b-icon-play-fill>
-                </b-badge>
+                <div @click="toggleAnnotation(anno, doc)" style="cursor: pointer">
+                  <b-badge v-if="anno.completed" variant="success" :class="{'mr-2': true, 'docBgSelected': isAnnotationSelected(anno)} " title="Annotation completed">
+                    <b-icon-pencil-fill :class="{ 'docIcon': true, 'docIconSelected': isAnnotationSelected(anno)}"></b-icon-pencil-fill>
+                  </b-badge>
+                  <b-badge v-else-if="anno.rejected" variant="danger" :class="{'mr-2': true, 'docBgSelected': isAnnotationSelected(anno)} " title="Annotation rejected">
+                    <b-icon-x-square-fill :class="{ 'docIcon': true, 'docIconSelected': isAnnotationSelected(anno)}"></b-icon-x-square-fill>
+                  </b-badge>
+                  <b-badge v-else-if="anno.timed_out" variant="warning" :class="{'mr-2': true, 'docBgSelected': isAnnotationSelected(anno)} " title="Annotation timed out">
+                    <b-icon-clock :class="{ 'docIcon': true, 'docIconSelected': isAnnotationSelected(anno)}"></b-icon-clock>
+                  </b-badge>
+                  <b-badge v-else-if="anno.aborted" variant="secondary" :class="{'mr-2': true, 'docBgSelected': isAnnotationSelected(anno)} " title="Annotation aborted">
+                    <b-icon-stop-fill :class="{ 'docIcon': true, 'docIconSelected': isAnnotationSelected(anno)}"></b-icon-stop-fill>
+                  </b-badge>
+                  <b-badge v-else variant="primary" :class="{'mr-2': true, 'docBgSelected': isAnnotationSelected(anno)} " title="Annotation still pending">
+                    <b-icon-play-fill :class="{ 'docIcon': true, 'docIconSelected': isAnnotationSelected(anno)}"></b-icon-play-fill>
+                  </b-badge>
+                </div>
               </template>
               <div>
                 <strong>ID: {{ anno.id }}</strong>
@@ -144,9 +154,11 @@ import _ from "lodash"
 export default {
   name: "DocumentsList",
   components: {Search, Pagination, AsyncJsonDisplay},
-  data(){
+  data() {
     return {
       searchStr: "",
+      selectedDocs: new Set(),
+      selectedAnnotations: new Set(),
     }
   },
   props: {
@@ -158,10 +170,10 @@ export default {
     },
   },
   computed: {
-    filteredDocuments(){
+    filteredDocuments() {
 
       //Returns all if no or empty search string
-      if(!this.searchStr || this.searchStr.trim().length < 1)
+      if (!this.searchStr || this.searchStr.trim().length < 1)
         return this.documents
 
       let searchStr = this.searchStr
@@ -169,23 +181,143 @@ export default {
       // Currently searching for project names only
       let result = _.filter(
           this.documents,
-          function (o){ return _.includes(_.lowerCase(o.id), _.lowerCase(searchStr)) }
-          )
+          function (o) {
+            return _.includes(_.lowerCase(o.id), _.lowerCase(searchStr))
+          }
+      )
       return result
-
-
 
     }
   },
   methods: {
     ...mapActions(["getDocumentContent", "getAnnotationContent"]),
-    searchDocs(searchStr){
+    searchDocs(searchStr) {
       this.searchStr = searchStr
-    }
+    },
+    emitSelectionList(){
+
+      // Forces vue to track the set change
+      this.selectedDocs = new Set(this.selectedDocs)
+      this.selectedAnnotations = new Set(this.selectedAnnotations)
+
+      this.$emit("selection-changed",
+          {
+            documents: [...this.selectedDocs.entries()],
+            annotations: [...this.selectedAnnotations],
+          })
+
+    },
+    selectDocument(doc, doSelect, emitEvent=true){
+      if(doSelect){
+        this.selectedDocs.add(doc.id)
+        for(let anno of doc.annotations){
+          this.selectedAnnotations.add(anno.id)
+        }
+      }
+      else{
+        this.selectedDocs.delete(doc.id)
+        for(let anno of doc.annotations){
+          this.selectedAnnotations.delete(anno.id)
+        }
+      }
+
+      if(emitEvent)
+        this.emitSelectionList()
+
+    },
+    toggleDocument(doc) {
+      this.selectDocument(doc, !this.selectedDocs.has(doc.id))
+
+    },
+    isDocSelected(doc) {
+      return this.selectedDocs.has(doc.id)
+    },
+    selectAnnotation(anno, doSelect, doc, emitEvent=true){
+      //Can't change selection if document is already selected
+      if(this.isDocSelected(doc))
+        return
+
+      if (doSelect)
+        this.selectedAnnotations.add(anno.id)
+      else
+        this.selectedAnnotations.delete(anno.id)
+
+
+      if(emitEvent)
+        this.emitSelectionList()
+
+    },
+    toggleAnnotation(anno, doc) {
+      this.selectAnnotation(anno, !this.selectedAnnotations.has(anno.id), doc)
+    },
+    isAnnotationSelected(anno) {
+      return this.selectedAnnotations.has(anno.id)
+    },
+    clearDocumentSelection(doEmitEvent=true){
+      for(let doc of this.documents){
+        this.selectDocument(doc, false, false)
+      }
+      if(doEmitEvent)
+        this.emitSelectionList()
+    },
+    clearAnnotationSelection(doEmitEvent=true){
+      for(let doc in this.documents){
+        for(let anno in doc.annotations){
+          this.selectAnnotation(anno, false, doc,false)
+        }
+      }
+
+      if(doEmitEvent)
+        this.emitSelectionList()
+
+    },
+    selectAllDocuments(doEmitEvent=true){
+      for(let doc of this.documents){
+        this.selectDocument(doc, true, false)
+      }
+
+      if(doEmitEvent)
+        this.emitSelectionList()
+
+    },
+    selectAllAnnotations(doEmitEvent=true){
+      for(let doc of this.documents){
+        for(let anno of doc.annotations){
+          this.selectAnnotation(anno, true, doc, false)
+        }
+      }
+
+      if(doEmitEvent)
+        this.emitSelectionList()
+
+    },
+
+
   }
 }
 </script>
 
 <style scoped>
+
+.selectedDoc {
+  background: #cbcbcb;
+}
+
+.selectedAnnotation {
+  background: #b3b3b3;
+}
+
+.docBgSelected{
+  background: #fff;
+}
+
+.docIcon {
+  width: 1.5em;
+  height: auto
+}
+
+.docIconSelected{
+  color: black;
+}
 
 </style>
