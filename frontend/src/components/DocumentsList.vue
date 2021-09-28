@@ -202,7 +202,7 @@ export default {
 
       this.$emit("selection-changed",
           {
-            documents: [...this.selectedDocs.entries()],
+            documents: [...this.selectedDocs],
             annotations: [...this.selectedAnnotations],
           })
 
@@ -291,8 +291,15 @@ export default {
         this.emitSelectionList()
 
     },
+  },
+  watch:{
+    documents(val){
+      //Clear all selections when documents prop are set
+      this.selectedDocs = new Set()
+      this.selectedAnnotations = new Set()
+      this.emitSelectionList()
 
-
+    }
   }
 }
 </script>

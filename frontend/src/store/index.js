@@ -291,6 +291,17 @@ export default new Vuex.Store({
                 throw e
             }
         },
+        async deleteDocumentsAndAnnotations({dispatch, commit}, {documentIds, annotationIds}){
+            try{
+                let response = await rpc.call("delete_documents_and_annotations", documentIds, annotationIds)
+                return response
+
+            }catch (e){
+                console.error(e)
+                throw e
+            }
+
+        },
         async getPossibleAnnotators({dispatch, commit}){
             try{
                 let response = await rpc.call("get_possible_annotators");

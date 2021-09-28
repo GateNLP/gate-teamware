@@ -456,6 +456,15 @@ def get_annotations(request, project_id):
 
     return annotations
 
+@rpc_method_manager
+def delete_documents_and_annotations(request, doc_id_ary, anno_id_ary):
+    for anno_id in anno_id_ary:
+        Annotation.objects.filter(pk=anno_id).delete()
+
+    for doc_id in doc_id_ary:
+        Document.objects.filter(pk=doc_id).delete()
+
+    return True
 
 @rpc_method_manager
 def get_possible_annotators(request):

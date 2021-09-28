@@ -56,7 +56,7 @@
         <h2 class="mt-2 mb-2">Documents & Annotations</h2>
 
         <b-button-toolbar class="mt-2 mb-2">
-          <b-button-group >
+          <b-button-group>
             <b-button v-if="isEverythingSelected()"
                       :title="'Clear selection. (' + selectedDocuments.length + ' documents and ' + selectedAnnotations.length + ' annotations selected)'"
                       @click="$refs.docsList.clearDocumentSelection()">
@@ -86,7 +86,8 @@
                 Clear all annotations
               </b-dropdown-item>
             </b-dropdown>
-            <b-button variant="danger" @click="deleteDocumentsHandler" c
+            <b-button variant="danger" @click="showDeleteConfirmModal = !showDeleteConfirmModal"
+                      :disabled="selectedDocuments.length < 1 && selectedAnnotations.length < 1"
                       :title="'Delete ' + selectedDocuments.length + ' documents and ' + selectedAnnotations.length + ' annotations.'">
               <b-icon-trash-fill scale="1"></b-icon-trash-fill>
               Delete
@@ -96,7 +97,7 @@
               <b-icon-download></b-icon-download>
               Export
             </b-button>
-            <b-button variant="primary" @click="uploadBtnHandler" >
+            <b-button variant="primary" @click="uploadBtnHandler">
               <b-icon-upload></b-icon-upload>
               Upload
             </b-button>
@@ -110,6 +111,34 @@
 
 
         </b-button-toolbar>
+
+        <b-modal v-model="showDeleteConfirmModal"
+                 ok-variant="danger"
+                 ok-title="Delete"
+                 :ok-disabled="deleteLocked"
+                 @ok="deleteDocumentsAndAnnotationHandler"
+                 @hidden="deleteLocked = true"
+                 :title="'Delete ' + selectedDocuments.length + ' documents and ' + selectedAnnotations.length + ' annotations'">
+
+          <p class="badge badge-danger">Warning, this action is permanent!</p>
+          <p class="badge badge-danger">Deleting a document will also delete their associated annotations.</p>
+
+          <p>Are you sure you want to delete {{ selectedDocuments.length }} documents and {{ selectedAnnotations.length}} annotations?</p>
+
+          <div>
+            <b-button @click="deleteLocked = !deleteLocked"
+                      :class="{'btn-danger': deleteLocked, 'btn-success': !deleteLocked}"
+            >
+              <b-icon-lock-fill v-if="deleteLocked"></b-icon-lock-fill>
+              <b-icon-unlock-fill v-else></b-icon-unlock-fill>
+              <span v-if="deleteLocked">Unlock delete</span>
+              <span v-else>Lock delete</span>
+            </b-button>
+
+          </div>
+
+
+        </b-modal>
 
 
         <div v-if="documents">
@@ -166,7 +195,8 @@ export default {
       documents: [],
       selectedDocuments: [],
       selectedAnnotations: [],
-
+      showDeleteConfirmModal: false,
+      deleteLocked: true,
       loading: false,
     }
   },
@@ -195,12 +225,12 @@ export default {
 
       return null
     },
-    numDocs(){
+    numDocs() {
       return this.documents.length
     },
-    numAnnotations(){
+    numAnnotations() {
       let numAnnotations = 0
-      for(let doc of this.documents){
+      for (let doc of this.documents) {
         numAnnotations += doc.annotations.length
       }
 
@@ -209,7 +239,7 @@ export default {
 
   },
   methods: {
-    ...mapActions(["getProjects", "updateProject", "getProjectDocuments", "getAnnotations", "addProjectDocument"]),
+    ...mapActions(["getProjects", "updateProject", "getProjectDocuments", "getAnnotations", "addProjectDocument", "deleteDocumentsAndAnnotations"]),
     async refreshDocumentsHandler() {
       this.setLoading(true)
       try {
@@ -293,11 +323,24 @@ export default {
       this.selectedDocuments = value.documents
       this.selectedAnnotations = value.annotations
     },
-    isEverythingSelected(){
+    isEverythingSelected() {
       return this.selectedDocuments.length >= this.numDocs &&
           this.selectedAnnotations.length >= this.numAnnotations
     },
-    deleteDocumentsHandler(e) {
+    async deleteDocumentsAndAnnotationHandler(e) {
+      try {
+        await this.deleteDocumentsAndAnnotations({
+          documentIds: this.selectedDocuments,
+          annotationIds: this.selectedAnnotations
+        })
+        toastSuccess(this, "Documents and annotations deleted", this.selectedDocuments.length + "documents and " + this.selectedAnnotations.length + "deleted.")
+
+        await this.refreshDocumentsHandler()
+
+      } catch (e) {
+        toastError(this, "Could not delete documents or annotations", e)
+
+      }
 
     },
 
