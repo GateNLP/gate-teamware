@@ -4,7 +4,6 @@ services:
 
   backend:
     build: .
-    command: ./run-server.sh
     restart: always
     environment:
       - DJANGO_SETTINGS_MODULE
@@ -19,6 +18,7 @@ services:
     # depends_on:
     #   - db
     volumes:
+      - db.sqlite3:/app/
       - django-static:/app/static
       - logs/:/logs/
     networks:
@@ -59,6 +59,7 @@ services:
 #       - ./create-django-db.sh:/docker-entrypoint-initdb.d/001-create-django-db.sh
 
 volumes:
+  db.sqlite3:
   django-static:
   logs:
 #   postgresql-data:
