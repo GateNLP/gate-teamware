@@ -1,4 +1,4 @@
-version: "3.8"
+version: "3.9"
 
 services:
 
@@ -11,14 +11,12 @@ services:
       - DJANGO_DB_NAME
       - DB_USERNAME
       - DB_PASSWORD
-    # ports:
-    #   - "127.0.0.1:8000:8000"
     secrets:
       - django-secrets
     # depends_on:
     #   - db
     volumes:
-      - db.sqlite3:/app/
+      - ./db.sqlite3:/app/db.sqlite3
       - django-static:/app/static
       - logs/:/logs/
     networks:
@@ -59,7 +57,6 @@ services:
 #       - ./create-django-db.sh:/docker-entrypoint-initdb.d/001-create-django-db.sh
 
 volumes:
-  db.sqlite3:
   django-static:
   logs:
 #   postgresql-data:
