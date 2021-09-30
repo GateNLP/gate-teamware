@@ -1,0 +1,20 @@
+name: deploy staging on self-hosted
+
+on:
+  push:
+    branches: [ dev ]
+  workflow_dispatch:
+
+jobs:
+  deploy_staging:
+    runs-on: self-hosted
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Deploy staging app
+        run: |
+          cd ~/GATE/gate-annotation-service/
+          git checkout dev
+          git pull
+          ./deploy.sh staging
