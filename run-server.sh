@@ -2,7 +2,8 @@
 
 set -e
 
-cp /run/secrets/django-secrets /app/annotation_tool/settings/secret.py
+# rename the secret_docker file to secret.py to use environment variables
+(cd /app/annotation_tool/settings && mv secret_docker.py secret.py)
 
 source activate annotation-tool
 python manage.py makemigrations

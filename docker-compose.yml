@@ -11,8 +11,6 @@ services:
       - DJANGO_DB_NAME
       - DB_USERNAME
       - DB_PASSWORD
-    secrets:
-      - django-secrets
     # depends_on:
     #   - db
     volumes:
@@ -60,10 +58,6 @@ volumes:
   django-static:
   logs:
 #   postgresql-data:
-
-secrets:
-  django-secrets:
-    file: secret.py
 
 networks:
   django-nginx:
