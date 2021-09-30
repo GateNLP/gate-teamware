@@ -15,6 +15,7 @@ cypress/videos
 # local env files
 .env.local
 .env.*.local
+saved-env.*
 
 # Log files
 npm-debug.log*
