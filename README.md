@@ -254,3 +254,12 @@ describe('Example test suite', () => {
 })
 ```
 
+## Deployment
+Deployment is via docker-compose, using nginx to serve static content.
+
+A deployment script is provided to launch the docker-compose stack with the correct environment variables. This also runs `./generate-env.sh` to create a `.env` file containing randomly generated secrets which are mounted as envrionment variables into the container.
+
+```bash
+./deploy.sh production # (or prod) to deploy with production settings
+./deploy.sh staging # (or stag) to deploy with staging settings
+```
