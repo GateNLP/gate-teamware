@@ -1,3 +1,4 @@
+import os
 from .base import *
 
 # Enable csrf in production
@@ -30,4 +31,14 @@ LOGGING = {
            'propagate': True,
        },
    },
+}
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get("DJANGO_DB_NAME", "annotations_db"),
+        "USER": os.environ.get("DB_USERNAME", "user"),
+        "PASSWORD": os.environ.get("DB_PASSWORD", "password"),
+        "HOST": os.environ.get("DB_HOST", "db"),
+        "PORT": os.environ.get("DB_PORT", "5432"),
+    }
 }
