@@ -2,9 +2,10 @@
 
 set -e
 
-DEPLOY_ENV=$1
+echo "Generating .env file"
+./generate-env.sh
 
-echo "Deploying with $DEPLOY_ENV settings"
+DEPLOY_ENV=$1
 
 case $DEPLOY_ENV in
 
@@ -16,12 +17,11 @@ case $DEPLOY_ENV in
     DJANGO_SETTINGS_MODULE=annotation_tool.settings.staging
     ;;
 
-  ci|testing|integration)
-    DJANGO_SETTINGS_MODULE=annotation_tool.settings.integration
-    ;;
-
-  development|dev|*)
+  *)
+    exit 1
     ;;
 esac
+
+echo "Deploying with DJANGO_SETTINGS_MODULE: $DJANGO_SETTINGS_MODULE"
 
 DJANGO_SETTINGS_MODULE=$DJANGO_SETTINGS_MODULE docker-compose up -d
