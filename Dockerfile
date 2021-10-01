@@ -36,5 +36,4 @@ RUN python manage.py collectstatic --noinput
 
 COPY --chown=gate:gate run-server.sh generate-env.sh /app/
 
-USER root
 ENTRYPOINT [ "/app/run-server.sh" ]
