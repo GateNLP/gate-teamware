@@ -19,7 +19,7 @@ services:
     volumes:
       - logs/:/logs/
     networks:
-      - django-nginx
+      - annotations-docker
 
   nginx:
     image: annotate-static:latest
@@ -32,7 +32,7 @@ services:
       - backend
       - db
     networks:
-      - django-nginx
+      - annotations-docker
 
 
   db:
@@ -53,11 +53,13 @@ services:
     volumes:
       - postgresql-data:/var/lib/postgresql/data
       - ./create-django-db.sh:/docker-entrypoint-initdb.d/001-create-django-db.sh
+    networks:
+      - annotations-docker
 
 volumes:
   logs:
   postgresql-data:
 
 networks:
-  django-nginx:
+  annotations-docker:
     driver: bridge
