@@ -26,7 +26,7 @@ SHELL ["conda", "run", "-n", "annotation-tool", "/bin/bash", "-c"]
 
 RUN npm install --unsafe-perm --only=production
 
-COPY --chown=gate:gate manage.py /app/
+COPY --chown=gate:gate manage.py count_superusers.py /app/
 COPY --chown=gate:gate examples/ /app/examples/
 COPY --chown=gate:gate annotation_tool/ /app/annotation_tool/
 COPY --chown=gate:gate backend/ /app/backend
