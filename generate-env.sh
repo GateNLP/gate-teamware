@@ -17,7 +17,4 @@ DB_PASSWORD=$(openssl rand -base64 16)
 DJANGO_SECRET_KEY=$(openssl rand -base64 42)
 DB_BACKUP_USER=backup
 DB_BACKUP_PASSWORD=$(openssl rand -base64 16)
-MAINTAG=gate-annotate/main:latest
-STATICTAG=gate-annotate/static:latest
-PUBLIC_HOST_NAME=annotate.gate.ac.uk
 EOF

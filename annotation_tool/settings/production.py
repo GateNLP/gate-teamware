@@ -5,3 +5,4 @@ MIDDLEWARE.append(
 'django.middleware.csrf.CsrfViewMiddleware'
 )
 
+ALLOWED_HOSTS.append('annotate.gate.ac.uk')
