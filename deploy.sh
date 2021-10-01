@@ -2,9 +2,6 @@
 
 set -e
 
-echo "Generating .env file"
-./generate-env.sh
-
 DEPLOY_ENV=$1
 
 case $DEPLOY_ENV in
