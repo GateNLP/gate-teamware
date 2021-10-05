@@ -61,7 +61,7 @@ services:
     restart: always
     user: postgres:postgres
     volumes:
-      - pgbackups:/backups
+      - /var/opt/annotations-pgbackups:/backups
     links:
       - db
     depends_on:
@@ -80,7 +80,6 @@ services:
 volumes:
   logs:
   postgresql-data:
-  pgbackups:
 
 networks:
   annotations-docker:
