@@ -1,9 +1,6 @@
-<<<<<<< HEAD
 import logging
 import sys
-=======
 import os
->>>>>>> add postgres db for staging and production
 from .base import *
 
 # Enable csrf in production
