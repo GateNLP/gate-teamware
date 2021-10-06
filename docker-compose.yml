@@ -16,8 +16,6 @@ services:
       - DB_PASSWORD
     depends_on:
       - db
-    volumes:
-      - logs/:/logs/
     networks:
       - annotations-docker
 
@@ -76,7 +74,6 @@ services:
       - BACKUP_KEEP_MONTHS=6
 
 volumes:
-  logs:
   postgresql-data:
 
 networks:
