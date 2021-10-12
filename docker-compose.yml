@@ -3,7 +3,7 @@ version: "3.9"
 services:
 
   backend:
-    image: annotate-backend:latest
+    image: $MAIN_TAG:latest
     build:
       context: .
       dockerfile: Dockerfile
@@ -20,7 +20,7 @@ services:
       - annotations-docker
 
   nginx:
-    image: annotate-static:latest
+    image: ${STATIC_TAG}:latest
     build:
       context: .
       dockerfile: ./nginx/Dockerfile
@@ -57,7 +57,7 @@ services:
     restart: always
     user: postgres:postgres
     volumes:
-      - /var/opt/annotations-pgbackups:/backups
+      - ${BACKUPS_VOLUME}:/backups
     links:
       - db
     depends_on:

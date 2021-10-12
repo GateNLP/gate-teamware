@@ -2,6 +2,11 @@
 
 set -e
 
-docker build -t annotate-backend:latest .
+# set environment variables from file
+set -o allexport
+source .env
+set +o allexport
 
-docker build -t annotate-static:latest nginx/
+docker build -t $MAIN_TAG:latest .
+
+docker build -t $STATIC_TAG:latest nginx/

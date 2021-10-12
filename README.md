@@ -254,14 +254,14 @@ describe('Example test suite', () => {
 })
 ```
 
-## Deployment
+## Deployment Pipeline
 Deployment is via docker-compose, using nginx to serve static content.
 
 A deployment script is provided to launch the docker-compose stack with the correct environment variables.
 
 To create the environment variables run `./generate-env.sh` to create a `.env` file containing randomly generated secrets which are mounted as envrionment variables into the container.
 
-First build the images via:
+Then build the images via:
 ```bash
 ./build-images.sh
 ```
