@@ -16,19 +16,22 @@ BRANCH=$(git branch --show-current)
 
 case $BRANCH in 
     master|main)
+        # production build
         DEPLOY_ENV=production
-        MAIN_TAG=annotate-backend
-        STATIC_TAG=annotate-static
-        DOCKER_NETWORK=annotate-docker
+        MAIN_IMAGE=annotate-backend
+        STATIC_IMAGE=annotate-static
         ;;
     dev)
+        # staging build
         DEPLOY_ENV=staging
-        MAIN_TAG=annotate-backend-staging
-        STATIC_TAG=annotate-static-staging
-        DOCKER_NETWORK=annotate-docker-staging
+        MAIN_IMAGE=annotate-backend-staging
+        STATIC_IMAGE=annotate-static-staging
         ;;
     *)
-        exit 1
+        # other builds, e.g. in development
+        DEPLOY_ENV=development
+        MAIN_IMAGE=annotate-backend-$BRANCH
+        STATIC_IMAGE=annotate-static-$BRANCH
         ;;
 esac
 
@@ -42,7 +45,6 @@ DB_BACKUP_USER=backup
 DB_BACKUP_PASSWORD=$(openssl rand -base64 16)
 BACKUPS_VOLUME=/export/raid/gate/annotations-backup-$DEPLOY_ENV
 DEPLOY_ENV=$DEPLOY_ENV
-MAIN_TAG=$MAIN_TAG
-STATIC_TAG=$STATIC_TAG
-DOCKER_NETWORK=$DOCKER_NETWORK
+MAIN_IMAGE=$MAIN_IMAGE
+STATIC_IMAGE=$STATIC_IMAGE
 EOF

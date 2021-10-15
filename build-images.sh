@@ -7,6 +7,6 @@ set -o allexport
 source .env
 set +o allexport
 
-docker build -t $MAIN_TAG:latest .
+docker build -t $MAIN_IMAGE:latest .
 
-docker build -t $STATIC_TAG:latest nginx/
+docker build -t $STATIC_IMAGE:latest nginx/

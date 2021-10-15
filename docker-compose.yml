@@ -3,7 +3,7 @@ version: "3.9"
 services:
 
   backend:
-    image: $MAIN_TAG:latest
+    image: $MAIN_IMAGE:latest
     build:
       context: .
       dockerfile: Dockerfile
@@ -16,11 +16,9 @@ services:
       - DB_PASSWORD
     depends_on:
       - db
-    networks:
-      - annotations-docker
 
   nginx:
-    image: ${STATIC_TAG}:latest
+    image: ${STATIC_IMAGE}:latest
     build:
       context: .
       dockerfile: ./nginx/Dockerfile
@@ -29,9 +27,6 @@ services:
     depends_on:
       - backend
       - db
-    networks:
-      - annotations-docker
-
 
   db:
     image: postgres:12-alpine
@@ -49,8 +44,6 @@ services:
     volumes:
       - postgresql-data:/var/lib/postgresql/data
       - ./create-django-db.sh:/docker-entrypoint-initdb.d/001-create-django-db.sh
-    networks:
-      - annotations-docker
 
   pgbackups:
     image: prodrigestivill/postgres-backup-local
@@ -58,8 +51,6 @@ services:
     user: postgres:postgres
     volumes:
       - ${BACKUPS_VOLUME}:/backups
-    links:
-      - db
     depends_on:
       - db
     environment:
@@ -75,7 +66,3 @@ services:
 
 volumes:
   postgresql-data:
-
-networks:
-  annotations-docker:
-    driver: bridge
