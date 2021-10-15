@@ -76,6 +76,12 @@ const routes = [
         component: () => import('../views/ManageUsers'),
         meta: {requiresAdmin: true},
     },
+    {
+        path: '/endpoints',
+        name: 'Endpoints',
+        component: () => import('../views/EndpointsListing'),
+        meta: {requiresAdmin: true},
+    },
 
 ]
 
