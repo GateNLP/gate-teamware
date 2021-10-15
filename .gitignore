@@ -2,6 +2,9 @@
 node_modules
 /dist
 
+/static
+frontend/static
+
 # Vue generated html template
 base-vue.html
 
@@ -12,6 +15,7 @@ cypress/videos
 # local env files
 .env.local
 .env.*.local
+saved-env.*
 
 # Log files
 npm-debug.log*
@@ -168,4 +172,4 @@ cython_debug/
 
 webpack-stats\.json
 
-annotation_tool/settings/secret.py
+*secret.py
