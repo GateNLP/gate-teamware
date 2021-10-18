@@ -45,6 +45,11 @@ DB_BACKUP_USER=backup
 DB_BACKUP_PASSWORD=$(openssl rand -base64 16)
 BACKUPS_VOLUME=/export/raid/gate/annotations-backup-$DEPLOY_ENV
 DEPLOY_ENV=$DEPLOY_ENV
+# If you are pushing images to a remote registry, set the registry name here
+# *including* the trailing slash, e.g.
+# IMAGE_REGISTRY=ghcr.io/gatenlp/
+IMAGE_REGISTRY=
 MAIN_IMAGE=$MAIN_IMAGE
 STATIC_IMAGE=$STATIC_IMAGE
+IMAGE_TAG=latest
 EOF

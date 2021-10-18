@@ -3,10 +3,7 @@ version: "3.9"
 services:
 
   backend:
-    image: $MAIN_IMAGE:latest
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ${IMAGE_REGISTRY}${MAIN_IMAGE}:${IMAGE_TAG}
     restart: always
     environment:
       - DJANGO_SETTINGS_MODULE
@@ -18,10 +15,7 @@ services:
       - db
 
   nginx:
-    image: ${STATIC_IMAGE}:latest
-    build:
-      context: .
-      dockerfile: ./nginx/Dockerfile
+    image: ${IMAGE_REGISTRY}${STATIC_IMAGE}:${IMAGE_TAG}
     ports:
       - 80:80
     depends_on:
