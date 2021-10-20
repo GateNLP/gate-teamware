@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.shortcuts import render
 from django.views import View
 
@@ -14,6 +15,9 @@ class MainView(View):
         :param request:
         :return:
         """
-        context = {}
+        context = {
+            "settings": settings
+        }
+
 
         return render(request, self.template_page, context=context)

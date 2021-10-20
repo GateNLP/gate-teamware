@@ -5,7 +5,7 @@
     <b-tabs v-model="activeTab">
       <b-tab title="Configuration">
 
-          <h2 class="mt-2 mb-2">Project configuration</h2>
+        <h2 class="mt-2 mb-2">Project configuration</h2>
         <b-form class="mt-4 mb-4">
           <b-form-group label="Name">
             <b-form-input v-model="local_project.name" name="project_name"></b-form-input>
@@ -43,47 +43,115 @@
           </b-form-row>
           <b-form-row>
             <b-col class="mt-4">
-              <b-button @click="saveProjectHandler" :variant="loadingVariant" :disabled="loading" >
-                <b-icon-box-arrow-in-down  :animation="loadingIconAnimation"></b-icon-box-arrow-in-down>
+              <b-button @click="saveProjectHandler" :variant="loadingVariant" :disabled="loading">
+                <b-icon-box-arrow-in-down :animation="loadingIconAnimation"></b-icon-box-arrow-in-down>
                 Save project configuration
               </b-button>
             </b-col>
           </b-form-row>
         </b-form>
-
-
-
       </b-tab>
+
       <b-tab title="Documents & Annotations">
         <h2 class="mt-2 mb-2">Documents & Annotations</h2>
 
         <b-button-toolbar class="mt-2 mb-2">
-          <b-button variant="primary" @click="exportAnnotationsHandler" class="mr-2">
-            <b-icon-download></b-icon-download>
-            Export Annotations (JSON)
-          </b-button>
-          <b-button variant="primary" @click="uploadBtnHandler" class="mr-2">
-            <b-icon-upload></b-icon-upload>
-            Upload documents
-          </b-button>
-          <b-button :variant="loadingVariant" :disabled="loading" @click="refreshDocumentsHandler" class="mr-2">
-            <b-icon-arrow-clockwise :animation="loadingIconAnimation"></b-icon-arrow-clockwise>
-            Refresh documents
-          </b-button>
+          <b-button-group>
+            <b-button v-if="isEverythingSelected()"
+                      :title="'Clear selection. (' + selectedDocuments.length + ' documents and ' + selectedAnnotations.length + ' annotations selected)'"
+                      @click="$refs.docsList.clearDocumentSelection()">
+              <b-icon-check-square></b-icon-check-square>
+              <span style="width: 30px">&nbsp;</span>
+              {{ selectedDocuments.length }}
+              <b-icon-file-earmark-text></b-icon-file-earmark-text>
+              {{ selectedAnnotations.length }}
+              <b-icon-pencil-square></b-icon-pencil-square>
+            </b-button>
+            <b-button v-else
+                      :title="'Select all (' + selectedDocuments.length + ' documents and ' + selectedAnnotations.length + ' annotations selected)'"
+                      @click="$refs.docsList.selectAllDocuments()">
+              <b-icon-square></b-icon-square>
+              <span style="width: 30px">&nbsp;</span>
+              <span style="width: 3em">&nbsp;</span>
+              {{ selectedDocuments.length }}
+              <b-icon-file-earmark-text></b-icon-file-earmark-text>
+              {{ selectedAnnotations.length }}
+              <b-icon-pencil-square></b-icon-pencil-square>
+            </b-button>
+            <b-dropdown>
+              <b-dropdown-item @click="$refs.docsList.selectAllAnnotations()">
+                Select all annotations
+              </b-dropdown-item>
+              <b-dropdown-item @click="$refs.docsList.clearAnnotationSelection()">
+                Clear all annotations
+              </b-dropdown-item>
+            </b-dropdown>
+            <b-button variant="danger" @click="showDeleteConfirmModal = !showDeleteConfirmModal"
+                      :disabled="selectedDocuments.length < 1 && selectedAnnotations.length < 1"
+                      :title="'Delete ' + selectedDocuments.length + ' documents and ' + selectedAnnotations.length + ' annotations.'">
+              <b-icon-trash-fill scale="1"></b-icon-trash-fill>
+              Delete
+
+            </b-button>
+            <b-button variant="primary" @click="exportAnnotationsHandler">
+              <b-icon-download></b-icon-download>
+              Export
+            </b-button>
+            <b-button variant="primary" @click="uploadBtnHandler">
+              <b-icon-upload></b-icon-upload>
+              Upload
+            </b-button>
+            <b-button :variant="loadingVariant" :disabled="loading" @click="refreshDocumentsHandler" class="mr-2">
+              <b-icon-arrow-clockwise :animation="loadingIconAnimation"></b-icon-arrow-clockwise>
+              Refresh
+            </b-button>
+          </b-button-group>
+
           <input ref="documentUploadInput" type="file" @change="documentUploadHandler" multiple hidden/>
+
+
         </b-button-toolbar>
 
+        <b-modal v-model="showDeleteConfirmModal"
+                 ok-variant="danger"
+                 ok-title="Delete"
+                 :ok-disabled="deleteLocked"
+                 @ok="deleteDocumentsAndAnnotationHandler"
+                 @hidden="deleteLocked = true"
+                 :title="'Delete ' + selectedDocuments.length + ' documents and ' + selectedAnnotations.length + ' annotations'">
+
+          <p class="badge badge-danger">Warning, this action is permanent!</p>
+          <p class="badge badge-danger">Deleting a document will also delete their associated annotations.</p>
+
+          <p>Are you sure you want to delete {{ selectedDocuments.length }} documents and {{ selectedAnnotations.length}} annotations?</p>
+
+          <div>
+            <b-button @click="deleteLocked = !deleteLocked"
+                      :class="{'btn-danger': deleteLocked, 'btn-success': !deleteLocked}"
+            >
+              <b-icon-lock-fill v-if="deleteLocked"></b-icon-lock-fill>
+              <b-icon-unlock-fill v-else></b-icon-unlock-fill>
+              <span v-if="deleteLocked">Unlock delete</span>
+              <span v-else>Lock delete</span>
+            </b-button>
+
+          </div>
+
+
+        </b-modal>
 
 
         <div v-if="documents">
           <b-overlay :show="loading">
-            <DocumentsList :documents="documents"></DocumentsList>
-        </b-overlay>
+            <DocumentsList ref="docsList" :documents="documents"
+                           @selection-changed="docAnnoSelectionChanged"></DocumentsList>
+          </b-overlay>
         </div>
         <div v-else>
           No documents uploaded
         </div>
       </b-tab>
+
       <b-tab title="Annotators">
         <h2 class="mt-2 mb-2">Annotators Management</h2>
         <Annotators :projectID="projectId"></Annotators>
@@ -124,8 +192,11 @@ export default {
         annotator_max_annotation: 0.6,
       },
       configurationStr: "",
-      documents: null,
-
+      documents: [],
+      selectedDocuments: [],
+      selectedAnnotations: [],
+      showDeleteConfirmModal: false,
+      deleteLocked: true,
       loading: false,
     }
   },
@@ -140,82 +211,92 @@ export default {
     projectReadyForAnnotation() {
       return this.projectConfigValid()
     },
-    loadingVariant(){
-      if(this.loading){
+    loadingVariant() {
+      if (this.loading) {
         return "secondary"
-      }
-      else{
+      } else {
         return "primary"
       }
     },
-    loadingIconAnimation(){
-      if(this.loading){
+    loadingIconAnimation() {
+      if (this.loading) {
         return "throb"
       }
 
       return null
+    },
+    numDocs() {
+      return this.documents.length
+    },
+    numAnnotations() {
+      let numAnnotations = 0
+      for (let doc of this.documents) {
+        numAnnotations += doc.annotations.length
+      }
+
+      return numAnnotations
     }
 
   },
   methods: {
-    ...mapActions(["getProjects", "updateProject", "getProjectDocuments", "getAnnotations", "addProjectDocument"]),
-    async refreshDocumentsHandler(){
+    ...mapActions(["getProjects", "updateProject", "getProjectDocuments", "getAnnotations", "addProjectDocument", "deleteDocumentsAndAnnotations"]),
+    async refreshDocumentsHandler() {
       this.setLoading(true)
-      try{
+      try {
         this.documents = await this.getProjectDocuments(this.projectId)
-      }catch(e){
+      } catch (e) {
         toastError(this, "Could not reload document", e)
       }
       this.setLoading(false)
     },
     async saveProjectHandler() {
       this.setLoading(true)
-      try{
+      try {
         await this.updateProject(this.local_project);
         this.documents = await this.getProjectDocuments(this.projectId)
         toastSuccess(this, "Save project configuration", "Save successful")
-      }catch (e){
+      } catch (e) {
         toastError(this, "Could not save project configuration", e)
       }
       this.setLoading(false)
     },
-    async uploadBtnHandler(){
+    async uploadBtnHandler() {
       console.log(this.$refs)
       this.$refs.documentUploadInput.click()
     },
     async documentUploadHandler(e) {
 
       this.setLoading(true)
-      try{
+      try {
         const fileList = e.target.files
 
-      for (let file of fileList) {
-        try {
-          const documentsStr = await readFileAsync(file)
-          const documents = JSON.parse(documentsStr)
-          // Uploaded file must be an array of docs
-          if (documents instanceof Array) {
-            for (let document of documents) {
-              await this.addProjectDocument({projectId: this.projectId, document: document})
+        for (let file of fileList) {
+          try {
+            const documentsStr = await readFileAsync(file)
+            const documents = JSON.parse(documentsStr)
+            // Uploaded file must be an array of docs
+            if (documents instanceof Array) {
+              for (let document of documents) {
+                await this.addProjectDocument({projectId: this.projectId, document: document})
+              }
             }
+
+          } catch (e) {
+            console.error("Could not parse uploaded file")
+            console.error(e)
+            toastError(this, "Could not parse uploaded file " + file, e)
           }
 
-        } catch (e) {
-          console.error("Could not parse uploaded file")
-          console.error(e)
-          toastError(this, "Could not parse uploaded file "+file, e)
+          this.documents = await this.getProjectDocuments(this.projectId);
         }
 
-        this.documents = await this.getProjectDocuments(this.projectId);
-      }
-
-      }catch (e){
+      } catch (e) {
         toastError(this, "Could not upload document", e)
       }
 
       this.setLoading(false)
     },
-    async setLoading(isLoading){
+    async setLoading(isLoading) {
       this.loading = isLoading
     },
     async exportAnnotationsHandler() {
@@ -237,7 +318,31 @@ export default {
     },
     annotationOutputHandler(value) {
       this.annotationOutput = value
-    }
+    },
+    docAnnoSelectionChanged(value) {
+      this.selectedDocuments = value.documents
+      this.selectedAnnotations = value.annotations
+    },
+    isEverythingSelected() {
+      return this.selectedDocuments.length >= this.numDocs &&
+          this.selectedAnnotations.length >= this.numAnnotations
+    },
+    async deleteDocumentsAndAnnotationHandler(e) {
+      try {
+        await this.deleteDocumentsAndAnnotations({
+          documentIds: this.selectedDocuments,
+          annotationIds: this.selectedAnnotations
+        })
+        toastSuccess(this, "Documents and annotations deleted", this.selectedDocuments.length + "documents and " + this.selectedAnnotations.length + "deleted.")
+
+        await this.refreshDocumentsHandler()
+
+      } catch (e) {
+        toastError(this, "Could not delete documents or annotations", e)
+
+      }
+
+    },
 
   },
   watch: {

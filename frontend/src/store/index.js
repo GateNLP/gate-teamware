@@ -10,7 +10,7 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
     state: {
-        projects: null,
+        projects: [],
         user: {
             username: "",
             isAuthenticated: false,
@@ -290,6 +290,17 @@ export default new Vuex.Store({
                 console.error(e)
                 throw e
             }
+        },
+        async deleteDocumentsAndAnnotations({dispatch, commit}, {documentIds, annotationIds}){
+            try{
+                let response = await rpc.call("delete_documents_and_annotations", documentIds, annotationIds)
+                return response
+
+            }catch (e){
+                console.error(e)
+                throw e
+            }
+
         },
         async getPossibleAnnotators({dispatch, commit}){
             try{

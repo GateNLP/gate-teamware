@@ -28,10 +28,10 @@ export async function readFileAsync(file){
 
 }
 
-export async function showToast(vueOrComponentInstance, title, message, variant, delay = 3000){
+export async function showToast(vueOrComponentInstance, title, message, variant, delay = 2000){
     vueOrComponentInstance.$bvToast.toast(message, {
         title: title,
-        toaster: 'b-toaster-top-full',
+        toaster: 'b-toaster-top-right',
         variant: variant,
         autoHideDelay: delay,
         })
