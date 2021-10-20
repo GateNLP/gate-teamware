@@ -7,6 +7,69 @@ from django.utils import timezone
 from backend.models import Project, Document, Annotation
 from backend.utils.serialize import ModelSerializer
 
+
+class TestUserModel(TestCase):
+
+
+
+    def test_document_association_check(self):
+        user = get_user_model().objects.create(username="test1")
+        user2 = get_user_model().objects.create(username="test2")
+
+        project = Project.objects.create()
+        doc = Document.objects.create(project=project)
+        doc2 = Document.objects.create(project=project)
+        user.annotates = project
+        user.save()
+
+        project2 = Project.objects.create()
+        doc3 = Document.objects.create(project=project2)
+
+        # Test association where user is an annotator of a project and user2 is not
+        self.assertTrue(user.is_associated_with_document(doc))
+        self.assertTrue(user.is_associated_with_document(doc2))
+        self.assertFalse(user.is_associated_with_document(doc3))
+
+        self.assertFalse(user2.is_associated_with_document(doc))
+        self.assertFalse(user2.is_associated_with_document(doc2))
+        self.assertFalse(user2.is_associated_with_document(doc3))
+
+
+        # Same as above but now user and user2 has annotations
+        annotation = Annotation.objects.create(user=user, document=doc3)
+        annotation2 = Annotation.objects.create(user=user2, document=doc)
+        annotation3 = Annotation.objects.create(user=user2, document=doc2)
+        annotation4 = Annotation.objects.create(user=user2, document=doc3)
+
+        self.assertTrue(user.is_associated_with_document(doc))
+        self.assertTrue(user.is_associated_with_document(doc2))
+        self.assertTrue(user.is_associated_with_document(doc3))
+
+        self.assertTrue(user2.is_associated_with_document(doc))
+        self.assertTrue(user2.is_associated_with_document(doc2))
+        self.assertTrue(user2.is_associated_with_document(doc3))
+
+    def test_check_annotation_association_check(self):
+        user = get_user_model().objects.create(username="test1")
+        user2 = get_user_model().objects.create(username="test2")
+        project = Project.objects.create()
+        doc = Document.objects.create(project=project)
+        annotation = Annotation.objects.create(user=user, document=doc)
+
+        doc2 = Document.objects.create(project=project)
+        annotation2 = Annotation.objects.create(user=user2, document=doc2)
+
+
+        self.assertTrue(user.is_associated_with_annotation(annotation))
+        self.assertFalse(user2.is_associated_with_annotation(annotation))
+
+        self.assertFalse(user.is_associated_with_annotation(annotation2))
+        self.assertTrue(user2.is_associated_with_annotation(annotation2))
+
+
+
+
+
 class TestDocumentModel(TestCase):
     def test_document(self):
         annotator = get_user_model().objects.create(username="test1")

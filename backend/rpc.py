@@ -23,7 +23,7 @@ from gatenlp import annotation_set
 # https://pypi.org/project/gatenlp/
 
 from backend.errors import AuthError
-from backend.rpcserver import rpc_method, rpc_method_auth
+from backend.rpcserver import rpc_method, rpc_method_auth, rpc_method_manager, rpc_method_admin
 from backend.models import Project, Document, Annotation
 from backend.utils.serialize import ModelSerializer
 
@@ -233,7 +233,7 @@ def reset_password(request, username, token, new_password):
         raise ValueError("Invalid token provided")
 
 
-@rpc_method
+@rpc_method_auth
 def change_password(request, payload):
     user = request.user
     user.set_password(payload.get("password"))
@@ -241,7 +241,7 @@ def change_password(request, payload):
     return
 
 
-@rpc_method
+@rpc_method_auth
 def change_email(request, payload):
     user = request.user
 
@@ -251,7 +251,7 @@ def change_email(request, payload):
     _generate_user_activation(user)  # Generate
     return
 
-@rpc_method
+@rpc_method_auth
 def set_user_receive_mail_notifications(request, do_receive_notifications):
     user = request.user
     user.receive_mail_notifications = do_receive_notifications
@@ -263,7 +263,7 @@ def set_user_receive_mail_notifications(request, do_receive_notifications):
 ### User specific methods ###
 #############################
 
-@rpc_method
+@rpc_method_auth
 def get_user_details(request):
     user = request.user
 
@@ -285,7 +285,7 @@ def get_user_details(request):
     return data
 
 
-@rpc_method
+@rpc_method_auth
 def get_user_annotations(request):
     user = request.user
 
@@ -325,7 +325,7 @@ def get_user_annotations(request):
 ### Project Management Methods ###
 ##################################
 
-@rpc_method_auth
+@rpc_method_manager
 @transaction.atomic
 def create_project(request):
     proj = Project.objects.create()
@@ -335,7 +335,7 @@ def create_project(request):
     return serializer.serialize(proj)
 
 
-@rpc_method_auth
+@rpc_method_manager
 @transaction.atomic
 def update_project(request, project_dict):
     project = serializer.deserialize(Project, project_dict)
@@ -343,13 +343,13 @@ def update_project(request, project_dict):
     return True
 
 
-@rpc_method_auth
+@rpc_method_manager
 def get_project(request, pk):
     proj = Project.objects.get(pk=pk)
     return serializer.serialize(proj)
 
 
-@rpc_method_auth
+@rpc_method_manager
 def get_projects(request):
     projects = Project.objects.all()
 
@@ -368,7 +368,7 @@ def get_projects(request):
     return output_projects
 
 
-@rpc_method_auth
+@rpc_method_manager
 def get_project_documents(request, project_id):
     project = Project.objects.get(pk=project_id)
 
@@ -409,7 +409,7 @@ def get_project_documents(request, project_id):
     return documents_out
 
 
-@rpc_method_auth
+@rpc_method_manager
 @transaction.atomic
 def add_project_document(request, project_id, document_data):
     project = Project.objects.get(pk=project_id)
@@ -420,7 +420,7 @@ def add_project_document(request, project_id, document_data):
     return document.pk
 
 
-@rpc_method_auth
+@rpc_method_manager
 @transaction.atomic
 def add_document_annotation(request, doc_id, annotation):
     document = Document.objects.get(pk=doc_id)
@@ -428,7 +428,7 @@ def add_document_annotation(request, doc_id, annotation):
     return annotation.pk
 
 
-@rpc_method_auth
+@rpc_method_manager
 def get_annotations(request, project_id):
     """
     Serialize project annotations as GATENLP format JSON using the python-gatenlp interface.
@@ -457,21 +457,21 @@ def get_annotations(request, project_id):
     return annotations
 
 
-@rpc_method_auth
+@rpc_method_manager
 def get_possible_annotators(request):
     annotators = User.objects.filter(annotates=None)
     output = [serializer.serialize(annotator, {"id", "username", "email"}) for annotator in annotators]
     return output
 
 
-@rpc_method_auth
+@rpc_method_manager
 def get_project_annotators(request, proj_id):
     project = Project.objects.get(pk=proj_id)
     output = [serializer.serialize(annotator, {"id", "username", "email"}) for annotator in project.annotators.all()]
     return output
 
 
-@rpc_method_auth
+@rpc_method_manager
 @transaction.atomic
 def add_project_annotator(request, proj_id, username):
     annotator = User.objects.get(username=username)
@@ -481,7 +481,7 @@ def add_project_annotator(request, proj_id, username):
     return True
 
 
-@rpc_method_auth
+@rpc_method_manager
 @transaction.atomic
 def remove_project_annotator(request, proj_id, username):
     annotator = User.objects.get(username=username)
@@ -490,6 +490,10 @@ def remove_project_annotator(request, proj_id, username):
     project.save()
     return True
 
+
+###############################
+### Annotator methods       ###
+###############################
 
 @rpc_method_auth
 @transaction.atomic
@@ -561,28 +565,33 @@ def reject_annotation_task(request, annotation_id):
 @rpc_method_auth
 def get_document_content(request, document_id):
     doc = Document.objects.get(pk=document_id)
-    return doc.data
+    if request.user.is_associated_with_document(doc):
+        return doc.data
+    else:
+        raise PermissionError("No permission to access the document")
 
 
 @rpc_method_auth
 def get_annotation_content(request, annotation_id):
     annotation = Annotation.objects.get(pk=annotation_id)
-    return annotation.data
+    if request.user.is_associated_with_annotation(annotation):
+        return annotation.data
+    else:
+        raise PermissionError("No permission to access the annotation")
+
 
 
 ###############################
 ### User Management Methods ###
 ###############################
 
-@rpc_method_auth
-@staff_member_required
+@rpc_method_admin
 def get_all_users(request):
     users = User.objects.all()
     output = [serializer.serialize(user, {"id", "username", "email", "is_manager", "is_staff"}) for user in users]
     return output
 
-@rpc_method_auth
-@staff_member_required
+@rpc_method_admin
 def get_user(request, username):
     user = User.objects.get(username=username)
 
@@ -597,8 +606,7 @@ def get_user(request, username):
 
     return data
 
-@rpc_method_auth
-@staff_member_required
+@rpc_method_admin
 def admin_update_user(request, user_dict):
     user = User.objects.get(id=user_dict["id"])
 
@@ -612,7 +620,7 @@ def admin_update_user(request, user_dict):
     return user_dict
 
 
-@rpc_method_auth
+@rpc_method_admin
 def admin_update_user_password(request, username, password):
     user = User.objects.get(username=username)
     user.set_password(password)

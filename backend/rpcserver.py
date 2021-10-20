@@ -22,9 +22,11 @@ UNAUTHORIZED_ERROR = -32001
 
 
 class RPCMethod:
-    def __init__(self, function, authenticate):
+    def __init__(self, function, authenticate, requires_manager=False, requires_admin=False):
         self.function = function
         self.authenticate = authenticate
+        self.requires_manager = requires_manager
+        self.requires_admin = requires_admin
 
 
 class JSONRPCEndpoint(View):
@@ -89,12 +91,22 @@ class JSONRPCEndpoint(View):
 
             # Get and call method
             method = REGISTERED_RPC_METHODS[method_name]
-            if (not method.authenticate) or (method.authenticate and request.user.is_authenticated):
-                result = method.function(request, *params)
-                log.info(f"Called {method_name}")
-                return self.success_response(result, msg_id)
-            else:
-                raise AuthError("User not logged in")
+
+            # Check user role
+            if method.authenticate and not request.user.is_authenticated:
+                raise AuthError("Must be logged in to perform this operation.")
+
+            if method.requires_manager and not (request.user.is_manager or request.user.is_staff or request.user.is_superuser):
+                raise PermissionError("Must be a manager to perform this operation.")
+
+            if method.requires_admin and not (request.user.is_staff or request.user.is_superuser):
+                raise PermissionError("Must be a admin to perform this operation.")
+
+
+            result = method.function(request, *params)
+            log.info(f"Called {method_name}")
+            return self.success_response(result, msg_id)
+
 
         except JSONDecodeError as e:
             log.exception(f"Unable to parse json string from request body {request.body}")
@@ -147,3 +159,25 @@ def rpc_method_auth(func):
     REGISTERED_RPC_METHODS[func.__name__] = RPCMethod(func, True)
     return func
 
+def rpc_method_manager(func):
+    """
+    Used as a decorator. Register the method to the list of RPC functions available,
+    authentication check is performed automatically.
+
+    The decorated function can throw PermissionError or AuthError which will be converted
+    to the correct error code automatically.
+    """
+    REGISTERED_RPC_METHODS[func.__name__] = RPCMethod(func, True, requires_manager=True)
+    return func
+
+
+def rpc_method_admin(func):
+    """
+    Used as a decorator. Register the method to the list of RPC functions available,
+    authentication check is performed automatically.
+
+    The decorated function can throw PermissionError or AuthError which will be converted
+    to the correct error code automatically.
+    """
+    REGISTERED_RPC_METHODS[func.__name__] = RPCMethod(func, True, requires_manager=True, requires_admin=True)
+    return func
