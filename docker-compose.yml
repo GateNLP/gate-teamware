@@ -17,7 +17,7 @@ services:
   nginx:
     image: ${IMAGE_REGISTRY}${STATIC_IMAGE}:${IMAGE_TAG}
     ports:
-      - 80:80
+      - 8076:80
     depends_on:
       - backend
       - db

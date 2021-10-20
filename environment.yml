@@ -89,3 +89,4 @@ dependencies:
     - pyyaml
     - msgpack
     - bs4
+    - psycopg2
