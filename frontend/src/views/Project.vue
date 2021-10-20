@@ -164,7 +164,7 @@ export default {
       try{
         this.documents = await this.getProjectDocuments(this.projectId)
       }catch(e){
-        toastError(this, "Reloading document", e)
+        toastError(this, "Could not reload document", e)
       }
       this.setLoading(false)
     },
@@ -175,7 +175,7 @@ export default {
         this.documents = await this.getProjectDocuments(this.projectId)
         toastSuccess(this, "Save project configuration", "Save successful")
       }catch (e){
-        toastError(this, "Save project configuration", e)
+        toastError(this, "Could not save project configuration", e)
       }
       this.setLoading(false)
     },
@@ -203,14 +203,14 @@ export default {
         } catch (e) {
           console.error("Could not parse uploaded file")
           console.error(e)
-          toastError(this, "Document upload - Could not parse uploaded file "+file, e)
+          toastError(this, "Could not parse uploaded file "+file, e)
         }
 
         this.documents = await this.getProjectDocuments(this.projectId);
       }
 
       }catch (e){
-        toastError(this, "Document upload", e)
+        toastError(this, "Could not upload document", e)
       }
 
       this.setLoading(false)

@@ -1,3 +1,4 @@
+from django.conf import settings
 import logging
 import django
 from datetime import timedelta
@@ -14,9 +15,49 @@ class ServiceUser(AbstractUser):
     """
     Custom user class.
     """
-    annotates = models.ForeignKey("Project", on_delete=models.SET_NULL, related_name="annotators", null=True)
+    annotates = models.ForeignKey("Project", on_delete=models.SET_NULL, related_name="annotators", null=True, blank=True)
     is_manager = models.BooleanField(default=False)
     created = models.DateTimeField(default=timezone.now)
+    is_account_activated = models.BooleanField(default=False)
+    activate_account_token = models.TextField(null=True, blank=True)
+    activate_account_token_expire = models.DateTimeField(null=True, blank=True)
+    reset_password_token = models.TextField(null=True, blank=True)
+    reset_password_token_expire = models.DateTimeField(null=True, blank=True)
+    receive_mail_notifications = models.BooleanField(default=True)
+
+    @property
+    def is_activated(self):
+        """
+        Checks whether the user has activated their account, but also takes into account
+        of the REGISTER_WITH_EMAIL_ACTIVATION settings.
+        """
+        if settings.ACTIVATION_WITH_EMAIL:
+            return self.is_account_activated
+        else:
+            return True
+
+    @is_activated.setter
+    def is_activated(self, value):
+        self.is_account_activated = value
+
+
+    def is_associated_with_document(self, document):
+
+        if self.is_manager or self.is_staff or self.is_superuser:
+            return True
+
+        return self.annotations.filter(document_id=document.pk).count() > 0 or \
+               (self.annotates and self.annotates.documents.filter(pk=document.pk).count() > 0)
+
+
+    def is_associated_with_annotation(self, annotation):
+
+        if self.is_manager or self.is_staff or self.is_superuser:
+            return True
+
+        return self.annotations.filter(pk=annotation.pk).count() > 0
+
+
 
 
 class Project(models.Model):

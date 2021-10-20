@@ -1,5 +1,19 @@
 <template>
-  <div class="about">
-    <h1>This is an about page</h1>
+  <div class="about container">
+    <h1>About GATE Annotate</h1>
+
   </div>
 </template>
+<script>
+import {toastError} from "@/utils";
+import JSRPCClient from '../jrpc';
+
+export default {
+  name: "Annotate",
+  methods:{
+
+  }
+
+
+}
+</script>

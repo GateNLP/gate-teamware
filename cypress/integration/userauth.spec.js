@@ -1,6 +1,7 @@
 describe('User Registration Test', () => {
 
     beforeEach(()=>{
+        cy.exec('npm run migrate:integration')
     })
 
     it('registers a user', () => {
@@ -21,6 +22,7 @@ describe('User Registration Test', () => {
         cy.contains('Register')
         cy.contains('Password').type('123456')
         cy.contains('Confirm Password').type('789')
+        cy.get('form').contains('Register').click()
         cy.contains('Password must match')
         })
 

@@ -1,19 +1,29 @@
+import secrets
 import logging
+import datetime
+
 import json
+from urllib.parse import urljoin
+from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model, login as djlogin, logout as djlogout
 from django.contrib.auth.decorators import permission_required
 from django.contrib.admin.views.decorators import staff_member_required
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.db.models import manager
+from django.core import mail
+from django.db.models import Q
 from django.http import JsonResponse, HttpRequest
 from django.shortcuts import redirect, render
+from django.template.loader import render_to_string
 from django.utils import timezone
 import gatenlp
+from django.utils.html import strip_tags
 from gatenlp import annotation_set
 # https://pypi.org/project/gatenlp/
 
 from backend.errors import AuthError
-from backend.rpcserver import rpc_method, rpc_method_auth
+from backend.rpcserver import rpc_method, rpc_method_auth, rpc_method_manager, rpc_method_admin
 from backend.models import Project, Document, Annotation
 from backend.utils.serialize import ModelSerializer
 
@@ -36,6 +46,7 @@ def is_authenticated(request):
     }
     if request.user.is_authenticated:
         context["isAuthenticated"] = True
+        context["isActivated"] = request.user.is_activated
         context["username"] = request.user.username
 
     if not request.user.is_anonymous:
@@ -58,6 +69,7 @@ def login(request, payload):
         context["isAuthenticated"] = user.is_authenticated
         context["isManager"] = user.is_manager
         context["isAdmin"] = user.is_staff
+        context["isActivated"] = user.is_activated
         return context
     else:
         raise AuthError("Invalid username or password.")
@@ -78,33 +90,180 @@ def register(request, payload):
 
     if not get_user_model().objects.filter(username=username).exists():
         user = get_user_model().objects.create_user(username=username, password=password, email=email)
+        _generate_user_activation(user)
         djlogin(request, user)
         context["username"] = payload["username"]
         context["isAuthenticated"] = True
+        context["isActivated"] = user.is_activated
         return context
     else:
         raise ValueError("Username already exists")
 
+
 @rpc_method
+def generate_user_activation(request, username):
+    try:
+        user = get_user_model().objects.get(username=username)
+
+        if user.is_activated:
+            raise ValueError(f"User {username}'s account is already activated.")
+
+        _generate_user_activation(user)
+
+
+    except User.DoesNotExist:
+        log.exception(f"Trying to generate activation code for user: {username} that doesn't exist")
+        raise ValueError("User does not exist.")
+
+
+def _generate_user_activation(user):
+
+    if settings.ACTIVATION_WITH_EMAIL:
+        register_token = secrets.token_urlsafe(settings.ACTIVATION_TOKEN_LENGTH)
+        user.activate_account_token = register_token
+        user.activate_account_token_expire = timezone.now() + \
+                                             datetime.timedelta(days=settings.ACTIVATION_EMAIL_TIMEOUT_DAYS)
+        user.save()
+
+        app_name = settings.APP_NAME
+        activate_url_base = urljoin(settings.APP_URL, settings.ACTIVATION_URL_PATH)
+        activate_url = f"{activate_url_base}?username={user.username}&token={user.activate_account_token}"
+        context = {
+            "app_name": app_name,
+            "activate_url": activate_url,
+        }
+
+        message = render_to_string("registration_mail.html", context)
+
+        num_sent = mail.send_mail(subject=f"Activate your account at {app_name}",
+                                  message=strip_tags(message),
+                                  html_message=message,
+                                  from_email=settings.ADMIN_EMAIL,
+                                  recipient_list=[user.email],
+                                  fail_silently=False
+                                  )
+
+        if num_sent < 1:
+            log.warning(f"Could not send registration email for user {user.username}")
+    else:
+        user.is_account_activated = True
+        user.save()
+
+
+
+@rpc_method
+def activate_account(request, username, token):
+    try:
+
+        if token is None or len(token) < settings.ACTIVATION_TOKEN_LENGTH:
+            log.error(f"Token of invalid length provided: {token} username: {username}")
+            raise ValueError("Invalid token provided")
+
+        user = get_user_model().objects.get(username=username, activate_account_token=token)
+
+        if user.activate_account_token_expire < timezone.now():
+            raise ValueError("Token has expired")
+
+        user.is_account_activated = True
+        user.activate_account_token = None
+        user.activate_account_token_expire = None
+        user.save()
+
+    except User.DoesNotExist as e:
+        log.exception(f"Activate account, invalid token provided: {token}")
+        raise ValueError("Invalid token provided")
+
+
+@rpc_method
+def generate_password_reset(request, username):
+    user = None
+
+    try:
+        user = get_user_model().objects.get(username=username)
+        register_token = secrets.token_urlsafe(settings.PASSWORD_RESET_TOKEN_LENGTH)
+        user.reset_password_token = register_token
+        user.reset_password_token_expire = timezone.now() + \
+                                           datetime.timedelta(hours=settings.PASSWORD_RESET_TIMEOUT_HOURS)
+        user.save()
+
+        app_name = settings.APP_NAME
+        reset_url_base = urljoin(settings.APP_URL, settings.PASSWORD_RESET_URL_PATH)
+        reset_url = f"{reset_url_base}?username={user.username}&token={user.reset_password_token}"
+        context = {
+            "app_name": app_name,
+            "reset_url": reset_url,
+        }
+
+        message = render_to_string("password_reset_mail.html", context)
+
+        num_sent = mail.send_mail(subject=f"Reset your password at {app_name}",
+                                  message=strip_tags(message),
+                                  html_message=message,
+                                  from_email=settings.ADMIN_EMAIL,
+                                  recipient_list=[user.email],
+                                  fail_silently=False
+                                  )
+        if num_sent < 1:
+            log.warning(f"Could not send password reset email for user {user.username}")
+
+
+    except User.DoesNotExist as e:
+        raise ValueError("Username does not exist.")
+
+
+@rpc_method
+def reset_password(request, username, token, new_password):
+    try:
+
+        if token is None or len(token) < settings.PASSWORD_RESET_TOKEN_LENGTH:
+            log.error(f"Token of invalid length provided: {token} username: {username}")
+            raise ValueError("Invalid token provided")
+
+        user = get_user_model().objects.get(username=username, reset_password_token=token)
+        if user.reset_password_token_expire < timezone.now():
+            raise ValueError("Token has expired")
+
+        user.set_password(new_password)
+        user.reset_password_token = None
+        user.reset_password_token_expire = None
+        user.save()
+
+    except User.DoesNotExist as e:
+        log.exception(f"Reset password, invalid token provided: {token}")
+        raise ValueError("Invalid token provided")
+
+
+@rpc_method_auth
 def change_password(request, payload):
     user = request.user
     user.set_password(payload.get("password"))
     user.save()
-    return        
+    return
 
-@rpc_method
+
+@rpc_method_auth
 def change_email(request, payload):
     user = request.user
 
     user.email = payload.get("email")
+    user.is_account_activated = False  # User needs to re-verify their e-mail again
     user.save()
+    _generate_user_activation(user)  # Generate
     return
+
+@rpc_method_auth
+def set_user_receive_mail_notifications(request, do_receive_notifications):
+    user = request.user
+    user.receive_mail_notifications = do_receive_notifications
+    user.save()
+
+
 
 #############################
 ### User specific methods ###
 #############################
 
-@rpc_method
+@rpc_method_auth
 def get_user_details(request):
     user = request.user
 
@@ -112,6 +271,7 @@ def get_user_details(request):
         "username": user.username,
         "email": user.email,
         "created": user.created,
+        "receive_mail_notifications": user.receive_mail_notifications,
     }
 
     user_role = "annotator"
@@ -124,7 +284,8 @@ def get_user_details(request):
 
     return data
 
-@rpc_method
+
+@rpc_method_auth
 def get_user_annotations(request):
     user = request.user
 
@@ -156,14 +317,15 @@ def get_user_annotations(request):
         }
 
         documents_out.append(doc_out)
-    
+
     return documents_out
+
 
 ##################################
 ### Project Management Methods ###
 ##################################
 
-@rpc_method_auth
+@rpc_method_manager
 @transaction.atomic
 def create_project(request):
     proj = Project.objects.create()
@@ -173,7 +335,7 @@ def create_project(request):
     return serializer.serialize(proj)
 
 
-@rpc_method_auth
+@rpc_method_manager
 @transaction.atomic
 def update_project(request, project_dict):
     project = serializer.deserialize(Project, project_dict)
@@ -181,13 +343,13 @@ def update_project(request, project_dict):
     return True
 
 
-@rpc_method_auth
+@rpc_method_manager
 def get_project(request, pk):
     proj = Project.objects.get(pk=pk)
     return serializer.serialize(proj)
 
 
-@rpc_method_auth
+@rpc_method_manager
 def get_projects(request):
     projects = Project.objects.all()
 
@@ -206,7 +368,7 @@ def get_projects(request):
     return output_projects
 
 
-@rpc_method_auth
+@rpc_method_manager
 def get_project_documents(request, project_id):
     project = Project.objects.get(pk=project_id)
 
@@ -247,7 +409,7 @@ def get_project_documents(request, project_id):
     return documents_out
 
 
-@rpc_method_auth
+@rpc_method_manager
 @transaction.atomic
 def add_project_document(request, project_id, document_data):
     project = Project.objects.get(pk=project_id)
@@ -258,7 +420,7 @@ def add_project_document(request, project_id, document_data):
     return document.pk
 
 
-@rpc_method_auth
+@rpc_method_manager
 @transaction.atomic
 def add_document_annotation(request, doc_id, annotation):
     document = Document.objects.get(pk=doc_id)
@@ -266,7 +428,7 @@ def add_document_annotation(request, doc_id, annotation):
     return annotation.pk
 
 
-@rpc_method_auth
+@rpc_method_manager
 def get_annotations(request, project_id):
     """
     Serialize project annotations as GATENLP format JSON using the python-gatenlp interface.
@@ -295,21 +457,21 @@ def get_annotations(request, project_id):
     return annotations
 
 
-@rpc_method_auth
+@rpc_method_manager
 def get_possible_annotators(request):
     annotators = User.objects.filter(annotates=None)
     output = [serializer.serialize(annotator, {"id", "username", "email"}) for annotator in annotators]
     return output
 
 
-@rpc_method_auth
+@rpc_method_manager
 def get_project_annotators(request, proj_id):
     project = Project.objects.get(pk=proj_id)
     output = [serializer.serialize(annotator, {"id", "username", "email"}) for annotator in project.annotators.all()]
     return output
 
 
-@rpc_method_auth
+@rpc_method_manager
 @transaction.atomic
 def add_project_annotator(request, proj_id, username):
     annotator = User.objects.get(username=username)
@@ -319,7 +481,7 @@ def add_project_annotator(request, proj_id, username):
     return True
 
 
-@rpc_method_auth
+@rpc_method_manager
 @transaction.atomic
 def remove_project_annotator(request, proj_id, username):
     annotator = User.objects.get(username=username)
@@ -328,6 +490,10 @@ def remove_project_annotator(request, proj_id, username):
     project.save()
     return True
 
+
+###############################
+### Annotator methods       ###
+###############################
 
 @rpc_method_auth
 @transaction.atomic
@@ -395,30 +561,37 @@ def reject_annotation_task(request, annotation_id):
     if annotation:
         annotation.reject_annotation()
 
+
 @rpc_method_auth
 def get_document_content(request, document_id):
     doc = Document.objects.get(pk=document_id)
-    return doc.data
+    if request.user.is_associated_with_document(doc):
+        return doc.data
+    else:
+        raise PermissionError("No permission to access the document")
+
 
 @rpc_method_auth
 def get_annotation_content(request, annotation_id):
     annotation = Annotation.objects.get(pk=annotation_id)
-    return annotation.data
+    if request.user.is_associated_with_annotation(annotation):
+        return annotation.data
+    else:
+        raise PermissionError("No permission to access the annotation")
+
 
 
 ###############################
 ### User Management Methods ###
 ###############################
 
-@rpc_method_auth
-@staff_member_required
+@rpc_method_admin
 def get_all_users(request):
     users = User.objects.all()
     output = [serializer.serialize(user, {"id", "username", "email", "is_manager", "is_staff"}) for user in users]
     return output
 
-@rpc_method_auth
-@staff_member_required
+@rpc_method_admin
 def get_user(request, username):
     user = User.objects.get(username=username)
 
@@ -428,19 +601,27 @@ def get_user(request, username):
         "email": user.email,
         "is_manager": user.is_manager,
         "is_admin": user.is_staff,
+        "is_activated": user.is_activated
     }
 
     return data
 
-@rpc_method_auth
-@staff_member_required
-def admin_update_user(request,user_dict):
+@rpc_method_admin
+def admin_update_user(request, user_dict):
     user = User.objects.get(id=user_dict["id"])
 
     user.username = user_dict["username"]
     user.email = user_dict["email"]
     user.is_manager = user_dict["is_manager"]
     user.is_staff = user_dict["is_admin"]
+    user.is_account_activated = user_dict["is_activated"]
     user.save()
 
     return user_dict
+
+
+@rpc_method_admin
+def admin_update_user_password(request, username, password):
+    user = User.objects.get(username=username)
+    user.set_password(password)
+    user.save()

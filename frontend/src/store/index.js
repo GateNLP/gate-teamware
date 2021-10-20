@@ -16,19 +16,26 @@ export default new Vuex.Store({
             isAuthenticated: false,
             isManager: false,
             isAdmin: false,
+            isActivated: false,
         },
     },
     getters:{
         isAuthenticated: state => state.user.isAuthenticated,
         isManager: state => state.user.isManager,
         isAdmin: state => state.user.isAdmin,
+        isActivated: state => state.user.isActivated,
+        username: state => state.user.username,
     },
     mutations: {
+        activateUser(state){
+          state.user.isActivated = true
+        },
         updateUser(state, params) {
             state.user.username = params.username;
             state.user.isAuthenticated = params.isAuthenticated;
             state.user.isManager = params.isManager;
             state.user.isAdmin = params.isAdmin;
+            state.user.isActivated = params.isActivated;
         },
         updateProjects(state,projects) {
             state.projects = projects;
@@ -56,6 +63,7 @@ export default new Vuex.Store({
             let params = {
                 username: "",
                 isAuthenticated: false,
+                isActivated: false,
             }
             await rpc.call("logout");
             commit("updateUser", params);
@@ -70,6 +78,25 @@ export default new Vuex.Store({
                 let response = await rpc.call("register",payload);
                 dispatch("updateUser",response);
                 return response
+            }catch (e){
+                console.error(e)
+                throw e
+            }
+        },
+        async generateUserActivation({dispatch, commit}, username){
+            try{
+                let response = await rpc.call("generate_user_activation", username)
+
+            }catch (e){
+                console.error(e)
+                throw e
+            }
+        },
+        async activateAccount({dispatch, commit}, {username, token}){
+            try{
+                let response = await rpc.call("activate_account", username, token)
+                await dispatch("is_authenticated")
+
             }catch (e){
                 console.error(e)
                 throw e
@@ -93,10 +120,40 @@ export default new Vuex.Store({
                 let response = await rpc.call("change_password",payload);
                 return
             }catch (e){
-                console.error(e);
+                console.error(e)
+                throw e
             }
         },
+        async generatePasswordReset({dispatch, commit}, username){
+            try{
 
+                let response = await rpc.call("generate_password_reset", username)
+
+            }catch(e){
+                console.error(e)
+                throw e
+            }
+
+        },
+        async resetPassword({dispatch, commit}, {username, token, newPassword}){
+            try{
+
+                let response = await rpc.call("reset_password", username, token, newPassword)
+
+            }catch(e){
+                console.error(e)
+                throw e
+            }
+
+        },
+        async setUserReceiveMailNotification({dispatch, commit}, do_receive_notification){
+            try{
+                let response = await rpc.call("set_user_receive_mail_notifications", do_receive_notification)
+            }catch(e){
+                console.error(e)
+                throw e
+            }
+        },
         async is_authenticated({dispatch, commit}) {
             try{
                 let response = await rpc.call("is_authenticated");
@@ -137,6 +194,14 @@ export default new Vuex.Store({
                 }
                 let user = await rpc.call("admin_update_user",payload);
                 return user
+            }catch (e){
+                console.error(e)
+                throw e
+            }
+        },
+        async adminUpdateUserPassword({dispatch, commit}, {username, password}){
+            try{
+                await rpc.call("admin_update_user_password", username, password)
             }catch (e){
                 console.error(e)
                 throw e

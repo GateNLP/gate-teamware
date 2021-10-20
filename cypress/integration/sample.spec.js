@@ -10,7 +10,7 @@ describe('My First Test', () => {
 
         cy.contains('GATE Annotation Tool')
         cy.contains('About').click()
-        cy.contains('This is an about page')
+        cy.contains('About GATE Annotate')
         expect(true).to.equal(true) // Example assert
     })
 

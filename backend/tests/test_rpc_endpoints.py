@@ -1,85 +1,26 @@
+from django.core import mail
+from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import AnonymousUser
+from django.contrib.auth.hashers import check_password
+
 from django.http import HttpRequest
 from django.test import TestCase, Client
-from django.test.client import RequestFactory
+
 from django.utils import timezone
 import json
 
 from backend.models import Annotation, Document, Project
 from backend.rpc import create_project, update_project, add_project_document, add_document_annotation, \
     get_possible_annotators, add_project_annotator, remove_project_annotator, get_project_annotators, \
-    get_annotation_task, complete_annotation_task, reject_annotation_task
+    get_annotation_task, complete_annotation_task, reject_annotation_task, register, activate_account, \
+    generate_password_reset, reset_password, generate_user_activation, change_password, change_email, \
+    set_user_receive_mail_notifications
 from backend.rpcserver import rpc_method
 
 
-@rpc_method
-def rpc_endpoint_for_test_call(request, a, b):
-    return a + b
+from backend.tests.test_rpc_server import TestEndpoint
 
 
-class TestEndpoint(TestCase):
-    username = "testuser"
-    password = "123456789"
-    user_email = "test@test.com"
-
-    factory = RequestFactory()
-
-    user = None
-    client = None
-
-    def get_default_user(self):
-
-        if not self.user:
-            self.user = get_user_model().objects.create(username=self.username)
-            self.user.set_password(self.password)
-            self.user.save()
-
-        return self.user
-
-    def get_request(self):
-        request = self.factory.get("/")
-        request.user = AnonymousUser()
-        return request
-
-    def get_loggedin_request(self):
-        request = self.factory.get("/")
-        request.user = self.get_default_user()
-        return request
-
-    def get_client(self):
-        if not self.client:
-            self.client = Client()
-        return self.client
-
-    def get_loggedin_client(self):
-        client = self.get_client()
-        user = self.get_default_user()
-        self.assertTrue(client.login(username=self.username, password=self.password))
-        return client
-
-    def call_rpc(self, client, method_name, *params):
-        response = client.post("/rpc/", {
-            "jsonrpc": "2.0",
-            "id": 0,
-            "method": method_name,
-            "params": list(params)
-        }, content_type="application/json")
-        return response
-
-
-class TestTestEndpoint(TestCase):
-    def test_call_rpc(self):
-        e = TestEndpoint()
-        c = e.get_client()
-        response = e.call_rpc(c, "rpc_endpoint_for_test_call", 2, 3)
-        self.assertEqual(response.status_code, 200)
-        msg = json.loads(response.content)
-        self.assertEqual(msg["result"], 5)
-
-    def test_client_loggedin(self):
-        e = TestEndpoint()
-        self.assertIsNotNone(e.get_loggedin_client())
 
 
 class TestUserAuth(TestCase):
@@ -129,6 +70,146 @@ class TestUserAuth(TestCase):
                           {"jsonrpc": "2.0", "method": "logout", "id": 20},
                           content_type="application/json")
         self.assertEqual(response.status_code, 200)
+
+class TestUserRegistration(TestEndpoint):
+
+    def test_user_registration(self):
+        username = "testuser"
+        user_pass = "123456789"
+        user_email = "test@test.com"
+
+        # Register user, will have e-mail activation
+        self.call_rpc(self.get_client(), "register", {
+            "username": username,
+            "password": user_pass,
+            "email": user_email
+        })
+
+        # Check that mail is sent
+        self.assertTrue(len(mail.outbox) > 0, "Mail to user must have been sent")
+
+        test_user = get_user_model().objects.get(username=username)
+
+        # Check that a token has been generated with length specified by the settings
+        self.assertTrue(len(test_user.activate_account_token) > settings.ACTIVATION_TOKEN_LENGTH)
+        self.assertTrue(test_user.activate_account_token_expire > timezone.now())
+
+        with self.assertRaises(ValueError, msg="Should raise an error if user doesn't exist"):
+            activate_account(self.get_request(), "doesnotexist", "tokendoesnotexist")
+
+        with self.assertRaises(ValueError, msg="Should raise error if token is wrong or expired"):
+            activate_account(self.get_request(), test_user.username, "tokendoesnotexist")
+
+        with self.assertRaises(ValueError, msg="Should raise an error if token doesn't exist"):
+            activate_account(self.get_request(), test_user.username, None)
+
+        with self.assertRaises(ValueError, msg="Should raise an error if token is blank"):
+            activate_account(self.get_request(), test_user.username, "")
+
+        # Should activate properly this time
+        activate_account(self.get_request(), test_user.username, test_user.activate_account_token)
+
+        #  Gets user again, now should be activate
+        test_user.refresh_from_db()
+        self.assertTrue(test_user.is_account_activated)
+        self.assertTrue(test_user.activate_account_token is None)
+        self.assertTrue(test_user.activate_account_token_expire is None)
+
+    def test_generate_user_activation(self):
+
+        with self.assertRaises(ValueError, msg="Raise an error if user doesn't exist"):
+            generate_user_activation(self.get_request(), "doesnotexist")
+
+        # Gets a test user
+        test_user = self.get_default_user()
+
+        # Generates
+        generate_user_activation(self.get_request(), test_user.username)
+
+        test_user.refresh_from_db()
+        self.assertTrue(len(test_user.activate_account_token) > settings.ACTIVATION_TOKEN_LENGTH)
+        self.assertTrue(test_user.activate_account_token_expire > timezone.now())
+
+
+        test_user.is_account_activated = True
+        test_user.save()
+
+        with self.assertRaises(ValueError, msg="Raises an error if user is already activated"):
+            generate_user_activation(self.get_request(), test_user.username)
+
+
+
+class TestUserPasswordReset(TestEndpoint):
+
+    def test_user_password_reset(self):
+        new_password = "testNewPassword12345"
+
+        test_user = self.get_default_user()
+
+        # Raise error if username is wrong
+        with self.assertRaises(ValueError):
+            generate_password_reset(self.get_request(), "doesnotexist")
+
+        # Should now generate a password reset token
+        self.call_rpc(self.get_client(), "generate_password_reset", test_user.username)
+
+
+
+        # Check that token generaet is valid
+        test_user.refresh_from_db()
+        self.assertTrue(len(test_user.reset_password_token) > settings.ACTIVATION_TOKEN_LENGTH)
+        self.assertTrue(test_user.reset_password_token_expire > timezone.now())
+
+        # Check that mail is sent
+        self.assertTrue(len(mail.outbox) > 0)
+
+        # Should raise error if token is wrong or expired
+        with self.assertRaises(ValueError):
+            reset_password(self.get_request(), test_user.username, "tokendoesnotexist", new_password)
+
+        with self.assertRaises(ValueError):
+            reset_password(self.get_request(), test_user.username, None, new_password)
+
+        with self.assertRaises(ValueError):
+            reset_password(self.get_request(), test_user.username, "", new_password)
+
+
+        # Should now be able to reset password
+        reset_password(self.get_request(), test_user.username, test_user.reset_password_token, new_password)
+
+        #  Gets user again, now should now reset the password
+        test_user.refresh_from_db()
+        self.assertTrue(check_password(new_password, test_user.password))
+        self.assertTrue(test_user.reset_password_token is None)
+        self.assertTrue(test_user.reset_password_token_expire is None)
+
+class TestUserConfig(TestEndpoint):
+
+    def test_change_password(self):
+        changed_password = "1234567test*"
+        change_password(self.get_loggedin_request(), {"password": changed_password})
+        user = self.get_default_user()
+        user.refresh_from_db()
+        self.assertTrue(check_password(changed_password, user.password))
+
+    def test_change_email(self):
+        changed_email = "test@mailchange.com"
+        change_email(self.get_loggedin_request(), {"email": changed_email})
+        user = self.get_default_user()
+        user.refresh_from_db()
+        self.assertEqual(user.email, changed_email)
+
+    def test_change_receive_mail_notification(self):
+        user = self.get_default_user()
+
+        set_user_receive_mail_notifications(self.get_loggedin_request(), False)
+        user.refresh_from_db()
+        self.assertEqual(user.receive_mail_notifications, False)
+
+        set_user_receive_mail_notifications(self.get_loggedin_request(), True)
+        user.refresh_from_db()
+        self.assertEqual(user.receive_mail_notifications, True)
+
 
 
 class TestProject(TestEndpoint):
@@ -210,6 +291,9 @@ class TestAnnotationExport(TestEndpoint):
 
     def test_rpc_get_annotations_endpoint(self):
         user = self.get_default_user()
+        user.is_manager = True
+        user.is_account_activated = True
+        user.save()
         c = self.get_loggedin_client()
 
         ##setup
@@ -299,10 +383,21 @@ class TestUserManagement(TestEndpoint):
             "email": "ann1@test.com",
             "is_manager": True,
             "is_admin": False,
+            "is_activated": False
         }
 
         response = self.call_rpc(c, "admin_update_user", data)
         self.assertEqual(response.status_code, 200)
+
+    def test_admin_change_user_password(self):
+        changed_password = "1234567test*"
+        c = self.get_loggedin_client()
+        self.call_rpc(c, "admin_update_user_password", "ann1", changed_password)
+
+        ann1_user = get_user_model().objects.get(username="ann1")
+        self.assertTrue(check_password(changed_password, ann1_user.password))
+
+
 
 
 class TestAnnotationTaskManager(TestEndpoint):
