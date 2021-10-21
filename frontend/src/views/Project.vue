@@ -26,7 +26,7 @@
             </b-col>
             <b-col>
               <h4>Annotation preview</h4>
-              <AnnotationRenderer :config="local_project.configuration"
+              <AnnotationRenderer :config="local_project.configuration" :document="testDocument"
                                   @input="annotationOutputHandler"></AnnotationRenderer>
             </b-col>
           </b-form-row>
