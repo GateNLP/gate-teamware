@@ -1,7 +1,7 @@
 FROM node:12-buster-slim as nodebuilder
 COPY package.json package-lock.json ./
-COPY frontend/ ./frontend/
 RUN npm install --unsafe-perm --only=production
+COPY frontend/ ./frontend/
 RUN npm run build
 
 
