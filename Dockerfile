@@ -16,15 +16,16 @@ RUN addgroup --gid 1001 "gate" && \
         --home /app --ingroup gate --uid 1001 gate && \
       chmod +x /sbin/tini
 WORKDIR /app/
-COPY --chown=gate:gate run-server.sh generate-env.sh count_superusers.py manage.py ./
-COPY --chown=gate:gate annotation_tool/ ./annotation_tool/
-COPY --chown=gate:gate backend/ ./backend
-COPY --chown=gate:gate examples/ ./examples/
-COPY --chown=gate:gate frontend/ ./frontend/
 COPY requirements.txt .
 USER gate:gate
 RUN pip install -r requirements.txt
 RUN pip install gunicorn~=20.1.0
+COPY --chown=gate:gate run-server.sh generate-env.sh count_superusers.py manage.py ./
+COPY --chown=gate:gate examples/ ./examples/
+COPY --chown=gate:gate annotation_tool/ ./annotation_tool/
+COPY --chown=gate:gate backend/ ./backend
+COPY --chown=gate:gate frontend/ ./frontend/
+COPY --chown=gate:gate --from=nodebuilder /frontend/templates/base-vue.html ./backend/templates/
 ENTRYPOINT [ "/app/run-server.sh" ]
 
 
