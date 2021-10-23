@@ -11,6 +11,7 @@
 import AccountActivationGenerator from "@/components/AccountActivationGenerator";
 export default {
   name: 'Home',
+  title: "Home",
   components: {
     AccountActivationGenerator
   }

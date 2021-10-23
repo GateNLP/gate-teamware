@@ -1,7 +1,7 @@
 <template>
   <div class="container">
     <h3>Sign In</h3>
-    <b-form href="" method="post">
+    <b-form href="" method="post" @submit.prevent="loginHandler">
 
       <b-form-group label="Username">
         <b-form-input type="text" v-model="username"/>
@@ -19,7 +19,7 @@
 
       <b-form-row>
         <b-col>
-          <b-button variant="primary" @click="loginHandler">Sign In</b-button>
+          <b-button type="submit" variant="primary">Sign In</b-button>
         </b-col>
       </b-form-row>
     </b-form>

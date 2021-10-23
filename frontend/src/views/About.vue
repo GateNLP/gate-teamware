@@ -10,6 +10,7 @@ import JSRPCClient from '../jrpc';
 
 export default {
   name: "Annotate",
+  title: 'About',
   methods:{
 
   }

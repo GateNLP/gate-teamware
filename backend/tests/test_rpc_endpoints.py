@@ -14,7 +14,7 @@ from backend.rpc import create_project, update_project, add_project_document, ad
     get_possible_annotators, add_project_annotator, remove_project_annotator, get_project_annotators, \
     get_annotation_task, complete_annotation_task, reject_annotation_task, register, activate_account, \
     generate_password_reset, reset_password, generate_user_activation, change_password, change_email, \
-    set_user_receive_mail_notifications
+    set_user_receive_mail_notifications, delete_documents_and_annotations
 from backend.rpcserver import rpc_method
 
 
@@ -285,6 +285,27 @@ class TestAnnotation(TestEndpoint):
         annotation = Annotation.objects.get(pk=annote_id)
         self.assertEqual(annotation.user.pk, self.get_default_user().pk)  # Annotation linked to user
         self.assertEqual(annotation.data["label1"], "value1")  # Data check
+
+
+class TestDocumentAndAnnotation(TestEndpoint):
+    def test_delete_document_and_annotation(self):
+        proj = Project.objects.create(owner=self.get_default_user())
+        doc = Document.objects.create(project=proj)
+        annote = Annotation.objects.create(document=doc)
+        annote2 = Annotation.objects.create(document=doc)
+
+
+        self.assertTrue(Document.objects.count() == 1, "Must have a document")
+        self.assertTrue(Annotation.objects.count() == 2, "Must have 2 annotations")
+
+        delete_documents_and_annotations(self.get_loggedin_request(), [], [annote2.pk])
+        self.assertTrue(Annotation.objects.count() == 1, "Must have 1 annotation")
+
+        delete_documents_and_annotations(self.get_loggedin_request(), [doc.pk], [])
+        self.assertTrue(Document.objects.count() == 0, "Must have 0 documents")
+        self.assertTrue(Annotation.objects.count() == 0, "Must have 0 annotations")
+
+
 
 
 class TestAnnotationExport(TestEndpoint):
