@@ -42,6 +42,7 @@ import {mapActions, mapGetters} from "vuex";
 
 export default {
   name: "ActivateAccount",
+  title: "Activate Account",
   data() {
     return {
       activateSuccess: false,

@@ -41,6 +41,7 @@ import AnnotationRenderer from "@/components/AnnotationRenderer";
 
 export default {
   name: "Annotate",
+  title: "Annotate",
   components: {AnnotationRenderer},
   data() {
     return {

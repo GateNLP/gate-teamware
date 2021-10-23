@@ -36,6 +36,7 @@
 import {mapState, mapActions} from "vuex";
 
 export default {
+  title: "Login",
   data() {
     return {
       error: false,
