@@ -7,6 +7,6 @@ set -o allexport
 source .env
 set +o allexport
 
-docker build -t $IMAGE_REGISTRY$MAIN_IMAGE:$IMAGE_TAG .
+docker build -t $IMAGE_REGISTRY$MAIN_IMAGE:$IMAGE_TAG --target backend .
 
-docker build -t $IMAGE_REGISTRY$STATIC_IMAGE:$IMAGE_TAG --build-arg FILES_FROM=$IMAGE_REGISTRY$MAIN_IMAGE:$IMAGE_TAG nginx/
+docker build -t $IMAGE_REGISTRY$STATIC_IMAGE:$IMAGE_TAG --target frontend .

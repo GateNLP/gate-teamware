@@ -13,7 +13,6 @@
     "serve:cypress": "npx cypress open",
     "serve:frontendintegration": "run-p serve:frontend serve:integration",
     "serve:cypressintegration": "run-p serve:frontendintegration serve:cypress",
-    "serve:gunicorn": "gunicorn annotation_tool.wsgi -b 0.0.0.0:8000",
     "serve": "run-p serve:frontend serve:server",
     "build:frontend": "cd frontend && npm run build",
     "build:server": "",
