@@ -1,7 +1,7 @@
 <template>
   <div class="container">
 
-    <h1>Endpoints</h1>
+    <h1>API</h1>
 
     <b-row class="font-weight-bold">
       <b-col>Function name</b-col>
