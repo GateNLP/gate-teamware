@@ -59,9 +59,10 @@ const routes = [
         meta: {requiresManager: true},
     },
     {
-        path: '/project/:id',
+        path: '/project/:projectId',
         name: 'Project',
         component: () => import('../views/Project'),
+        props: true,
         meta: {requiresManager: true},
     },
     {

@@ -29,7 +29,7 @@
             align="center"
         ></b-pagination>
 
-        <b-button variant="primary" class="disabled">Create user</b-button>
+<!--        <b-button variant="primary" class="disabled">Create user</b-button>-->
 
       </div>
 
@@ -121,6 +121,7 @@ import {toastError, toastSuccess} from "@/utils";
 
 export default {
   name: "ManageUsers",
+  title: "Manage Users",
   components: {},
   data() {
     return {

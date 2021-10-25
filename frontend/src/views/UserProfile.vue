@@ -110,6 +110,7 @@ import AccountActivationGenerator from "@/components/AccountActivationGenerator"
 
 export default {
   name: "UserProfile",
+  title: "User Profile",
   components: {AccountActivationGenerator, DocumentsList},
   data() {
     return {

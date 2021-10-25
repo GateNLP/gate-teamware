@@ -11,7 +11,7 @@
 import AccountActivationGenerator from "@/components/AccountActivationGenerator";
 export default {
   name: 'Home',
-  title: "Home",
+  title: "Gate Annotation Service",
   components: {
     AccountActivationGenerator
   }

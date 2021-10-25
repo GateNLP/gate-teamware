@@ -38,6 +38,7 @@
 import {mapState, mapActions} from "vuex";
 
 export default {
+  title: "Register",
   data() {
     return {
       error: null,

@@ -4,9 +4,8 @@ import router from './router'
 import store from './store'
 import titleMixin from "@/utils/titleMixin";
 import {mapActions} from 'vuex'
-import { BootstrapVue, BootstrapVueIcons, IconsPlugin } from 'bootstrap-vue'
+import {BootstrapVue, BootstrapVueIcons, IconsPlugin} from 'bootstrap-vue'
 import VJsoneditor from 'v-jsoneditor'
-
 
 
 // Import Bootstrap an BootstrapVue CSS files (order is important)
@@ -25,13 +24,24 @@ Vue.mixin(titleMixin)
 
 Vue.config.productionTip = false
 
-Vue.filter('datetime', function (dateString){
-  let date = new Date(dateString)
-  return date.toLocaleDateString() + " " + date.toLocaleTimeString()
+Vue.filter('datetime', function (dateString) {
+    let date = new Date(dateString)
+    return date.toLocaleDateString() + " " + date.toLocaleTimeString()
 })
 
-new Vue({
-  router,
-  store,
-  render: h => h(AnnotationApp)
-}).$mount('#app')
+async function initialiseApp() {
+    //Ensure authentication status is checked before we actually start the app
+    //so things that depends on user's logged in status works properly (e.g. routing)
+    await store.dispatch("is_authenticated")
+
+    new Vue({
+        router,
+        store,
+        render: h => h(AnnotationApp)
+    }).$mount('#app')
+
+}
+initialiseApp()
+
+
+

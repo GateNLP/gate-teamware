@@ -2,6 +2,10 @@
   <div class="projects container">
     <h1>Projects</h1>
 
+    <b-button-toolbar class="mb-4">
+      <b-button @click="handleCreateProject">Create project</b-button>
+    </b-button-toolbar>
+
     <Search @input="searchProject"></Search>
 
     <Pagination class="mt-4" :items="filteredProjects" v-slot:default="{ pageItems }">
@@ -61,7 +65,7 @@
     </Pagination>
 
 
-    <b-button @click="handleCreateProject">Create project</b-button>
+
   </div>
 </template>
 
@@ -73,6 +77,7 @@ import _ from "lodash"
 
 export default {
   name: 'Projects',
+  title: "Projects",
   components: {Search, Pagination},
   data(){
     return {

@@ -1,12 +1,9 @@
-version: "3.9"
+version: "3.3"
 
 services:
 
   backend:
-    image: annotate-backend:latest
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ${IMAGE_REGISTRY}${MAIN_IMAGE}:${IMAGE_TAG}
     restart: always
     environment:
       - DJANGO_SETTINGS_MODULE
@@ -16,22 +13,14 @@ services:
       - DB_PASSWORD
     depends_on:
       - db
-    networks:
-      - annotations-docker
 
   nginx:
-    image: annotate-static:latest
-    build:
-      context: .
-      dockerfile: ./nginx/Dockerfile
+    image: ${IMAGE_REGISTRY}${STATIC_IMAGE}:${IMAGE_TAG}
     ports:
-      - 80:80
+      - 8076:80
     depends_on:
       - backend
       - db
-    networks:
-      - annotations-docker
-
 
   db:
     image: postgres:12-alpine
@@ -49,17 +38,13 @@ services:
     volumes:
       - postgresql-data:/var/lib/postgresql/data
       - ./create-django-db.sh:/docker-entrypoint-initdb.d/001-create-django-db.sh
-    networks:
-      - annotations-docker
 
   pgbackups:
     image: prodrigestivill/postgres-backup-local
     restart: always
     user: postgres:postgres
     volumes:
-      - /var/opt/annotations-pgbackups:/backups
-    links:
-      - db
+      - ${BACKUPS_VOLUME}:/backups
     depends_on:
       - db
     environment:
@@ -75,7 +60,3 @@ services:
 
 volumes:
   postgresql-data:
-
-networks:
-  annotations-docker:
-    driver: bridge

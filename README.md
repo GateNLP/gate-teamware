@@ -16,23 +16,34 @@ A `secret.py` should be created to hold settings that should not be made public 
 control. A `secret_default.py` exists as a guide and to provide default value for testing. 
 
 
-## Installation
+## Installation for development
 
-The service depends on a combination of python and js libraries. conda is recommended as it's able to install
+The service depends on a combination of python and js libraries. `conda` is recommended as it's able to install
 python libraries and nodejs which is used to install js libraries.
 
 * Install anaconda/miniconda
-* Create a virtual conda env and install python dependencies
+* Create a blank virtual conda env
   ```bash
-  conda env create -f environment. yml
+  $ conda create -n annotation
   ```
 * Activate conda environment
   ```bash
-  source activate annotation-tool
+  $ source activate annotation
+  # or
+  $ conda activate annotation
   ```
+* Install python dependencies in conda environment using pip
+```
+(annotation)$ pip install -r requirements.txt -r requirements-dev.txt
+```
+* Install nodejs, postgresql and openssl in the conda environment
+```
+(annotation)$ conda install -y -c anaconda postgresql
+(annotation)$ conda install -y -c conda-forge nodejs=12.*
+```
 * Install nodejs dependencies
   ```bash
-  npm install
+  (annotation)$ npm install
   ```
 
 ## Configuration
@@ -304,14 +315,14 @@ describe('Example test suite', () => {
 })
 ```
 
-## Deployment
+## Deployment Pipeline
 Deployment is via docker-compose, using nginx to serve static content.
 
 A deployment script is provided to launch the docker-compose stack with the correct environment variables.
 
 To create the environment variables run `./generate-env.sh` to create a `.env` file containing randomly generated secrets which are mounted as envrionment variables into the container.
 
-First build the images via:
+Then build the images via:
 ```bash
 ./build-images.sh
 ```
