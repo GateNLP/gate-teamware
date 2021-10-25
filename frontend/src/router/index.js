@@ -78,10 +78,10 @@ const routes = [
         meta: {requiresAdmin: true},
     },
     {
-        path: '/endpoints',
-        name: 'Endpoints',
-        component: () => import('../views/EndpointsListing'),
-        meta: {requiresAdmin: true},
+        path: '/apidocs',
+        name: 'API Documentation',
+        component: () => import('../views/ApiDocs'),
+        meta: {guest: true},
     },
 
 ]

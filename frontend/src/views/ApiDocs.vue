@@ -40,7 +40,7 @@
 import {mapActions} from "vuex";
 
 export default {
-  name: "EndpointsListing",
+  name: "ApiDocs",
   data(){
     return {
       endpoints: {}
