@@ -38,7 +38,9 @@
             <b-col>
               <h4 id="annotation-preview">Annotation configuration</h4>
               <p class="form-text text-muted">Configure how the project will capture annotations below. The configuration
-              is in JSON format, you must provide a list of widgets to use for displaying information or capturing annotations.</p>
+              is in JSON format, you must provide a list of widgets to use for displaying information or capturing annotations.
+                See the <a target="_blank" href="https://gatenlp.github.io/gate-annotation-service/userguide/projectconfig.html">documentation page on configuring project annotation</a>
+                for more details.</p>
               <JsonEditor v-model="local_project.configuration"></JsonEditor>
             </b-col>
             <b-col>
