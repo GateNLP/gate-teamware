@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Project annotation configuration | Gate Annotation Service Documentation</title>
+    <meta name="generator" content="VuePress 1.8.2">
+    
+    <meta name="description" content="Documentation for gate annotation service">
+    
+    <link rel="preload" href="/assets/css/0.styles.e4d8b86b.css" as="style"><link rel="preload" href="/assets/js/app.b5179b40.js" as="script"><link rel="preload" href="/assets/js/2.67bc0100.js" as="script"><link rel="preload" href="/assets/js/8.abf3bb76.js" as="script"><link rel="prefetch" href="/assets/js/3.5cf85661.js"><link rel="prefetch" href="/assets/js/4.b4c91b0e.js"><link rel="prefetch" href="/assets/js/5.0969e098.js"><link rel="prefetch" href="/assets/js/6.e4c8cbb1.js"><link rel="prefetch" href="/assets/js/7.2242343b.js">
+    <link rel="stylesheet" href="/assets/css/0.styles.e4d8b86b.css">
+  </head>
+  <body>
+    <div id="app" data-server-rendered="true"><div class="theme-container"><header class="navbar"><div class="sidebar-button"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" viewBox="0 0 448 512" class="icon"><path fill="currentColor" d="M436 124H12c-6.627 0-12-5.373-12-12V80c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12z"></path></svg></div> <a href="/" class="home-link router-link-active"><!----> <span class="site-name">Gate Annotation Service Documentation</span></a> <div class="links"><div class="search-box"><input aria-label="Search" autocomplete="off" spellcheck="false" value=""> <!----></div> <!----></div></header> <div class="sidebar-mask"></div> <aside class="sidebar"><!---->  <ul class="sidebar-links"><li><a href="/" aria-current="page" class="sidebar-link">Gate Annotation Service</a></li><li><section class="sidebar-group collapsable depth-0"><p class="sidebar-heading open"><span>User guide</span> <span class="arrow down"></span></p> <ul class="sidebar-links sidebar-group-items"><li><a href="/userguide/projectconfig.html" aria-current="page" class="active sidebar-link">Project annotation configuration</a><ul class="sidebar-sub-headers"><li class="sidebar-sub-header"><a href="/userguide/projectconfig.html#displaying-text" class="sidebar-link">Displaying text</a></li><li class="sidebar-sub-header"><a href="/userguide/projectconfig.html#text-input" class="sidebar-link">Text input</a></li><li class="sidebar-sub-header"><a href="/userguide/projectconfig.html#textarea-input" class="sidebar-link">Textarea input</a></li><li class="sidebar-sub-header"><a href="/userguide/projectconfig.html#radio-input" class="sidebar-link">Radio input</a></li><li class="sidebar-sub-header"><a href="/userguide/projectconfig.html#checkbox-input" class="sidebar-link">Checkbox input</a></li><li class="sidebar-sub-header"><a href="/userguide/projectconfig.html#selector-input" class="sidebar-link">Selector input</a></li></ul></li></ul></section></li></ul> </aside> <main class="page"> <div class="theme-default-content content__default"><h1 id="project-annotation-configuration"><a href="#project-annotation-configuration" class="header-anchor">#</a> Project annotation configuration</h1> <p>Annotation projects takes a <code>json</code> string for configuring how the document is displayed to the user and types of
+annotation will be collected. Here's an example configuration:</p> <div class="language-js extra-class"><pre class="language-js"><code><span class="token punctuation">[</span>
+    <span class="token punctuation">{</span>
+        <span class="token string">&quot;name&quot;</span><span class="token operator">:</span> <span class="token string">&quot;htmldisplay&quot;</span><span class="token punctuation">,</span>
+        <span class="token string">&quot;type&quot;</span><span class="token operator">:</span> <span class="token string">&quot;html&quot;</span><span class="token punctuation">,</span>
+        <span class="token string">&quot;text&quot;</span><span class="token operator">:</span> <span class="token string">&quot;{{{text}}}&quot;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">{</span>
+        <span class="token string">&quot;name&quot;</span><span class="token operator">:</span> <span class="token string">&quot;sentiment&quot;</span><span class="token punctuation">,</span>
+        <span class="token string">&quot;type&quot;</span><span class="token operator">:</span> <span class="token string">&quot;radio&quot;</span><span class="token punctuation">,</span>
+        <span class="token string">&quot;title&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Sentiment&quot;</span><span class="token punctuation">,</span>
+        <span class="token string">&quot;description&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Please select a sentiment of the text above.&quot;</span><span class="token punctuation">,</span>
+        <span class="token string">&quot;options&quot;</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+            <span class="token string">&quot;negative&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Negative&quot;</span><span class="token punctuation">,</span>
+            <span class="token string">&quot;neutrual&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Neutrual&quot;</span><span class="token punctuation">,</span>
+            <span class="token string">&quot;positive&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Positive&quot;</span>
+            
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">]</span>
+</code></pre></div><p>The above configuration displays the value from the <code>text</code> field from the document to be annotated. It then shows
+a set of 3 radio inputs that allows the user to select a Negative, Neutrual, or Positive sentiment with the label
+name <code>sentiment</code>.</p> <p>All fields <strong>require</strong> the properties <strong>name</strong> and <strong>type</strong>, it is used to name our label and determine the type
+of input/display to be shown to the user respectively.</p> <p>Another field can be added to collect more information, e.g. a text field for opinions:</p> <div class="language-js extra-class"><pre class="language-js"><code><span class="token punctuation">[</span>
+    <span class="token punctuation">{</span>
+        <span class="token string">&quot;name&quot;</span><span class="token operator">:</span> <span class="token string">&quot;htmldisplay&quot;</span><span class="token punctuation">,</span>
+        <span class="token string">&quot;type&quot;</span><span class="token operator">:</span> <span class="token string">&quot;html&quot;</span><span class="token punctuation">,</span>
+        <span class="token string">&quot;text&quot;</span><span class="token operator">:</span> <span class="token string">&quot;{{{text}}}&quot;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">{</span>
+        <span class="token string">&quot;name&quot;</span><span class="token operator">:</span> <span class="token string">&quot;sentiment&quot;</span><span class="token punctuation">,</span>
+        <span class="token string">&quot;type&quot;</span><span class="token operator">:</span> <span class="token string">&quot;radio&quot;</span><span class="token punctuation">,</span>
+        <span class="token string">&quot;title&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Sentiment&quot;</span><span class="token punctuation">,</span>
+        <span class="token string">&quot;description&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Please select a sentiment of the text above.&quot;</span><span class="token punctuation">,</span>
+        <span class="token string">&quot;options&quot;</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+            <span class="token string">&quot;negative&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Negative&quot;</span><span class="token punctuation">,</span>
+            <span class="token string">&quot;neutrual&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Neutrual&quot;</span><span class="token punctuation">,</span>
+            <span class="token string">&quot;positive&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Positive&quot;</span>
+            
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">{</span>
+        <span class="token string">&quot;name&quot;</span><span class="token operator">:</span> <span class="token string">&quot;opinion&quot;</span><span class="token punctuation">,</span>
+        <span class="token string">&quot;type&quot;</span><span class="token operator">:</span> <span class="token string">&quot;text&quot;</span><span class="token punctuation">,</span>
+        <span class="token string">&quot;title&quot;</span><span class="token operator">:</span> <span class="token string">&quot;What's your opinion of the above text?&quot;</span><span class="token punctuation">,</span>
+        <span class="token string">&quot;optional&quot;</span><span class="token operator">:</span> <span class="token boolean">true</span>
+    <span class="token punctuation">}</span>
+    
+<span class="token punctuation">]</span>
+</code></pre></div><p>Note that for the above case, the <code>optional</code> field is added ensure that allows user to not have to input any value.
+This <code>optional</code> field can be used on all components.</p> <p>Some fields are available to configure which are specific to components, e.g. the <code>options</code> field are only available
+for the <code>radio</code>, <code>checkbox</code> and <code>selector</code> components. See details below on the usage of each specific component.</p> <h2 id="displaying-text"><a href="#displaying-text" class="header-anchor">#</a> Displaying text</h2> <div class="language-js extra-class"><pre class="language-js"><code><span class="token punctuation">[</span>
+    <span class="token punctuation">{</span>
+        <span class="token string">&quot;name&quot;</span><span class="token operator">:</span> <span class="token string">&quot;htmldisplay&quot;</span><span class="token punctuation">,</span>
+        <span class="token string">&quot;type&quot;</span><span class="token operator">:</span> <span class="token string">&quot;html&quot;</span><span class="token punctuation">,</span>
+        <span class="token string">&quot;text&quot;</span><span class="token operator">:</span> <span class="token string">&quot;{{{text}}}&quot;</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">]</span>
+</code></pre></div><h2 id="text-input"><a href="#text-input" class="header-anchor">#</a> Text input</h2> <div class="language-js extra-class"><pre class="language-js"><code><span class="token punctuation">[</span>
+    <span class="token punctuation">{</span>
+        <span class="token string">&quot;name&quot;</span><span class="token operator">:</span> <span class="token string">&quot;mylabel&quot;</span><span class="token punctuation">,</span>
+        <span class="token string">&quot;type&quot;</span><span class="token operator">:</span> <span class="token string">&quot;text&quot;</span><span class="token punctuation">,</span>
+        <span class="token string">&quot;optional&quot;</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span> <span class="token comment">//Optional - Set if validation is not required</span>
+        <span class="token string">&quot;regex&quot;</span><span class="token operator">:</span> <span class="token string">&quot;regex string&quot;</span><span class="token punctuation">,</span> <span class="token comment">//Optional - When specified, the regex pattern will used to validate the text</span>
+        <span class="token string">&quot;title&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Title string&quot;</span><span class="token punctuation">,</span> <span class="token comment">//Optional</span>
+        <span class="token string">&quot;description&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Description string&quot;</span><span class="token punctuation">,</span> <span class="token comment">//Optional</span>
+        <span class="token string">&quot;valSuccess&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Success message then field is validated&quot;</span><span class="token punctuation">,</span> <span class="token comment">//Optional</span>
+        <span class="token string">&quot;valError&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Error message when field fails is validation&quot;</span> <span class="token comment">//Optional</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">]</span>
+</code></pre></div><h2 id="textarea-input"><a href="#textarea-input" class="header-anchor">#</a> Textarea input</h2> <div class="language-js extra-class"><pre class="language-js"><code><span class="token punctuation">[</span>
+    <span class="token punctuation">{</span>
+        <span class="token string">&quot;name&quot;</span><span class="token operator">:</span> <span class="token string">&quot;mylabel&quot;</span><span class="token punctuation">,</span>
+        <span class="token string">&quot;type&quot;</span><span class="token operator">:</span> <span class="token string">&quot;textarea&quot;</span><span class="token punctuation">,</span>
+        <span class="token string">&quot;optional&quot;</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span> <span class="token comment">//Optional - Set if validation is not required</span>
+        <span class="token string">&quot;regex&quot;</span><span class="token operator">:</span> <span class="token string">&quot;regex string&quot;</span><span class="token punctuation">,</span> <span class="token comment">//Optional - When specified, the regex pattern will used to validate the text</span>
+        <span class="token string">&quot;title&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Title string&quot;</span><span class="token punctuation">,</span> <span class="token comment">//Optional</span>
+        <span class="token string">&quot;description&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Description string&quot;</span><span class="token punctuation">,</span> <span class="token comment">//Optional</span>
+        <span class="token string">&quot;valSuccess&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Success message then field is validated&quot;</span><span class="token punctuation">,</span> <span class="token comment">//Optional</span>
+        <span class="token string">&quot;valError&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Error message when field fails is validation&quot;</span> <span class="token comment">//Optional</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">]</span>
+</code></pre></div><h2 id="radio-input"><a href="#radio-input" class="header-anchor">#</a> Radio input</h2> <div class="language-js extra-class"><pre class="language-js"><code><span class="token punctuation">[</span>
+    <span class="token punctuation">{</span>
+        <span class="token string">&quot;name&quot;</span><span class="token operator">:</span> <span class="token string">&quot;mylabel&quot;</span><span class="token punctuation">,</span>
+        <span class="token string">&quot;type&quot;</span><span class="token operator">:</span> <span class="token string">&quot;radio&quot;</span><span class="token punctuation">,</span>
+        <span class="token string">&quot;optional&quot;</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span> <span class="token comment">//Optional - Set if validation is not required</span>
+        <span class="token string">&quot;options&quot;</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token comment">// The options that the user is able to select from</span>
+            <span class="token string">&quot;value1&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Text to show user 1&quot;</span><span class="token punctuation">,</span> 
+            <span class="token string">&quot;value2&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Text to show user 2&quot;</span><span class="token punctuation">,</span>
+            <span class="token string">&quot;value2&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Text to show user 3&quot;</span><span class="token punctuation">,</span>
+        <span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token string">&quot;title&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Title string&quot;</span><span class="token punctuation">,</span> <span class="token comment">//Optional</span>
+        <span class="token string">&quot;description&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Description string&quot;</span><span class="token punctuation">,</span> <span class="token comment">//Optional</span>
+        <span class="token string">&quot;valSuccess&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Success message then field is validated&quot;</span><span class="token punctuation">,</span> <span class="token comment">//Optional</span>
+        <span class="token string">&quot;valError&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Error message when field fails is validation&quot;</span> <span class="token comment">//Optional</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">]</span>
+</code></pre></div><h2 id="checkbox-input"><a href="#checkbox-input" class="header-anchor">#</a> Checkbox input</h2> <div class="language-js extra-class"><pre class="language-js"><code><span class="token punctuation">[</span>
+    <span class="token punctuation">{</span>
+        <span class="token string">&quot;name&quot;</span><span class="token operator">:</span> <span class="token string">&quot;mylabel&quot;</span><span class="token punctuation">,</span>
+        <span class="token string">&quot;type&quot;</span><span class="token operator">:</span> <span class="token string">&quot;checkbox&quot;</span><span class="token punctuation">,</span>
+        <span class="token string">&quot;optional&quot;</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span> <span class="token comment">//Optional - Set if validation is not required</span>
+        <span class="token string">&quot;options&quot;</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token comment">// The options that the user is able to select from</span>
+            <span class="token string">&quot;value1&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Text to show user 1&quot;</span><span class="token punctuation">,</span> 
+            <span class="token string">&quot;value2&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Text to show user 2&quot;</span><span class="token punctuation">,</span>
+            <span class="token string">&quot;value2&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Text to show user 3&quot;</span><span class="token punctuation">,</span>
+        <span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token string">&quot;minSelected&quot;</span><span class="token operator">:</span> <span class="token number">1</span><span class="token punctuation">,</span> <span class="token comment">//Optional - Specify the minimum number of options that must be selected</span>
+        <span class="token string">&quot;title&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Title string&quot;</span><span class="token punctuation">,</span> <span class="token comment">//Optional</span>
+        <span class="token string">&quot;description&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Description string&quot;</span><span class="token punctuation">,</span> <span class="token comment">//Optional</span>
+        <span class="token string">&quot;valSuccess&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Success message then field is validated&quot;</span><span class="token punctuation">,</span> <span class="token comment">//Optional</span>
+        <span class="token string">&quot;valError&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Error message when field fails is validation&quot;</span> <span class="token comment">//Optional</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">]</span>
+</code></pre></div><h2 id="selector-input"><a href="#selector-input" class="header-anchor">#</a> Selector input</h2> <div class="language-js extra-class"><pre class="language-js"><code><span class="token punctuation">[</span>
+    <span class="token punctuation">{</span>
+        <span class="token string">&quot;name&quot;</span><span class="token operator">:</span> <span class="token string">&quot;mylabel&quot;</span><span class="token punctuation">,</span>
+        <span class="token string">&quot;type&quot;</span><span class="token operator">:</span> <span class="token string">&quot;selector&quot;</span><span class="token punctuation">,</span>
+        <span class="token string">&quot;optional&quot;</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span> <span class="token comment">//Optional - Set if validation is not required</span>
+        <span class="token string">&quot;options&quot;</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token comment">// The options that the user is able to select from</span>
+            <span class="token string">&quot;value1&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Text to show user 1&quot;</span><span class="token punctuation">,</span> 
+            <span class="token string">&quot;value2&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Text to show user 2&quot;</span><span class="token punctuation">,</span>
+            <span class="token string">&quot;value2&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Text to show user 3&quot;</span><span class="token punctuation">,</span>
+        <span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token string">&quot;title&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Title string&quot;</span><span class="token punctuation">,</span> <span class="token comment">//Optional</span>
+        <span class="token string">&quot;description&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Description string&quot;</span><span class="token punctuation">,</span> <span class="token comment">//Optional</span>
+        <span class="token string">&quot;valSuccess&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Success message then field is validated&quot;</span><span class="token punctuation">,</span> <span class="token comment">//Optional</span>
+        <span class="token string">&quot;valError&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Error message when field fails is validation&quot;</span> <span class="token comment">//Optional</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">]</span>
+</code></pre></div></div> <footer class="page-edit"><!----> <!----></footer> <div class="page-nav"><p class="inner"><span class="prev">
+      ←
+      <a href="/" class="prev router-link-active">
+        Gate Annotation Service
+      </a></span> <!----></p></div> </main></div><div class="global-ui"></div></div>
+    <script src="/assets/js/app.b5179b40.js" defer></script><script src="/assets/js/2.67bc0100.js" defer></script><script src="/assets/js/8.abf3bb76.js" defer></script>
+  </body>
+</html>
