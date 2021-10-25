@@ -1,6 +1,7 @@
 module.exports = {
   title: 'Gate Annotation Service Documentation',
   description: 'Documentation for gate annotation service',
+  base: "/gate-annotation-service/",
   themeConfig: {
     // nav: [
     //   { text: 'Home', link: '/' },
