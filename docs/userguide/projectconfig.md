@@ -1,6 +1,6 @@
-# Project configuration
 
-## Project annotation configuration
+
+# Project annotation configuration
 
 Annotation projects takes a `json` string for configuring how the document is displayed to the user and types of 
 annotation will be collected. Here's an example configuration:
@@ -71,7 +71,7 @@ This `optional` field can be used on all components.
 Some fields are available to configure which are specific to components, e.g. the `options` field are only available
 for the `radio`, `checkbox` and `selector` components. See details below on the usage of each specific component.
 
-### Displaying text
+## Displaying text
 
 ```js
 [
@@ -83,7 +83,7 @@ for the `radio`, `checkbox` and `selector` components. See details below on the 
 ]
 ```
 
-### Text input
+## Text input
 
 ```js
 [
@@ -100,7 +100,7 @@ for the `radio`, `checkbox` and `selector` components. See details below on the 
 ]
 ```
 
-### Textarea input
+## Textarea input
 
 ```js
 [
@@ -117,7 +117,7 @@ for the `radio`, `checkbox` and `selector` components. See details below on the 
 ]
 ```
 
-### Radio input
+## Radio input
 
 ```js
 [
@@ -138,7 +138,7 @@ for the `radio`, `checkbox` and `selector` components. See details below on the 
 ]
 ```
 
-### Checkbox input
+## Checkbox input
 
 ```js
 [
@@ -160,7 +160,7 @@ for the `radio`, `checkbox` and `selector` components. See details below on the 
 ]
 ```
 
-### Selector input
+## Selector input
 
 ```js
 [

@@ -7,6 +7,7 @@
     "postinstall": "(cd frontend && npm install --unsafe-perm) #Install npm packages in frontend also",
     "migrate": "./manage.py migrate",
     "migrate:integration": "./manage.py flush --noinput --settings='annotation_tool.settings.integration' && ./manage.py migrate --noinput --settings='annotation_tool.settings.integration' &&  ./manage.py loaddata --settings='annotation_tool.settings.integration' backend/fixtures/db_users.json",
+    "serve:docs": "vuepress dev docs",
     "serve:frontend": "cd frontend && npm run serve",
     "serve:server": "python manage.py runserver",
     "serve:integration": "python manage.py runserver --settings='annotation_tool.settings.integration'",
@@ -14,6 +15,7 @@
     "serve:frontendintegration": "run-p serve:frontend serve:integration",
     "serve:cypressintegration": "run-p serve:frontendintegration serve:cypress",
     "serve": "run-p serve:frontend serve:server",
+    "build:docs": "vuepress build docs",
     "build:frontend": "cd frontend && npm run build",
     "build:server": "",
     "build": "run-s build:frontend build:server",
@@ -34,7 +36,8 @@
   },
   "homepage": "https://github.com/GateNLP/gate-annotation-service#readme",
   "devDependencies": {
-    "cypress": "^7.1.0"
+    "cypress": "^7.1.0",
+    "vuepress": "^1.8.2"
   },
   "dependencies": {
     "npm-run-all": "^4.1.5",
