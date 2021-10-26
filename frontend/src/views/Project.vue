@@ -25,8 +25,11 @@
           <b-form-group label="Name" description="The name of this annotation project.">
             <b-form-input v-model="local_project.name" name="project_name"></b-form-input>
           </b-form-group>
-          <b-form-group label="Description" description="The description of this annotation project that will be shown to annotators.">
-            <b-textarea v-model="local_project.description" name="project_description"></b-textarea>
+          <b-form-group label="Description" description="The description of this annotation project that will be shown to annotators. Supports markdown and HTML.">
+            <MarkdownEditor v-model="local_project.description"></MarkdownEditor>
+          </b-form-group>
+          <b-form-group label="Annotator guideline" description="The description of this annotation project that will be shown to annotators. Supports markdown and HTML.">
+            <MarkdownEditor v-model="local_project.annotator_guideline"></MarkdownEditor>
           </b-form-group>
           <b-form-group label="Annotations per document" description="The project completes when each document in this annotation project have this many number of valid annotations. When a project completes, all project annotators will be un-recruited and be allowed to annotate other projects.">
             <b-form-input v-model="local_project.annotations_per_doc"></b-form-input>
@@ -49,7 +52,7 @@
                 behaviour of the annotation widgets. Press <strong>Submit</strong> to check validation behaviour. Output of the annotation
                 is shown in the <a href="#annotation-output-preview">Annotation output preview</a> below.</p>
               <b-card>
-                <AnnotationRenderer  :config="local_project.configuration" :document="testDocument"
+                <AnnotationRenderer  :config="local_project.configuration" :document="local_project.document_input_preview"
                                   @input="annotationOutputHandler"></AnnotationRenderer>
 
               </b-card>
@@ -60,7 +63,7 @@
               <h5 class="mt-4" id="document-input-preview">Document input preview</h5>
               <p class="form-text text-muted">An example of a document in JSON. You can modify the contents below to see how your
                 document looks in the <a href="#annotation-preview">Annotation Preview</a>.</p>
-              <VJsoneditor v-model="testDocument" :options="{mode: 'code'}" :plus="false" height="400px"></VJsoneditor>
+              <VJsoneditor v-model="local_project.document_input_preview" :options="{mode: 'code'}" :plus="false" height="400px"></VJsoneditor>
             </b-col>
             <b-col>
               <h5 class="mt-4" id="annotation-output-preview">Annotation output preview</h5>
@@ -243,26 +246,27 @@ import JsonEditor from "@/components/JsonEditor";
 import VJsoneditor from "v-jsoneditor";
 import {readFileAsync, toastError, toastSuccess} from "@/utils";
 import DocumentsList from "@/components/DocumentsList";
+import MarkdownEditor from "@/components/MarkdownEditor";
 
 export default {
   name: "Project",
   title(){
     return `Project - ${this.local_project.name}`
   },
-  components: {DocumentsList, JsonEditor, AnnotationRenderer, VTable, VJsoneditor, Annotators},
+  components: {MarkdownEditor, DocumentsList, JsonEditor, AnnotationRenderer, VTable, VJsoneditor, Annotators},
   data() {
     return {
       activeTab: 0,
-      testDocument: {
-        text: "<p>Some html text <strong>in bold</strong>.</p><p>Paragraph 2.</p>"
-      },
       annotationOutput: {},
       local_project: {
         name: null,
+        description: "",
+        annotator_guideline: "",
         configuration: null,
         data: null,
         annotations_per_doc: 3,
         annotator_max_annotation: 0.6,
+        document_input_preview: {}
       },
       configurationStr: "",
       documents: [],
@@ -452,5 +456,6 @@ export default {
   margin: 1em 0;
 
 }
+
 
 </style>
