@@ -5,12 +5,12 @@
       <b-card class="mb-4">
         <h2>Current project: {{ annotationTask.project_name }}</h2>
 
-        <div>
+        <div v-if="annotationTask.project_description && annotationTask.project_description.length > 0">
           <h3>Project description</h3>
           <MarkdownRenderer :content="annotationTask.project_description"></MarkdownRenderer>
         </div>
 
-        <div>
+        <div v-if="annotationTask.project_annotator_guideline && annotationTask.project_annotator_guideline.length > 0">
           <h3>Annotator guideline</h3>
           <MarkdownRenderer :content="annotationTask.project_annotator_guideline"></MarkdownRenderer>
         </div>
