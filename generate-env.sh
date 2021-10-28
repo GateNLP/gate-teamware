@@ -12,7 +12,8 @@ if [ -f .env ]; then
 fi
 
 # get current branch
-BRANCH=$(git branch --show-current)
+# BRANCH=$(git branch --show-current)
+BRANCH=$(git symbolic-ref --short HEAD) # working command for git version 1.9.1
 
 case $BRANCH in 
     master|main)
