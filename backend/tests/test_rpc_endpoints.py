@@ -614,3 +614,4 @@ class TestAnnotationTaskManager(TestEndpoint):
 
         self.assertTrue(proj.is_completed)
         self.assertEqual(0, proj.annotators.count())
+

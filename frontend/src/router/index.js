@@ -77,6 +77,12 @@ const routes = [
         component: () => import('../views/ManageUsers'),
         meta: {requiresAdmin: true},
     },
+    {
+        path: '/apidocs',
+        name: 'API Documentation',
+        component: () => import('../views/ApiDocs'),
+        meta: {guest: true},
+    },
 
 ]
 

@@ -387,6 +387,14 @@ export default new Vuex.Store({
             }
 
         },
+        async getEndpointListing({dispatch, commit}){
+            try{
+                return await rpc.call("get_endpoint_listing")
+            }catch(e){
+                console.error(e)
+                throw e
+            }
+        }
 
 
     },
