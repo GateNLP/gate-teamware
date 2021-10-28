@@ -49,9 +49,13 @@
           <b-form-group label="Annotations per document" description="The project completes when each document in this annotation project have this many number of valid annotations. When a project completes, all project annotators will be un-recruited and be allowed to annotate other projects.">
             <b-form-input v-model="local_project.annotations_per_doc"></b-form-input>
           </b-form-group>
-          <b-form-group label="Maximum proportion of documents annotated per annotator (between 0 to 1)"
+          <b-form-group label="Maximum proportion of documents annotated per annotator (between 0 and 1)"
                         description="A single annotator cannot annotate more than this proportion of documents.">
             <b-form-input v-model="local_project.annotator_max_annotation"></b-form-input>
+          </b-form-group>
+          <b-form-group label="Timeout for pending annotation tasks (minutes)"
+                        description="Specify the number of minutes a user has to complete an annotation task (i.e. annotating a single document).">
+            <b-form-input v-model="local_project.annotation_timeout"></b-form-input>
           </b-form-group>
           <b-form-row>
             <b-col>

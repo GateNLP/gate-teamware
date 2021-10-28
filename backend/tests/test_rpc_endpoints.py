@@ -260,6 +260,7 @@ class TestProject(TestEndpoint):
         data = {
             "name": "Test project",
             "description": "Desc",
+            "annotator_guideline": "Test guideline",
             "configuration": [
                 {
                     "name": "sentiment",
@@ -279,6 +280,10 @@ class TestProject(TestEndpoint):
             ],
             "annotations_per_doc": 4,
             "annotator_max_annotation": 0.8,
+            "annotation_timeout": 50,
+            "document_input_preview": {
+                "text": "Doc text"
+            }
         }
 
         import_project_config(self.get_loggedin_request(), project.pk, data)
@@ -287,8 +292,13 @@ class TestProject(TestEndpoint):
 
         self.assertEqual(project.name, data["name"])
         self.assertEqual(project.description, data["description"])
+        self.assertEqual(project.annotator_guideline, data["annotator_guideline"])
+        self.assertListEqual(project.configuration, data["configuration"])
         self.assertEqual(project.annotations_per_doc, data["annotations_per_doc"])
         self.assertEqual(project.annotator_max_annotation, data["annotator_max_annotation"])
+        self.assertEqual(project.annotation_timeout, data["annotation_timeout"])
+        self.assertDictEqual(project.document_input_preview, data["document_input_preview"])
+
 
     def test_export_project_config(self):
         project = Project.objects.create()
@@ -296,6 +306,7 @@ class TestProject(TestEndpoint):
             "id": project.pk,
             "name": "Test project",
             "description": "Desc",
+            "annotator_guideline": "Test guideline",
             "configuration": [
                 {
                     "name": "sentiment",
@@ -315,14 +326,22 @@ class TestProject(TestEndpoint):
             ],
             "annotations_per_doc": 4,
             "annotator_max_annotation": 0.8,
+            "annotation_timeout": 50,
+            "document_input_preview": {
+                "text": "Doc text"
+            }
         }
         update_project(self.get_loggedin_request(), data)
         config_export_dict = export_project_config(self.get_loggedin_request(), project.pk)
 
         self.assertEqual(config_export_dict["name"], data["name"])
         self.assertEqual(config_export_dict["description"], data["description"])
+        self.assertEqual(config_export_dict["annotator_guideline"], data["annotator_guideline"])
+        self.assertListEqual(config_export_dict["configuration"], data["configuration"])
         self.assertEqual(config_export_dict["annotations_per_doc"], data["annotations_per_doc"])
         self.assertEqual(config_export_dict["annotator_max_annotation"], data["annotator_max_annotation"])
+        self.assertEqual(config_export_dict["annotation_timeout"], data["annotation_timeout"])
+        self.assertDictEqual(config_export_dict["document_input_preview"], data["document_input_preview"])
 
 
 

@@ -355,9 +355,12 @@ def get_project(request, pk):
 project_config_fields = {
     "name",
     "description",
+    "annotator_guideline",
     "configuration",
     "annotations_per_doc",
-    "annotator_max_annotation"
+    "annotator_max_annotation",
+    "annotation_timeout",
+    "document_input_preview"
 }
 
 @rpc_method_manager
