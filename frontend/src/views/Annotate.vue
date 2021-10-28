@@ -4,7 +4,19 @@
       <h1>Annotate</h1>
       <b-card class="mb-4">
         <h2>Current project: {{ annotationTask.project_name }}</h2>
-        <p>{{ annotationTask.project_description }}</p>
+
+        <div v-if="annotationTask.project_description && annotationTask.project_description.length > 0">
+          <h3>Project description</h3>
+          <MarkdownRenderer :content="annotationTask.project_description"></MarkdownRenderer>
+        </div>
+
+        <div v-if="annotationTask.project_annotator_guideline && annotationTask.project_annotator_guideline.length > 0">
+          <h3>Annotator guideline</h3>
+          <MarkdownRenderer :content="annotationTask.project_annotator_guideline"></MarkdownRenderer>
+        </div>
+
+
+
       </b-card>
 
       <b-card class="mt-4">
@@ -38,11 +50,12 @@
 import _ from "lodash"
 import {mapActions, mapState} from "vuex";
 import AnnotationRenderer from "@/components/AnnotationRenderer";
+import MarkdownRenderer from "@/components/MarkdownRenderer";
 
 export default {
   name: "Annotate",
   title: "Annotate",
-  components: {AnnotationRenderer},
+  components: {MarkdownRenderer, AnnotationRenderer},
   data() {
     return {
       annotationTask: null

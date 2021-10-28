@@ -1,5 +1,5 @@
 from datetime import timedelta
-
+from django.db import models
 from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
 from django.utils import timezone
@@ -8,9 +8,17 @@ from backend.models import Project, Document, Annotation
 from backend.utils.serialize import ModelSerializer
 
 
+class ModelTestCase(TestCase):
+
+    def check_model_field(self, model_class, field_name, field_type):
+        self.assertEqual(model_class._meta.get_field(field_name).__class__, field_type)
+
+    def check_model_fields(self, model_class, field_name_types_dict):
+        for field_name, field_type in field_name_types_dict.items():
+            self.check_model_field(model_class, field_name, field_type)
+
+
 class TestUserModel(TestCase):
-
-
 
     def test_document_association_check(self):
         user = get_user_model().objects.create(username="test1")
@@ -33,7 +41,6 @@ class TestUserModel(TestCase):
         self.assertFalse(user2.is_associated_with_document(doc))
         self.assertFalse(user2.is_associated_with_document(doc2))
         self.assertFalse(user2.is_associated_with_document(doc3))
-
 
         # Same as above but now user and user2 has annotations
         annotation = Annotation.objects.create(user=user, document=doc3)
@@ -59,7 +66,6 @@ class TestUserModel(TestCase):
         doc2 = Document.objects.create(project=project)
         annotation2 = Annotation.objects.create(user=user2, document=doc2)
 
-
         self.assertTrue(user.is_associated_with_annotation(annotation))
         self.assertFalse(user2.is_associated_with_annotation(annotation))
 
@@ -67,10 +73,15 @@ class TestUserModel(TestCase):
         self.assertTrue(user2.is_associated_with_annotation(annotation2))
 
 
+class TestDocumentModel(ModelTestCase):
 
+    def test_model_fields(self):
+        self.check_model_fields(Document, {
+            "project": models.ForeignKey,
+            "data": models.JSONField,
+            "created": models.DateTimeField,
+        })
 
-
-class TestDocumentModel(TestCase):
     def test_document(self):
         annotator = get_user_model().objects.create(username="test1")
         project = Project.objects.create()
@@ -93,7 +104,6 @@ class TestDocumentModel(TestCase):
         pending_annotation = Annotation.objects.create(user=annotator, document=doc)
         self.assertFalse(doc.user_completed_annotation_of_document(annotator))
         self.assertEqual(1, doc.num_completed_and_pending_annotations)
-
 
         complete_annotation1 = Annotation.objects.create(user=annotator, document=doc)
         complete_annotation1.complete_annotation({})
@@ -120,12 +130,7 @@ class TestDocumentModel(TestCase):
         self.assertEqual(1, doc.num_user_aborted_annotations(annotator))
 
 
-
-
-
-
-
-class TestProjectModel(TestCase):
+class TestProjectModel(ModelTestCase):
 
     def setUp(self):
         self.annotations_per_doc = 3
@@ -133,6 +138,18 @@ class TestProjectModel(TestCase):
         self.num_docs = 10
         self.num_total_tasks = self.num_docs * self.annotations_per_doc
 
+    def test_model_fields(self):
+        self.check_model_fields(Project, {
+            "name": models.TextField,
+            "description": models.TextField,
+            "annotator_guideline": models.TextField,
+            "configuration": models.JSONField,
+            "owner": models.ForeignKey,
+            "annotations_per_doc": models.IntegerField,
+            "annotator_max_annotation": models.FloatField,
+            "annotation_timeout": models.IntegerField,
+            "document_input_preview": models.JSONField,
+        })
 
     def check_project_props(self, project, total_tasks, completed_tasks, occupied_tasks, remaining_tasks):
         self.assertEqual(total_tasks, project.num_annotation_tasks_total, "Total tasks check")
@@ -140,11 +157,7 @@ class TestProjectModel(TestCase):
         self.assertTrue(occupied_tasks == project.num_occupied_tasks, "Occupied tasks check")
         self.assertEqual(remaining_tasks, project.num_annotation_tasks_remaining, "Remaining tasks check")
 
-
-
     def test_project_documents(self):
-
-
         annotator = get_user_model().objects.create(username="test1")
         project = Project.objects.create(annotations_per_doc=self.annotations_per_doc,
                                          annotator_max_annotation=self.annotator_max_annotation)
@@ -170,41 +183,38 @@ class TestProjectModel(TestCase):
                                  occupied_tasks=0,
                                  remaining_tasks=self.num_total_tasks)
 
-
         pending_annotation = Annotation.objects.create(user=annotator, document=doc)
         self.check_project_props(project, total_tasks=self.num_total_tasks,
                                  completed_tasks=0,
                                  occupied_tasks=1,
-                                 remaining_tasks=self.num_total_tasks-1)
+                                 remaining_tasks=self.num_total_tasks - 1)
 
         pending_annotation.complete_annotation({})
         self.check_project_props(project, total_tasks=self.num_total_tasks,
                                  completed_tasks=1,
                                  occupied_tasks=1,
-                                 remaining_tasks=self.num_total_tasks-1)
-
+                                 remaining_tasks=self.num_total_tasks - 1)
 
         complete_annotation1 = Annotation.objects.create(user=annotator, document=doc)
         complete_annotation1.complete_annotation({})
         self.check_project_props(project, total_tasks=self.num_total_tasks,
                                  completed_tasks=2,
                                  occupied_tasks=2,
-                                 remaining_tasks=self.num_total_tasks-2)
-
+                                 remaining_tasks=self.num_total_tasks - 2)
 
         complete_annotation2 = Annotation.objects.create(user=annotator, document=docs[1])
         complete_annotation2.complete_annotation({})
         self.check_project_props(project, total_tasks=self.num_total_tasks,
                                  completed_tasks=3,
                                  occupied_tasks=3,
-                                 remaining_tasks=self.num_total_tasks-3)
+                                 remaining_tasks=self.num_total_tasks - 3)
 
         complete_annotation3 = Annotation.objects.create(user=annotator, document=docs[2])
         complete_annotation3.complete_annotation({})
         self.check_project_props(project, total_tasks=self.num_total_tasks,
                                  completed_tasks=4,
                                  occupied_tasks=4,
-                                 remaining_tasks=self.num_total_tasks-4)
+                                 remaining_tasks=self.num_total_tasks - 4)
 
     def test_project_annotation_timeout(self):
         annotator = get_user_model().objects.create(username="test1")
@@ -223,10 +233,7 @@ class TestProjectModel(TestCase):
         # Timeout should be more than minutes set in project
         self.assertTrue(annotation.times_out_at > annotation.created)
 
-
-
     def test_saving_and_loading(self):
-
         name = "Test name"
         created_at = timezone.now()
         data = {
@@ -245,7 +252,6 @@ class TestProjectModel(TestCase):
         self.assertEqual(proj_data["entry2"], data["entry2"])
 
     def test_serializing(self):
-
         user1 = get_user_model().objects.create(username="user1")
         user2 = get_user_model().objects.create(username="user2")
 
@@ -281,9 +287,6 @@ class TestProjectModel(TestCase):
         self.assertEqual(serialized_proj["owner"], user1.id)
         self.assertEqual(serialized_proj["documents"], [document.id, document2.id])
 
-
-
-
     def test_deserialize(self):
         name = "Test name"
         created_at = timezone.now()
@@ -291,7 +294,6 @@ class TestProjectModel(TestCase):
             "entry1": "val1",
             "entry2": "val2"
         }
-
 
         user1 = get_user_model().objects.create(username="user1")
         user2 = get_user_model().objects.create(username="user2")
@@ -313,9 +315,18 @@ class TestProjectModel(TestCase):
         self.assertEqual(input_dict["owner"], deserialized_obj.owner.id)
 
 
+class TestAnnotationModel(ModelTestCase):
 
-
-class TestAnnotationModel(TestCase):
+    def test_model_fields(self):
+        self.check_model_fields(Annotation, {
+            "user": models.ForeignKey,
+            "document": models.ForeignKey,
+            "data": models.JSONField,
+            "times_out_at": models.DateTimeField,
+            "created": models.DateTimeField,
+            "status": models.IntegerField,
+            "status_time": models.DateTimeField,
+        })
 
     def test_timeout_check(self):
         num_already_timedout = 12
@@ -367,9 +378,3 @@ class TestAnnotationModel(TestCase):
 
         num_timed_out = Annotation.check_for_timed_out_annotations(timeout_check_time + timedelta(hours=1))
         self.assertEqual(0, num_timed_out, "Must not be anymore annotations to timeout")
-
-
-
-
-
-
