@@ -14,7 +14,7 @@ from backend.rpc import create_project, update_project, add_project_document, ad
     get_possible_annotators, add_project_annotator, remove_project_annotator, get_project_annotators, \
     get_annotation_task, complete_annotation_task, reject_annotation_task, register, activate_account, \
     generate_password_reset, reset_password, generate_user_activation, change_password, change_email, \
-    set_user_receive_mail_notifications, delete_documents_and_annotations
+    set_user_receive_mail_notifications, delete_documents_and_annotations, import_project_config, export_project_config
 from backend.rpcserver import rpc_method
 
 
@@ -253,6 +253,78 @@ class TestProject(TestEndpoint):
 
         saved_proj = Project.objects.get(pk=project.pk)
         self.assertEqual(len(saved_proj.configuration), 2)
+
+    def test_import_project_config(self):
+        project = Project.objects.create()
+
+        data = {
+            "name": "Test project",
+            "description": "Desc",
+            "configuration": [
+                {
+                    "name": "sentiment",
+                    "title": "Sentiment",
+                    "type": "radio",
+                    "options": {
+                        "positive": "Positive",
+                        "negative": "Negative",
+                        "neutral": "Neutral"
+                    }
+                },
+                {
+                    "name": "reason",
+                    "title": "Reason for your stated sentiment",
+                    "type": "textarea"
+                }
+            ],
+            "annotations_per_doc": 4,
+            "annotator_max_annotation": 0.8,
+        }
+
+        import_project_config(self.get_loggedin_request(), project.pk, data)
+
+        project.refresh_from_db()
+
+        self.assertEqual(project.name, data["name"])
+        self.assertEqual(project.description, data["description"])
+        self.assertEqual(project.annotations_per_doc, data["annotations_per_doc"])
+        self.assertEqual(project.annotator_max_annotation, data["annotator_max_annotation"])
+
+    def test_export_project_config(self):
+        project = Project.objects.create()
+        data = {
+            "id": project.pk,
+            "name": "Test project",
+            "description": "Desc",
+            "configuration": [
+                {
+                    "name": "sentiment",
+                    "title": "Sentiment",
+                    "type": "radio",
+                    "options": {
+                        "positive": "Positive",
+                        "negative": "Negative",
+                        "neutral": "Neutral"
+                    }
+                },
+                {
+                    "name": "reason",
+                    "title": "Reason for your stated sentiment",
+                    "type": "textarea"
+                }
+            ],
+            "annotations_per_doc": 4,
+            "annotator_max_annotation": 0.8,
+        }
+        update_project(self.get_loggedin_request(), data)
+        config_export_dict = export_project_config(self.get_loggedin_request(), project.pk)
+
+        self.assertEqual(config_export_dict["name"], data["name"])
+        self.assertEqual(config_export_dict["description"], data["description"])
+        self.assertEqual(config_export_dict["annotations_per_doc"], data["annotations_per_doc"])
+        self.assertEqual(config_export_dict["annotator_max_annotation"], data["annotator_max_annotation"])
+
+
 
 
 class TestDocument(TestEndpoint):

@@ -266,6 +266,28 @@ export default new Vuex.Store({
                 throw e
             }
         },
+        async importProjectConfiguration({dispatch, commit}, {id, config_dict}){
+            try{
+                let project = await rpc.call("import_project_config", id, config_dict)
+                dispatch("getProjects")
+                return project
+
+            }catch(e){
+                console.log(e)
+                throw e
+            }
+
+        },
+        async exportProjectConfiguration({dispatch, commit}, id){
+            try{
+                let project_config_dict = await rpc.call("export_project_config", id)
+                return project_config_dict
+            }catch(e){
+                console.log(e)
+                throw e
+            }
+
+        },
         async addProjectDocument({dispatch, commit}, { projectId, document}){
             try{
                 let docId = await rpc.call("add_project_document", projectId, document)

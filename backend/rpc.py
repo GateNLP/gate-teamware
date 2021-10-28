@@ -352,6 +352,27 @@ def get_project(request, pk):
     proj = Project.objects.get(pk=pk)
     return serializer.serialize(proj)
 
+project_config_fields = {
+    "name",
+    "description",
+    "configuration",
+    "annotations_per_doc",
+    "annotator_max_annotation"
+}
+
+@rpc_method_manager
+def import_project_config(request, pk, project_dict):
+    with transaction.atomic():
+        serializer.deserialize(Project, {
+            "id": pk,
+            **project_dict
+        }, project_config_fields)
+
+
+@rpc_method_manager
+def export_project_config(request, pk):
+    proj = Project.objects.get(pk=pk)
+    return serializer.serialize(proj, project_config_fields)
 
 @rpc_method_manager
 def get_projects(request):

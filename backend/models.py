@@ -73,6 +73,7 @@ class Project(models.Model):
     annotator_max_annotation = models.FloatField(default=0.6)
     annotation_timeout = models.IntegerField(default=60)
 
+
     @property
     def num_documents(self):
         return self.documents.count()
