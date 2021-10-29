@@ -13,7 +13,8 @@ module.exports = {
       {
         title: "User guide",
         children: [
-            "userguide/projectconfig"
+            "userguide/projectconfig",
+            "userguide/api_docs"
         ]
       },
         ],

@@ -39,7 +39,9 @@ User = get_user_model()
 
 @rpc_method
 def is_authenticated(request):
-    """ Checks that the current user has logged in. """
+    """
+    Checks that the current user has logged in.
+    """
     context = {
         "isAuthenticated": False,
         "isManager": False,
