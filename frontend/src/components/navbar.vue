@@ -8,6 +8,7 @@
           <b-nav-item to="/projects" v-if="user && (user.isManager || user.isAdmin) && user.isActivated">Projects</b-nav-item>
           <b-nav-item to="/annotate" v-if="user && user.isAuthenticated && user.isActivated">Annotate</b-nav-item>
           <b-nav-item to="/manageusers" v-if="user && user.isAdmin && user.isActivated">Manage Users</b-nav-item>
+          <b-nav-item target="_blank" href="https://gatenlp.github.io/gate-annotation-service/userguide/projectconfig.html"> Documentation <b-icon-box-arrow-up-right style="position: relative; font-size: 0.8em; padding-bottom: 0.2em;"></b-icon-box-arrow-up-right></b-nav-item>
           <b-nav-item to="/about">About</b-nav-item>
         </b-navbar-nav>
 

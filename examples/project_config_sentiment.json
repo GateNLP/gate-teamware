@@ -11,7 +11,7 @@
     "description": "Please select a sentiment of the text above.",
     "options": {
       "negative": "Negative",
-      "neutrual": "Neutrual",
+      "neutral": "Neutral",
       "positive": "Positive"
     }
   }

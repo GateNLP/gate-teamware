@@ -58,7 +58,8 @@ class ServiceUser(AbstractUser):
         return self.annotations.filter(pk=annotation.pk).count() > 0
 
 
-
+def default_document_input_preview():
+    return {"text": "<p>Some html text <strong>in bold</strong>.</p><p>Paragraph 2.</p>"}
 
 class Project(models.Model):
     """
@@ -66,12 +67,14 @@ class Project(models.Model):
     """
     name = models.TextField(default="New project")
     description = models.TextField(default="")
+    annotator_guideline = models.TextField(default="")
     created = models.DateTimeField(default=timezone.now)
     configuration = models.JSONField(default=list)
     owner = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, related_name="owns")
     annotations_per_doc = models.IntegerField(default=3)
     annotator_max_annotation = models.FloatField(default=0.6)
     annotation_timeout = models.IntegerField(default=60)
+    document_input_preview = models.JSONField(default=default_document_input_preview)
 
     @property
     def num_documents(self):
@@ -276,6 +279,7 @@ class Annotation(models.Model):
         return {
             "project_name": project.name,
             "project_description": project.description,
+            "project_annotator_guideline": project.annotator_guideline,
             "project_config": project.configuration,
             "project_id": project.pk,
             "document_id": document.pk,
