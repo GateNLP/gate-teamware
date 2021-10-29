@@ -1,0 +1,23 @@
+name: Staging deployment
+on:
+  push:
+    branches:
+      - dev
+jobs:
+  deploy:
+    runs-on: self-hosted
+    env:
+      APP_DIR: '/export/raid/gate/gate-annotation-service' # directory on server containing cloned git repo for staging app, with 'dev' branch checked out
+    steps:
+      - name: Deploy staging app
+        shell: bash
+        run: |
+          set -e
+          cd ${{ env.APP_DIR }}
+          git pull
+          if [ ! -f .env ]; then
+            ./generate-env.sh
+          fi
+          ./build-images.sh
+          ./deploy.sh staging
+          docker-compose logs
