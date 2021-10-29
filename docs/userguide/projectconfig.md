@@ -19,7 +19,7 @@ annotation will be collected. Here's an example configuration:
         "description": "Please select a sentiment of the text above.",
         "options": {
             "negative": "Negative",
-            "neutrual": "Neutrual",
+            "neutral": "Neutral",
             "positive": "Positive"
             
         }
@@ -28,7 +28,7 @@ annotation will be collected. Here's an example configuration:
 ```
 
 The above configuration displays the value from the `text` field from the document to be annotated. It then shows
-a set of 3 radio inputs that allows the user to select a Negative, Neutrual, or Positive sentiment with the label
+a set of 3 radio inputs that allows the user to select a Negative, Neutral, or Positive sentiment with the label
 name `sentiment`. 
 
 All fields **require** the properties **name** and **type**, it is used to name our label and determine the type 
@@ -50,7 +50,7 @@ Another field can be added to collect more information, e.g. a text field for op
         "description": "Please select a sentiment of the text above.",
         "options": {
             "negative": "Negative",
-            "neutrual": "Neutrual",
+            "neutral": "Neutral",
             "positive": "Positive"
             
         }
