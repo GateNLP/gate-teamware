@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <h1>Project: {{ local_project.name }}</h1>
+    <h1>Project #{{ projectId }}: {{ local_project.name }}</h1>
 
     <b-tabs v-model="activeTab">
       <b-tab title="Configuration">
@@ -8,18 +8,24 @@
         <h2 class="mt-2 mb-2">Project configuration</h2>
         <b-button-toolbar class="mt-2 mb-2">
           <b-button-group>
-            <b-button @click="saveProjectHandler" :variant="loadingVariant" :disabled="loading">
-            <b-icon-box-arrow-in-down :animation="loadingIconAnimation"></b-icon-box-arrow-in-down>
-            Save config
-          </b-button>
-          <b-button @click="$refs.projectConfigImportInput.click()" :variant="loadingVariant" :disabled="loading">
-            <b-icon-cloud-upload :animation="loadingIconAnimation"></b-icon-cloud-upload>
-            Import config
-          </b-button>
-          <b-button @click="exportProjectConfigHandler" :variant="loadingVariant" :disabled="loading">
-            <b-icon-cloud-download :animation="loadingIconAnimation"></b-icon-cloud-download>
-            Export config
-          </b-button>
+            <b-button @click="saveProjectHandler" :variant="loadingVariant" :disabled="loading" title="Save project configuration.">
+              <b-icon-box-arrow-in-down :animation="loadingIconAnimation"></b-icon-box-arrow-in-down>
+              Save
+            </b-button>
+            <b-button @click="$refs.projectConfigImportInput.click()" :variant="loadingVariant" :disabled="loading" title="Import JSON project configuration file.">
+              <b-icon-cloud-upload :animation="loadingIconAnimation"></b-icon-cloud-upload>
+              Import
+            </b-button>
+            <b-button @click="exportProjectConfigHandler" :variant="loadingVariant" :disabled="loading" title="Export project configuration as a JSON file.">
+              <b-icon-cloud-download :animation="loadingIconAnimation"></b-icon-cloud-download>
+              Export
+            </b-button>
+            <b-button @click="cloneProjectConfigHandler" :variant="loadingVariant" :disabled="loading"
+                      title="Create a new project with this project configuration. Does not copy documents or annotations.">
+              <b-icon-clipboard :animation="loadingIconAnimation"></b-icon-clipboard>
+              Clone
+            </b-button>
+
 
           </b-button-group>
         </b-button-toolbar>
@@ -40,13 +46,16 @@
           <b-form-group label="Name" description="The name of this annotation project.">
             <b-form-input v-model="local_project.name" name="project_name"></b-form-input>
           </b-form-group>
-          <b-form-group label="Description" description="The description of this annotation project that will be shown to annotators. Supports markdown and HTML.">
+          <b-form-group label="Description"
+                        description="The description of this annotation project that will be shown to annotators. Supports markdown and HTML.">
             <MarkdownEditor v-model="local_project.description"></MarkdownEditor>
           </b-form-group>
-          <b-form-group label="Annotator guideline" description="The description of this annotation project that will be shown to annotators. Supports markdown and HTML.">
+          <b-form-group label="Annotator guideline"
+                        description="The description of this annotation project that will be shown to annotators. Supports markdown and HTML.">
             <MarkdownEditor v-model="local_project.annotator_guideline"></MarkdownEditor>
           </b-form-group>
-          <b-form-group label="Annotations per document" description="The project completes when each document in this annotation project have this many number of valid annotations. When a project completes, all project annotators will be un-recruited and be allowed to annotate other projects.">
+          <b-form-group label="Annotations per document"
+                        description="The project completes when each document in this annotation project have this many number of valid annotations. When a project completes, all project annotators will be un-recruited and be allowed to annotate other projects.">
             <b-form-input v-model="local_project.annotations_per_doc"></b-form-input>
           </b-form-group>
           <b-form-group label="Maximum proportion of documents annotated per annotator (between 0 and 1)"
@@ -60,9 +69,13 @@
           <b-form-row>
             <b-col>
               <h4 id="annotation-preview">Annotation configuration</h4>
-              <p class="form-text text-muted">Configure how the project will capture annotations below. The configuration
-              is in JSON format, you must provide a list of widgets to use for displaying information or capturing annotations.
-                See the <a target="_blank" href="https://gatenlp.github.io/gate-annotation-service/userguide/projectconfig.html">documentation page on configuring project annotation</a>
+              <p class="form-text text-muted">Configure how the project will capture annotations below. The
+                configuration
+                is in JSON format, you must provide a list of widgets to use for displaying information or capturing
+                annotations.
+                See the <a target="_blank"
+                           href="https://gatenlp.github.io/gate-annotation-service/userguide/projectconfig.html">documentation
+                  page on configuring project annotation</a>
                 for more details.</p>
               <JsonEditor v-model="local_project.configuration"></JsonEditor>
             </b-col>
@@ -74,8 +87,9 @@
                 of the annotation
                 is shown in the <a href="#annotation-output-preview">Annotation output preview</a> below.</p>
               <b-card>
-                <AnnotationRenderer  :config="local_project.configuration" :document="local_project.document_input_preview"
-                                  @input="annotationOutputHandler"></AnnotationRenderer>
+                <AnnotationRenderer :config="local_project.configuration"
+                                    :document="local_project.document_input_preview"
+                                    @input="annotationOutputHandler"></AnnotationRenderer>
 
               </b-card>
             </b-col>
@@ -86,7 +100,8 @@
               <p class="form-text text-muted">An example of a document in JSON. You can modify the contents below to see
                 how your
                 document looks in the <a href="#annotation-preview">Annotation Preview</a>.</p>
-              <VJsoneditor v-model="local_project.document_input_preview" :options="{mode: 'code'}" :plus="false" height="400px"></VJsoneditor>
+              <VJsoneditor v-model="local_project.document_input_preview" :options="{mode: 'code'}" :plus="false"
+                           height="400px"></VJsoneditor>
             </b-col>
             <b-col>
               <h5 class="mt-4" id="annotation-output-preview">Annotation output preview</h5>
@@ -348,9 +363,21 @@ export default {
 
   },
   methods: {
-    ...mapActions(["getProjects",
+    ...mapActions(["getProject",
       "updateProject", "getProjectDocuments", "getAnnotations", "addProjectDocument",
-      "deleteDocumentsAndAnnotations", "importProjectConfiguration", "exportProjectConfiguration"]),
+      "deleteDocumentsAndAnnotations", "importProjectConfiguration", "exportProjectConfiguration", "cloneProject"]),
+    async updateProject() {
+      try {
+        if (this.projectId) {
+          this.local_project = await this.getProject(this.projectId)
+          this.documents = await this.getProjectDocuments(this.projectId);
+        }
+
+      } catch (e) {
+        toastError(this, "Could not fetch project information from server")
+      }
+
+    },
     async refreshDocumentsHandler() {
       this.setLoading(true)
       try {
@@ -371,7 +398,7 @@ export default {
       }
       this.setLoading(false)
     },
-    async importProjectConfigHandler(e){
+    async importProjectConfigHandler(e) {
       this.setLoading(true)
       try {
         const fileList = e.target.files
@@ -381,8 +408,8 @@ export default {
             const configStr = await readFileAsync(file)
             const config = JSON.parse(configStr)
             await this.importProjectConfiguration({id: this.projectId, config_dict: config})
-            await this.getProjects()
-            toastSuccess(this,"Project configuration imported")
+            await this.updateProject()
+            toastSuccess(this, "Project configuration imported")
 
           } catch (e) {
             console.error("Could not parse uploaded file")
@@ -400,8 +427,8 @@ export default {
       this.setLoading(false)
 
     },
-    async exportProjectConfigHandler(){
-      try{
+    async exportProjectConfigHandler() {
+      try {
         let response = await this.exportProjectConfiguration(this.projectId)
         let fileURL = window.URL.createObjectURL(new Blob([JSON.stringify(response)]));
         let fileLink = document.createElement('a');
@@ -413,10 +440,20 @@ export default {
 
         fileLink.click();
 
-      }catch (e){
+      } catch (e) {
         toastError(this, "Could export project configuration", e)
       }
 
+
+    },
+    async cloneProjectConfigHandler() {
+      try {
+        let clonedProjObj = await this.cloneProject(this.projectId)
+        this.$router.push("/project/" + clonedProjObj.id)
+
+      } catch (e) {
+        toastError(this, "Could export project configuration", e)
+      }
 
     },
     async documentUploadHandler(e) {
@@ -455,7 +492,7 @@ export default {
       this.loading = isLoading
     },
     async exportAnnotationsHandler() {
-      try{
+      try {
         let response = await this.getAnnotations(this.projectId)
         let fileURL = window.URL.createObjectURL(new Blob([response]));
         let fileLink = document.createElement('a');
@@ -467,7 +504,7 @@ export default {
 
         fileLink.click();
 
-      }catch (e){
+      } catch (e) {
         toastError(this, "Could not export annotations", e)
       }
 
@@ -507,23 +544,16 @@ export default {
 
   },
   watch: {
-    projects: {
+    projectId: {
       immediate: true,
-      handler(newProjectsList) {
-        if (this.projectId && newProjectsList) {
-          for (let project of newProjectsList) {
-            if (String(project.id) === this.projectId) {
-              this.local_project = _.cloneDeep(project)
-
-            }
-          }
-        }
+      handler() {
+        this.updateProject()
       }
     },
   },
   async beforeMount() {
-    await this.getProjects();
-    this.documents = await this.getProjectDocuments(this.projectId);
+    this.updateProject()
+
 
   },
 }

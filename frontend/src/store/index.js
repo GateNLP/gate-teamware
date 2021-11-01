@@ -10,7 +10,6 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
     state: {
-        projects: [],
         user: {
             username: "",
             isAuthenticated: false,
@@ -37,9 +36,6 @@ export default new Vuex.Store({
             state.user.isAdmin = params.isAdmin;
             state.user.isActivated = params.isActivated;
         },
-        updateProjects(state,projects) {
-            state.projects = projects;
-        }
     },
     actions: {
         updateUser({commit}, params) {
@@ -225,11 +221,19 @@ export default new Vuex.Store({
                 console.log(e)
             }
         },
-
+        async getProject({dispatch,commit}, id){
+            try {
+                let project = await rpc.call("get_project", id);
+                return project
+            } catch (e){
+                console.log(e)
+                throw e
+            }
+        },
         async getProjects({dispatch,commit}){
             try {
                 let projects = await rpc.call("get_projects");
-                commit("updateProjects", projects);
+                return projects
             } catch (e){
                 console.log(e)
                 throw e
@@ -249,7 +253,6 @@ export default new Vuex.Store({
             try{
                 console.log("Creating a project")
                 let project = await rpc.call("create_project")
-                dispatch("getProjects")
                 return project
             }catch(e){
                 console.log(e)
@@ -259,17 +262,25 @@ export default new Vuex.Store({
         async updateProject({dispatch, commit}, payload){
             try{
                 let project = await rpc.call("update_project", payload)
-                dispatch("getProjects")
                 return project
             }catch(e){
                 console.log(e)
                 throw e
             }
         },
+        async cloneProject({dispatch, commit}, id){
+            try{
+                let project = await rpc.call("clone_project", id)
+                return project
+            }catch(e){
+                console.log(e)
+                throw e
+            }
+
+        },
         async importProjectConfiguration({dispatch, commit}, {id, config_dict}){
             try{
                 let project = await rpc.call("import_project_config", id, config_dict)
-                dispatch("getProjects")
                 return project
 
             }catch(e){

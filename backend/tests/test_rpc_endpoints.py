@@ -14,7 +14,8 @@ from backend.rpc import create_project, update_project, add_project_document, ad
     get_possible_annotators, add_project_annotator, remove_project_annotator, get_project_annotators, \
     get_annotation_task, complete_annotation_task, reject_annotation_task, register, activate_account, \
     generate_password_reset, reset_password, generate_user_activation, change_password, change_email, \
-    set_user_receive_mail_notifications, delete_documents_and_annotations, import_project_config, export_project_config
+    set_user_receive_mail_notifications, delete_documents_and_annotations, import_project_config, export_project_config, \
+    clone_project
 from backend.rpcserver import rpc_method
 
 
@@ -342,6 +343,50 @@ class TestProject(TestEndpoint):
         self.assertEqual(config_export_dict["annotator_max_annotation"], data["annotator_max_annotation"])
         self.assertEqual(config_export_dict["annotation_timeout"], data["annotation_timeout"])
         self.assertDictEqual(config_export_dict["document_input_preview"], data["document_input_preview"])
+
+    def test_clone_project(self):
+        project = Project.objects.create()
+        data = {
+            "id": project.pk,
+            "name": "Test project",
+            "description": "Desc",
+            "annotator_guideline": "Test guideline",
+            "configuration": [
+                {
+                    "name": "sentiment",
+                    "title": "Sentiment",
+                    "type": "radio",
+                    "options": {
+                        "positive": "Positive",
+                        "negative": "Negative",
+                        "neutral": "Neutral"
+                    }
+                },
+                {
+                    "name": "reason",
+                    "title": "Reason for your stated sentiment",
+                    "type": "textarea"
+                }
+            ],
+            "annotations_per_doc": 4,
+            "annotator_max_annotation": 0.8,
+            "annotation_timeout": 50,
+            "document_input_preview": {
+                "text": "Doc text"
+            }
+        }
+        update_project(self.get_loggedin_request(), data)
+        project.refresh_from_db()
+
+        cloned_project_dict = clone_project(self.get_loggedin_request(), project.pk)
+        cloned_project = Project.objects.get(pk=cloned_project_dict["id"])
+        self.assertNotEqual(project.pk, cloned_project.pk)
+        for field_name in Project.project_config_fields:
+            if field_name == "name":
+                self.assertEqual("Copy of " + getattr(project, field_name),  getattr(cloned_project, field_name))
+            else:
+                self.assertEqual(getattr(project, field_name), getattr(cloned_project, field_name))
+
 
 
 

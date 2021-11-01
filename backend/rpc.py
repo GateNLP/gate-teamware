@@ -329,7 +329,6 @@ def get_user_annotations(request):
 ##################################
 
 @rpc_method_manager
-
 def create_project(request):
 
     with transaction.atomic():
@@ -342,7 +341,6 @@ def create_project(request):
 
 
 @rpc_method_manager
-
 def update_project(request, project_dict):
     with transaction.atomic():
         project = serializer.deserialize(Project, project_dict)
@@ -350,20 +348,32 @@ def update_project(request, project_dict):
 
 
 @rpc_method_manager
-def get_project(request, pk):
-    proj = Project.objects.get(pk=pk)
-    return serializer.serialize(proj)
+def get_project(request, project_id):
+    proj = Project.objects.get(pk=project_id)
+    out_proj = {
+        **serializer.serialize(proj),
+        **proj.get_project_stats()
+    }
+    return out_proj
 
-project_config_fields = {
-    "name",
-    "description",
-    "annotator_guideline",
-    "configuration",
-    "annotations_per_doc",
-    "annotator_max_annotation",
-    "annotation_timeout",
-    "document_input_preview"
-}
+
+
+@rpc_method_manager
+def clone_project(request, project_id):
+    with transaction.atomic():
+        current_project = Project.objects.get(pk=project_id)
+        new_project = Project.objects.create()
+        new_project.owner = request.user
+        for field_name in Project.project_config_fields:
+            if field_name == "name":
+                setattr(new_project, field_name, "Copy of " + getattr(current_project, field_name))
+            else:
+                setattr(new_project, field_name, getattr(current_project, field_name))
+        new_project.save()
+
+        return serializer.serialize(new_project)
+
+
 
 @rpc_method_manager
 def import_project_config(request, pk, project_dict):
@@ -371,13 +381,13 @@ def import_project_config(request, pk, project_dict):
         serializer.deserialize(Project, {
             "id": pk,
             **project_dict
-        }, project_config_fields)
+        }, Project.project_config_fields)
 
 
 @rpc_method_manager
 def export_project_config(request, pk):
     proj = Project.objects.get(pk=pk)
-    return serializer.serialize(proj, project_config_fields)
+    return serializer.serialize(proj, Project.project_config_fields)
 
 @rpc_method_manager
 def get_projects(request):
@@ -385,15 +395,10 @@ def get_projects(request):
 
     output_projects = []
     for proj in projects:
-        out_proj = serializer.serialize(proj)
-        out_proj["owned_by"] = proj.owner.username
-        out_proj["documents"] = proj.num_documents
-        out_proj["completed_tasks"] = proj.num_completed_tasks
-        out_proj["pending_tasks"] = proj.num_pending_tasks
-        out_proj["rejected_tasks"] = proj.num_rejected_tasks
-        out_proj["timed_out_tasks"] = proj.num_timed_out_tasks
-        out_proj["aborted_tasks"] = proj.num_aborted_tasks
-        out_proj["total_tasks"] = proj.num_annotation_tasks_total
+        out_proj = {
+            **serializer.serialize(proj, {"id", "name", "created"}),
+            **proj.get_project_stats()
+        }
         output_projects.append(out_proj)
     return output_projects
 
