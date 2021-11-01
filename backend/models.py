@@ -118,6 +118,23 @@ class Project(models.Model):
 
 
     @property
+    def is_project_configured(self):
+        return len(self.configuration) > 0 and self.num_documents > 0
+
+    @property
+    def project_configuration_error_message(self):
+
+        errors = []
+
+        if len(self.configuration) < 1:
+            errors.append("No annotation widgets defined in the configuration. ")
+
+        if self.num_documents < 1:
+            errors.append("No documents to annotate.")
+
+        return errors
+
+    @property
     def num_occupied_tasks(self):
         num_tasks = 0
         for doc in self.documents.all():
@@ -203,7 +220,9 @@ class Project(models.Model):
             "rejected_tasks": self.num_rejected_tasks,
             "timed_out_tasks": self.num_timed_out_tasks,
             "aborted_tasks": self.num_aborted_tasks,
-            "total_tasks": self.num_annotation_tasks_total
+            "total_tasks": self.num_annotation_tasks_total,
+            "is_configured": self.is_project_configured,
+            "configuration_error": None if self.is_project_configured else self.project_configuration_error_message
         }
 
 

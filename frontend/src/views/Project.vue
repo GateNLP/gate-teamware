@@ -2,10 +2,25 @@
   <div class="container">
     <h1>Project #{{ projectId }}: {{ local_project.name }}</h1>
 
+    <div class="alert alert-warning" v-if="!local_project.is_configured" >
+      <b-icon-exclamation-triangle></b-icon-exclamation-triangle> Improperly configured project:
+      <ul>
+        <li v-for="message in local_project.configuration_error">{{message}}</li>
+      </ul>
+    </div>
+
     <b-tabs v-model="activeTab">
       <b-tab title="Configuration">
 
-        <h2 class="mt-2 mb-2">Project configuration</h2>
+        <h2 class="mt-2 mb-2">Project configuration <b-icon-question-circle id="project-config-help" scale="0.5" style="cursor:pointer;"></b-icon-question-circle></h2>
+        <b-popover target="project-config-help" triggers="hover" placement="bottom">
+          The project can be configured on this page with name, description and how annotations are captured.
+          Once you've configured the project, don't forget to <strong>save the project configuration</strong>.
+          Documents &amp; annotations can be added and managed on the <a href="#" @click.prevent="activeTab = 1">Documents
+          &amp; Annotations</a> page.
+          Annotators can be recruited by using the <a href="#" @click.prevent="activeTab = 2">Annotators</a> page.
+        </b-popover>
+
         <b-button-toolbar class="mt-2 mb-2">
           <b-button-group>
             <b-button @click="saveProjectHandler" :variant="loadingVariant" :disabled="loading" title="Save project configuration.">
@@ -31,16 +46,6 @@
         </b-button-toolbar>
 
         <input ref="projectConfigImportInput" type="file" accept=".json" @change="importProjectConfigHandler" hidden/>
-
-        <b-card class="infoCard">
-          The project can be configured on this page with name, description and how annotations are captured.
-          Once you've configured the project, don't forget to <strong>save project configuration</strong> using the
-          button above.
-          Documents &amp; annotations can be added and managed on the <a href="#" @click.prevent="activeTab = 1">Documents
-          &amp; Annotations</a> page.
-          Annotators can be recruited by using the <a href="#" @click.prevent="activeTab = 2">Annotators</a> page.
-
-        </b-card>
 
         <b-form class="mt-4 mb-4">
           <b-form-group label="Name" description="The name of this annotation project.">
@@ -118,7 +123,14 @@
       </b-tab>
 
       <b-tab title="Documents & Annotations">
-        <h2 class="mt-2 mb-2">Documents & Annotations</h2>
+        <h2 class="mt-2 mb-2">Documents & Annotations <b-icon-question-circle id="project-documents-help" scale="0.5" style="cursor:pointer;"></b-icon-question-circle></h2>
+        <b-popover target="project-documents-help" triggers="hover" placement="bottom">
+          You can view the list of documents and annotations of this project on this page.
+          Start by <a href="#" @click.prevent="uploadBtnHandler">uploading</a> documents to the project,
+          documents must be in a JSON format. Annotators can then be recruited by using the <a href="#"
+                                                                                               @click.prevent="activeTab = 2">Annotators</a> page.
+
+        </b-popover>
 
         <b-button-toolbar class="mt-2 mb-2">
           <b-button-group>
@@ -203,15 +215,6 @@
 
           </div>
         </b-modal>
-
-        <b-card class="infoCard">
-          You can view the list of documents and annotations of this project on this page.
-          Start by <a href="#" @click.prevent="uploadBtnHandler">uploading</a> documents to the project,
-          documents must be in a JSON format. Annotators can then be recruited by using the <a href="#"
-                                                                                               @click.prevent="activeTab = 2">Annotators</a>
-          page.
-        </b-card>
-
         <b-card>
           <h4>Project documents & annotations summary</h4>
           <p class="form-text text-muted">
@@ -262,15 +265,16 @@
         </div>
       </b-tab>
 
-      <b-tab title="Annotators">
-        <h2 class="mt-2 mb-2">Annotators Management</h2>
-        <b-card class="infoCard">
+      <b-tab title="Annotators" :disabled="!local_project.is_configured">
+        <h2 class="mt-2 mb-2">Annotators Management <b-icon-question-circle id="project-annotators-help" scale="0.5" style="cursor:pointer;"></b-icon-question-circle></h2>
+        <b-popover target="project-annotators-help" triggers="hover" placement="bottom">
           Add annotators to the project by clicking on the list of names in the <strong>right column</strong>. Current
           annotators can be removed
           by clicking on the names in the <strong>left column</strong>. Removing annotators does not delete their
           completed annotations
           but will stop their current pending annotation task.
-        </b-card>
+
+        </b-popover>
         <Annotators :projectID="projectId"></Annotators>
       </b-tab>
 
@@ -310,7 +314,8 @@ export default {
         data: null,
         annotations_per_doc: 3,
         annotator_max_annotation: 0.6,
-        document_input_preview: {}
+        document_input_preview: {},
+        is_configured: false,
       },
       configurationStr: "",
       documents: [],
