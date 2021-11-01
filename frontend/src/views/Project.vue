@@ -366,7 +366,7 @@ export default {
     ...mapActions(["getProject",
       "updateProject", "getProjectDocuments", "getAnnotations", "addProjectDocument",
       "deleteDocumentsAndAnnotations", "importProjectConfiguration", "exportProjectConfiguration", "cloneProject"]),
-    async updateProject() {
+    async fetchProject() {
       try {
         if (this.projectId) {
           this.local_project = await this.getProject(this.projectId)
@@ -391,7 +391,7 @@ export default {
       this.setLoading(true)
       try {
         await this.updateProject(this.local_project);
-        this.documents = await this.getProjectDocuments(this.projectId)
+        await this.fetchProject()
         toastSuccess(this, "Save project configuration", "Save successful")
       } catch (e) {
         toastError(this, "Could not save project configuration", e)
@@ -402,13 +402,12 @@ export default {
       this.setLoading(true)
       try {
         const fileList = e.target.files
-
-        for (let file of fileList) {
-          try {
+        try {
+            let file = fileList[0]
             const configStr = await readFileAsync(file)
             const config = JSON.parse(configStr)
             await this.importProjectConfiguration({id: this.projectId, config_dict: config})
-            await this.updateProject()
+            await this.fetchProject()
             toastSuccess(this, "Project configuration imported")
 
           } catch (e) {
@@ -416,9 +415,6 @@ export default {
             console.error(e)
             toastError(this, "Could not parse uploaded file " + file, e)
           }
-
-          this.documents = await this.getProjectDocuments(this.projectId);
-        }
 
       } catch (e) {
         toastError(this, "Could not upload configuration file", e)
@@ -479,7 +475,7 @@ export default {
             toastError(this, "Could not parse uploaded file " + file, e)
           }
 
-          this.documents = await this.getProjectDocuments(this.projectId);
+          await this.fetchProject()
         }
 
       } catch (e) {
@@ -547,12 +543,12 @@ export default {
     projectId: {
       immediate: true,
       handler() {
-        this.updateProject()
+        this.fetchProject()
       }
     },
   },
   async beforeMount() {
-    this.updateProject()
+    this.fetchProject()
 
 
   },
