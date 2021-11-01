@@ -127,10 +127,10 @@ class Project(models.Model):
         errors = []
 
         if len(self.configuration) < 1:
-            errors.append("No annotation widgets defined in the configuration. ")
+            errors.append("No annotation widgets defined in the configuration")
 
         if self.num_documents < 1:
-            errors.append("No documents to annotate.")
+            errors.append("No documents to annotate")
 
         return errors
 

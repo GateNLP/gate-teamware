@@ -14,7 +14,7 @@
           <div class="d-flex justify-content-between">
             <div>
               <b-link :to="'/project/'+project.id">{{ project.name }}</b-link>
-
+              <b-badge variant="warning" v-if="!project.is_configured" :title="project.configuration_error.join(', ')" class="ml-2"><b-icon-exclamation-triangle></b-icon-exclamation-triangle></b-badge>
             </div>
             <div>
               <b-badge variant="success" class="mr-2" title="Completed annotations">
