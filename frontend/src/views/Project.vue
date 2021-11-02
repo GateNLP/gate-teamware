@@ -1,20 +1,39 @@
 <template>
-  <div class="container">
-    <h1>Project #{{ projectId }}: {{ local_project.name }}</h1>
+  <div class="container pt-2">
+    <h1>
+      <ProjectIcon :project-id="projectId"></ProjectIcon>
+      {{ local_project.name }}
+    </h1>
 
-    <div class="alert alert-warning" v-if="!local_project.is_configured" >
-      <b-icon-exclamation-triangle></b-icon-exclamation-triangle> Improperly configured project:
-      <ul>
-        <li v-for="message in local_project.configuration_error">{{message}}</li>
-      </ul>
-    </div>
+    <b-card class="mt-2 mb-2">
+      <h4>Project overview</h4>
+      <p class="form-text text-muted">
+        Current status of the project.
+      </p>
+      <ProjectStatusBadges :project="local_project"></ProjectStatusBadges>
+
+
+      <div v-if="!local_project.is_configured" class="alert alert-warning mt-2" >
+        <b-icon-exclamation-triangle></b-icon-exclamation-triangle>
+        Improperly configured project:
+        <ul>
+          <li v-for="message in local_project.configuration_error">{{ message }}</li>
+        </ul>
+      </div>
+      <div v-else-if="local_project.is_completed" class="alert alert-success mt-2" >
+        <b-icon-check-square></b-icon-check-square> All annotation tasks in this project are completed.
+      </div>
+
+    </b-card>
 
     <b-tabs v-model="activeTab">
       <b-tab title="Configuration">
 
-        <h2 class="mt-2 mb-2">Project configuration <b-icon-question-circle id="project-config-help" scale="0.5" style="cursor:pointer;"></b-icon-question-circle></h2>
+        <h2 class="mt-2 mb-2">Project configuration
+          <b-icon-question-circle id="project-config-help" scale="0.5" style="cursor:pointer;"></b-icon-question-circle>
+        </h2>
         <b-popover target="project-config-help" triggers="hover" placement="bottom">
-          The project can be configured on this page with name, description and how annotations are captured.
+          The project can be configured in this tab with name, description and how annotations are captured.
           Once you've configured the project, don't forget to <strong>save the project configuration</strong>.
           Documents &amp; annotations can be added and managed on the <a href="#" @click.prevent="activeTab = 1">Documents
           &amp; Annotations</a> page.
@@ -23,15 +42,18 @@
 
         <b-button-toolbar class="mt-2 mb-2">
           <b-button-group>
-            <b-button @click="saveProjectHandler" :variant="loadingVariant" :disabled="loading" title="Save project configuration.">
+            <b-button @click="saveProjectHandler" :variant="loadingVariant" :disabled="loading"
+                      title="Save project configuration.">
               <b-icon-box-arrow-in-down :animation="loadingIconAnimation"></b-icon-box-arrow-in-down>
               Save
             </b-button>
-            <b-button @click="$refs.projectConfigImportInput.click()" :variant="loadingVariant" :disabled="loading" title="Import JSON project configuration file.">
+            <b-button @click="$refs.projectConfigImportInput.click()" :variant="loadingVariant" :disabled="loading"
+                      title="Import JSON project configuration file.">
               <b-icon-cloud-upload :animation="loadingIconAnimation"></b-icon-cloud-upload>
               Import
             </b-button>
-            <b-button @click="exportProjectConfigHandler" :variant="loadingVariant" :disabled="loading" title="Export project configuration as a JSON file.">
+            <b-button @click="exportProjectConfigHandler" :variant="loadingVariant" :disabled="loading"
+                      title="Export project configuration as a JSON file.">
               <b-icon-cloud-download :animation="loadingIconAnimation"></b-icon-cloud-download>
               Export
             </b-button>
@@ -123,12 +145,16 @@
       </b-tab>
 
       <b-tab title="Documents & Annotations">
-        <h2 class="mt-2 mb-2">Documents & Annotations <b-icon-question-circle id="project-documents-help" scale="0.5" style="cursor:pointer;"></b-icon-question-circle></h2>
+        <h2 class="mt-2 mb-2">Documents & Annotations
+          <b-icon-question-circle id="project-documents-help" scale="0.5"
+                                  style="cursor:pointer;"></b-icon-question-circle>
+        </h2>
         <b-popover target="project-documents-help" triggers="hover" placement="bottom">
-          You can view the list of documents and annotations of this project on this page.
+          You can view the list of documents and annotations of this project in this tab.
           Start by <a href="#" @click.prevent="uploadBtnHandler">uploading</a> documents to the project,
           documents must be in a JSON format. Annotators can then be recruited by using the <a href="#"
-                                                                                               @click.prevent="activeTab = 2">Annotators</a> page.
+                                                                                               @click.prevent="activeTab = 2">Annotators</a>
+          page.
 
         </b-popover>
 
@@ -215,43 +241,7 @@
 
           </div>
         </b-modal>
-        <b-card>
-          <h4>Project documents & annotations summary</h4>
-          <p class="form-text text-muted">
-            Current annotation status of the project.
-          </p>
-          <div>
-            <b-badge variant="success" class="mr-2" title="Completed annotations">
-              <b-icon-pencil-fill></b-icon-pencil-fill>
-              {{ local_project.completed_tasks }}
-            </b-badge>
-            <b-badge variant="danger" class="mr-2" title="Rejected annotations">
-              <b-icon-x-square-fill></b-icon-x-square-fill>
-              {{ local_project.rejected_tasks }}
-            </b-badge>
-            <b-badge variant="warning" class="mr-2" title="Timed out annotations">
-              <b-icon-clock></b-icon-clock>
-              {{ local_project.timed_out_tasks }}
-            </b-badge>
-            <b-badge variant="secondary" class="mr-2" title="Aborted annotations">
-              <b-icon-stop-fill></b-icon-stop-fill>
-              {{ local_project.aborted_tasks }}
-            </b-badge>
-            <b-badge variant="primary" class="mr-2" title="Pending annotations">
-              <b-icon-play-fill></b-icon-play-fill>
-              {{ local_project.pending_tasks }}
-            </b-badge>
-            <b-badge variant="dark" class="mr-2" title="Occupied (completed & pending)/Total tasks">
-              <b-icon-card-checklist></b-icon-card-checklist>
-              {{ local_project.completed_tasks + local_project.pending_tasks }}/{{ local_project.total_tasks }}
-            </b-badge>
-            <b-badge variant="info" class="mr-2" title="Number of documents">
-              <b-icon-file-earmark-fill></b-icon-file-earmark-fill>
-              {{ local_project.documents }}
-            </b-badge>
 
-          </div>
-        </b-card>
 
 
         <div v-if="documents">
@@ -266,7 +256,10 @@
       </b-tab>
 
       <b-tab title="Annotators" :disabled="!local_project.is_configured">
-        <h2 class="mt-2 mb-2">Annotators Management <b-icon-question-circle id="project-annotators-help" scale="0.5" style="cursor:pointer;"></b-icon-question-circle></h2>
+        <h2 class="mt-2 mb-2">Annotators Management
+          <b-icon-question-circle id="project-annotators-help" scale="0.5"
+                                  style="cursor:pointer;"></b-icon-question-circle>
+        </h2>
         <b-popover target="project-annotators-help" triggers="hover" placement="bottom">
           Add annotators to the project by clicking on the list of names in the <strong>right column</strong>. Current
           annotators can be removed
@@ -295,13 +288,18 @@ import VJsoneditor from "v-jsoneditor";
 import {readFileAsync, toastError, toastSuccess} from "@/utils";
 import DocumentsList from "@/components/DocumentsList";
 import MarkdownEditor from "@/components/MarkdownEditor";
+import ProjectIcon from "@/components/ProjectIcon";
+import ProjectStatusBadges from "@/components/ProjectStatusBadges";
 
 export default {
   name: "Project",
   title() {
     return `Project - ${this.local_project.name}`
   },
-  components: {MarkdownEditor, DocumentsList, JsonEditor, AnnotationRenderer, VTable, VJsoneditor, Annotators},
+  components: {
+    ProjectStatusBadges,
+    ProjectIcon,
+    MarkdownEditor, DocumentsList, JsonEditor, AnnotationRenderer, VTable, VJsoneditor, Annotators},
   data() {
     return {
       activeTab: 0,
@@ -316,6 +314,7 @@ export default {
         annotator_max_annotation: 0.6,
         document_input_preview: {},
         is_configured: false,
+        is_completed: false,
       },
       configurationStr: "",
       documents: [],
@@ -408,18 +407,18 @@ export default {
       try {
         const fileList = e.target.files
         try {
-            let file = fileList[0]
-            const configStr = await readFileAsync(file)
-            const config = JSON.parse(configStr)
-            await this.importProjectConfiguration({id: this.projectId, config_dict: config})
-            await this.fetchProject()
-            toastSuccess(this, "Project configuration imported")
+          let file = fileList[0]
+          const configStr = await readFileAsync(file)
+          const config = JSON.parse(configStr)
+          await this.importProjectConfiguration({id: this.projectId, config_dict: config})
+          await this.fetchProject()
+          toastSuccess(this, "Project configuration imported")
 
-          } catch (e) {
-            console.error("Could not parse uploaded file")
-            console.error(e)
-            toastError(this, "Could not parse uploaded file " + file, e)
-          }
+        } catch (e) {
+          console.error("Could not parse uploaded file")
+          console.error(e)
+          toastError(this, "Could not parse uploaded file " + file, e)
+        }
 
       } catch (e) {
         toastError(this, "Could not upload configuration file", e)

@@ -154,6 +154,11 @@ class Project(models.Model):
 
         return self.num_annotation_tasks_total - self.num_completed_tasks < 1
 
+
+    @property
+    def num_annotators(self):
+        return self.annotators.all().count()
+
     def add_annotator(self, user):
         self.annotators.add(user)
         self.save()
@@ -222,7 +227,9 @@ class Project(models.Model):
             "aborted_tasks": self.num_aborted_tasks,
             "total_tasks": self.num_annotation_tasks_total,
             "is_configured": self.is_project_configured,
-            "configuration_error": None if self.is_project_configured else self.project_configuration_error_message
+            "configuration_error": None if self.is_project_configured else self.project_configuration_error_message,
+            "is_completed": self.is_completed,
+            "num_annotators": self.num_annotators,
         }
 
 
