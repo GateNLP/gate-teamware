@@ -1,14 +1,13 @@
 <template>
   <div>
-    <b-collapse v-model="collapse">
+    <div ref="collapse-container" :class="collapseClass">
+      <div v-if="collapse" class="collapse-overlay"></div>
       <slot></slot>
-    </b-collapse>
+    </div>
     <a href="#" @click.prevent="collapse = !collapse">
-      <span v-if="collapse">- Hide</span><span v-else>+ Show</span>
+      <span v-if="collapse">+ Show</span><span v-else>- Hide</span>
     </a>
-
   </div>
-
 </template>
 
 <script>
@@ -16,26 +15,45 @@ export default {
   name: "CollapseText",
   data() {
     return {
-      collapse: false,
+      collapse: true,
     }
-  }
+  },
+  computed: {
+    collapseClass(){
+      return {
+        "collapse-text": this.collapse,
+        "expand-text": !this.collapse
+      }
+    }
+  },
 }
 </script>
 
 <style scoped>
+
+
 .collapse-text {
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-.collapse-text.collapse:not(.show) {
-  display: block;
-  height: 4.5em !important;
+  position: relative;
+  height: 5rem;
   overflow: hidden;
+
 }
 
-.collapse-text.collapsing {
-  height: 4.5em;
+.expand-text {
+  position: relative;
+  height: auto;
+  overflow: hidden;
+
 }
+
+.collapse-overlay {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  background: linear-gradient(rgba(255, 255, 255, 0) 70%, rgba(255, 255, 255, 255));
+}
+
+
 
 </style>
