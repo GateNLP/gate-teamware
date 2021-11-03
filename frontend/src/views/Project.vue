@@ -199,7 +199,7 @@
               <b-icon-arrow-clockwise :animation="loadingIconAnimation"></b-icon-arrow-clockwise>
               Refresh
             </b-button>
-            <b-button variant="primary" @click="$refs.documentUploadInput.click()" title="Upload documents">
+            <b-button variant="primary" @click="showDocumentUploadModal = true" title="Upload documents">
               <b-icon-upload></b-icon-upload>
               Upload
             </b-button>
@@ -210,10 +210,13 @@
 
           </b-button-group>
 
-          <input ref="documentUploadInput" type="file" @change="documentUploadHandler" multiple hidden/>
-
 
         </b-button-toolbar>
+
+        <DocumentUploader v-model="showDocumentUploadModal"
+                          :project-id="projectId"
+                          @uploading="documentStartUploadHandler"
+                          @completed="documentUploadHandler"></DocumentUploader>
 
         <b-modal v-model="showDeleteConfirmModal"
                  ok-variant="danger"
@@ -290,6 +293,7 @@ import DocumentsList from "@/components/DocumentsList";
 import MarkdownEditor from "@/components/MarkdownEditor";
 import ProjectIcon from "@/components/ProjectIcon";
 import ProjectStatusBadges from "@/components/ProjectStatusBadges";
+import DocumentUploader from "@/components/DocumentUploader";
 
 export default {
   name: "Project",
@@ -297,6 +301,7 @@ export default {
     return `Project - ${this.local_project.name}`
   },
   components: {
+    DocumentUploader,
     ProjectStatusBadges,
     ProjectIcon,
     MarkdownEditor, DocumentsList, JsonEditor, AnnotationRenderer, VTable, VJsoneditor, Annotators},
@@ -321,6 +326,7 @@ export default {
       selectedDocuments: [],
       selectedAnnotations: [],
       showDeleteConfirmModal: false,
+      showDocumentUploadModal: false,
       deleteLocked: true,
       loading: false,
     }
@@ -456,36 +462,11 @@ export default {
       }
 
     },
-    async documentUploadHandler(e) {
-
+    async documentStartUploadHandler(e) {
       this.setLoading(true)
-      try {
-        const fileList = e.target.files
-
-        for (let file of fileList) {
-          try {
-            const documentsStr = await readFileAsync(file)
-            const documents = JSON.parse(documentsStr)
-            // Uploaded file must be an array of docs
-            if (documents instanceof Array) {
-              for (let document of documents) {
-                await this.addProjectDocument({projectId: this.projectId, document: document})
-              }
-            }
-
-          } catch (e) {
-            console.error("Could not parse uploaded file")
-            console.error(e)
-            toastError(this, "Could not parse uploaded file " + file, e)
-          }
-
-          await this.fetchProject()
-        }
-
-      } catch (e) {
-        toastError(this, "Could not upload document", e)
-      }
-
+    },
+    async documentUploadHandler(e) {
+      await this.fetchProject()
       this.setLoading(false)
     },
     async setLoading(isLoading) {
