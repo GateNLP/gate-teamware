@@ -203,10 +203,17 @@
               <b-icon-upload></b-icon-upload>
               Upload
             </b-button>
-            <b-button variant="primary" @click="exportAnnotationsHandler" title="Export documents with annotation.">
-              <b-icon-download></b-icon-download>
-              Export
-            </b-button>
+            <b-dropdown  split variant="primary" @click="exportAnnotationsHandler" title="Export documents with annotation.">
+              <template v-slot:button-content>
+                <span>
+                  <b-icon-download></b-icon-download>
+                  Export
+                </span>
+              </template>
+              <b-dropdown-item title="Export with differnt">
+                Hello
+              </b-dropdown-item>
+            </b-dropdown>
 
           </b-button-group>
 

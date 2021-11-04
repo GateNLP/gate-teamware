@@ -28,6 +28,7 @@ import DocumentUploaderItem from "@/components/DocumentUploaderItem";
 
 const csv = require("csvtojson")
 const JSZip = require("jszip")
+import JSONL from 'jsonl-parse-stringify'
 
 export default {
   name: "DocumentUploader",
@@ -76,6 +77,8 @@ export default {
       const fileName = fileStat.name.trim().toLowerCase()
       if (fileName.endsWith(".json")) {
         await this.uploadJSONFile(fileStat)
+      } else if (fileName.endsWith(".jsonl")){
+        await this.uploadJSONLFile(fileStat)
       } else if (fileName.endsWith(".csv")) {
         await this.uploadCSVFile(fileStat)
       } else if (fileName.endsWith(".zip")) {
@@ -98,6 +101,35 @@ export default {
       try {
         const documentsStr = await this.getFileStatStringContent(fileStat)
         const documents = JSON.parse(documentsStr)
+        const numDocs = documents.length
+
+        //Set this way to make map reactive
+        this.$set(fileStat, "numDocs", numDocs)
+
+        // Uploaded file must be an array of docs
+        if (documents instanceof Array) {
+          let uploadedDocs = 0
+          for (let document of documents) {
+
+            uploadedDocs += 1
+
+            //Set this way to make map reactive
+            this.$set(fileStat, "uploadedDocs", uploadedDocs)
+
+            await this.addProjectDocument({projectId: this.projectId, document: document})
+          }
+        }
+
+      } catch (e) {
+        console.error("Could not parse uploaded file")
+        console.error(e)
+        toastError(this, "Could not parse uploaded file " + fileStat.name, e)
+      }
+    },
+    async uploadJSONLFile(fileStat) {
+      try {
+        const documentsStr = await this.getFileStatStringContent(fileStat)
+        const documents = JSONL.parse(documentsStr)
         const numDocs = documents.length
 
         //Set this way to make map reactive
