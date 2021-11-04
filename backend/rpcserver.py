@@ -1,5 +1,6 @@
 import json
 import logging
+import inspect
 from json.decoder import JSONDecodeError
 
 from django.http import JsonResponse, HttpRequest
@@ -30,6 +31,29 @@ class RPCMethod:
 
 
 class JSONRPCEndpoint(View):
+
+    @staticmethod
+    def endpoint_listing():
+        endpoints_list = {}
+        for func_name, rmethod in REGISTERED_RPC_METHODS.items():
+
+            argspec = inspect.getfullargspec(rmethod.function)
+            args_list = []
+            if len(argspec.args) > 1:
+                args_list = argspec.args[1:]
+
+
+            endpoints_list[func_name] = {
+                "description": rmethod.function.__doc__,
+                "arguments": args_list,
+                "defaults": argspec.defaults,
+                "require_authentication": rmethod.authenticate,
+                "require_manager": rmethod.requires_manager,
+                "require_admin": rmethod.requires_admin
+            }
+
+        return endpoints_list
+
 
     def success_response(self, data, msg_id=None, http_status=200):
         context = {

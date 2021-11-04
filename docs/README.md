@@ -3,6 +3,7 @@
 A service for collaborative document annotation.
 
 
+
 ## Django settings files
 
 Django settings are located in `annotation_tool/setttings` folder. The app will use `base.py` setting by default
@@ -333,5 +334,30 @@ then deploy the stack with
 ```
 
 
+
+
+<script>
+
+
+export default {
+  data(){
+    return {
+      somevar: "Test var ouput"
+
+    }
+
+  },
+  computed: {
+    apiListing(){
+      console.log(apiList);
+      return apiList;
+
+    }
+  },
+  mounted () {
+    
+  }
+}
+</script>
 
 

@@ -76,6 +76,18 @@ class Project(models.Model):
     annotation_timeout = models.IntegerField(default=60)
     document_input_preview = models.JSONField(default=default_document_input_preview)
 
+    project_config_fields = {
+        "name",
+        "description",
+        "annotator_guideline",
+        "configuration",
+        "annotations_per_doc",
+        "annotator_max_annotation",
+        "annotation_timeout",
+        "document_input_preview"
+    }
+
+
     @property
     def num_documents(self):
         return self.documents.count()
@@ -181,6 +193,18 @@ class Project(models.Model):
         if self.is_completed:
             for annotator in self.annotators.all():
                 self.remove_annotator(annotator)
+
+    def get_project_stats(self):
+        return {
+            "owned_by": self.owner.username,
+            "documents": self.num_documents,
+            "completed_tasks": self.num_completed_tasks,
+            "pending_tasks": self.num_pending_tasks,
+            "rejected_tasks": self.num_rejected_tasks,
+            "timed_out_tasks": self.num_timed_out_tasks,
+            "aborted_tasks": self.num_aborted_tasks,
+            "total_tasks": self.num_annotation_tasks_total
+        }
 
 
 class Document(models.Model):

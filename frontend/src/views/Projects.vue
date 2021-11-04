@@ -3,7 +3,7 @@
     <h1>Projects</h1>
 
     <b-button-toolbar class="mb-4">
-      <b-button @click="handleCreateProject">Create project</b-button>
+      <b-button @click="handleCreateProject" variant="primary">Create project</b-button>
     </b-button-toolbar>
 
     <Search @input="searchProject"></Search>
@@ -74,6 +74,7 @@ import {mapActions, mapState} from 'vuex'
 import Pagination from "@/components/Pagination";
 import Search from "@/components/Search";
 import _ from "lodash"
+import {toastError} from "@/utils";
 
 export default {
   name: 'Projects',
@@ -82,11 +83,20 @@ export default {
   data(){
     return {
       searchStr: null,
+      projects: [],
     }
   },
   props: {},
   methods: {
     ...mapActions(["getProjects", "createProject"]),
+    async updateProjectList(){
+      try{
+        this.projects = await this.getProjects();
+      }catch (e){
+        toastError(this, "Could not fetch project list", e)
+      }
+
+    },
     async handleCreateProject() {
       if (this.user && this.user.isAuthenticated) {
         let projectObj = await this.createProject()
@@ -98,7 +108,7 @@ export default {
     }
   },
   computed: {
-    ...mapState(["projects", "user"]),
+    ...mapState(["user"]),
     filteredProjects(){
       if(!this.searchStr || this.searchStr.trim().length < 1)
         return this.projects
@@ -115,7 +125,7 @@ export default {
     }
   },
   mounted() {
-    this.getProjects();
+    this.updateProjectList()
   }
 }
 </script>
