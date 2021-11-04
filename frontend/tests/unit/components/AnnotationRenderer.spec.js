@@ -5,13 +5,13 @@ import '@testing-library/jest-dom';
 import '../globalVue'
 import AnnotationRenderer from "@/components/AnnotationRenderer";
 
-function elementHasTagWithName(elem, tag, name){
+function elementHasTagWithName(elem, tag, name) {
     const queryStr = `${tag}[name='${name}']`
     const result = elem.querySelector(queryStr)
     return result
 }
 
-function elementHasTagWithValue(elem, tag, val){
+function elementHasTagWithValue(elem, tag, val) {
     const queryStr = `${tag}[value='${val}']`
     const result = elem.querySelector(queryStr)
     return result
@@ -39,7 +39,7 @@ describe("AnnotationRenderer", () => {
                 ar.getByText(comp.description)
 
             //Check that the correct component is rendered
-            switch (comp.type){
+            switch (comp.type) {
                 case "text":
                     expect(elementHasTagWithName(ar.container, "input", comp.name)).toBeTruthy()
                     break
@@ -126,11 +126,145 @@ describe("AnnotationRenderer", () => {
         expect(ar.emitted().submit).toHaveLength(1)
 
 
+    })
+
+    async function clickCheckboxInAnnotationRenderer(annotationRenderer, val) {
+        let checkboxElem = elementHasTagWithValue(annotationRenderer.container, "input", val)
+        await fireEvent.click(checkboxElem)
+    }
+
+    it('Test checkbox', async () => {
+
+        const annotationComps = [
+            {
+                name: "text",
+                type: "checkbox",
+                options: {
+                    "val1": "Val 1",
+                    "val2": "Val 2",
+                    "val3": "Val 3",
+                    "val4": "Val 4",
+                }
+
+            }]
+
+        const ar = render(AnnotationRenderer, {
+            props: {
+                config: annotationComps
+            }
+        })
+
+        const submitBtn = ar.getByText("Submit")
+
+        // Empty - Fail
+        await fireEvent.click(submitBtn)
+        expect(ar.emitted().submit).not.toBeTruthy()
+
+        await clickCheckboxInAnnotationRenderer(ar, "val1")
+
+        // Single selection - Pass
+        await fireEvent.click(submitBtn)
+        expect(ar.emitted().submit).toBeTruthy()
+
+        await clickCheckboxInAnnotationRenderer(ar, "val2")
+
+
+        // Two selection - Pass
+        await fireEvent.click(submitBtn)
+        expect(ar.emitted().submit).toBeTruthy()
+
 
     })
 
-    it('Test checkboxes', async () => {
+    it('Test checkbox not optional', async () => {
 
+        const annotationComps = [
+            {
+                name: "text",
+                type: "checkbox",
+                optional: false,
+                options: {
+                    "val1": "Val 1",
+                    "val2": "Val 2",
+                    "val3": "Val 3",
+                    "val4": "Val 4",
+                }
+
+            }]
+
+        const ar = render(AnnotationRenderer, {
+            props: {
+                config: annotationComps
+            }
+        })
+
+        const submitBtn = ar.getByText("Submit")
+
+        // Empty - Fail
+        await fireEvent.click(submitBtn)
+        expect(ar.emitted().submit).not.toBeTruthy()
+
+        await clickCheckboxInAnnotationRenderer(ar, "val1")
+
+        // Single selection - Pass
+        await fireEvent.click(submitBtn)
+        expect(ar.emitted().submit).toBeTruthy()
+
+        await clickCheckboxInAnnotationRenderer(ar, "val2")
+
+
+        // Two selection - Pass
+        await fireEvent.click(submitBtn)
+        expect(ar.emitted().submit).toBeTruthy()
+
+
+    })
+
+    it('Test checkbox optional', async () => {
+
+        const annotationComps = [
+            {
+                name: "text",
+                type: "checkbox",
+                optional: true,
+                options: {
+                    "val1": "Val 1",
+                    "val2": "Val 2",
+                    "val3": "Val 3",
+                    "val4": "Val 4",
+                }
+
+            }]
+
+        const ar = render(AnnotationRenderer, {
+            props: {
+                config: annotationComps
+            }
+        })
+
+        const submitBtn = ar.getByText("Submit")
+
+        // Empty - Pass
+        await fireEvent.click(submitBtn)
+        expect(ar.emitted().submit).toBeTruthy()
+
+        await clickCheckboxInAnnotationRenderer(ar, "val1")
+
+        // Single selection - Pass
+        await fireEvent.click(submitBtn)
+        expect(ar.emitted().submit).toBeTruthy()
+
+        await clickCheckboxInAnnotationRenderer(ar, "val2")
+
+
+        // Two selection - Pass
+        await fireEvent.click(submitBtn)
+        expect(ar.emitted().submit).toBeTruthy()
+
+
+    })
+
+    it('Test checkbox minSelected=2', async () => {
         const annotationComps = [
             {
                 name: "text",
@@ -151,25 +285,66 @@ describe("AnnotationRenderer", () => {
             }
         })
 
-         const submitBtn = ar.getByText("Submit")
+        const submitBtn = ar.getByText("Submit")
 
         // Empty - Fail
         await fireEvent.click(submitBtn)
         expect(ar.emitted().submit).not.toBeTruthy()
 
-
-        const checkboxElem = elementHasTagWithValue(ar.container, "input", "val1")
-        await fireEvent.click(checkboxElem)
+        await clickCheckboxInAnnotationRenderer(ar, "val1")
 
         // Single selection - Fail
         await fireEvent.click(submitBtn)
         expect(ar.emitted().submit).not.toBeTruthy()
 
-        const checkboxElem2 = elementHasTagWithValue(ar.container, "input", "val2")
-        await fireEvent.click(checkboxElem2)
+        await clickCheckboxInAnnotationRenderer(ar, "val2")
 
 
-        // Two selection - Success
+        // Two selection - Pass
+        await fireEvent.click(submitBtn)
+        expect(ar.emitted().submit).toBeTruthy()
+
+
+    })
+
+    it('Test checkbox minSelected=2 and optional, minSelected should have priority', async () => {
+        const annotationComps = [
+            {
+                name: "text",
+                type: "checkbox",
+                optional: true,
+                minSelected: 2,
+                options: {
+                    "val1": "Val 1",
+                    "val2": "Val 2",
+                    "val3": "Val 3",
+                    "val4": "Val 4",
+                }
+
+            }]
+
+        const ar = render(AnnotationRenderer, {
+            props: {
+                config: annotationComps
+            }
+        })
+
+        const submitBtn = ar.getByText("Submit")
+
+        // Empty - Fail
+        await fireEvent.click(submitBtn)
+        expect(ar.emitted().submit).not.toBeTruthy()
+
+        await clickCheckboxInAnnotationRenderer(ar, "val1")
+
+        // Single selection - Fail
+        await fireEvent.click(submitBtn)
+        expect(ar.emitted().submit).not.toBeTruthy()
+
+        await clickCheckboxInAnnotationRenderer(ar, "val2")
+
+
+        // Two selection - Pass
         await fireEvent.click(submitBtn)
         expect(ar.emitted().submit).toBeTruthy()
 
