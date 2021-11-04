@@ -27,7 +27,7 @@
     "test:backend": "pytest -v",
     "test:cypress": "cypress run",
     "test:integration": "run-p --race serve:frontendintegration test:cypress",
-    "test:ci_integration": "npm run build && run-p --race serve:server test:cypress",
+    "test:ci_integration": "npm run build && run-p --race serve:integration test:cypress",
     "test": "run-s test:frontend test:backend test:integration"
   },
   "repository": {
