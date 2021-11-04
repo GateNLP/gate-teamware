@@ -21,6 +21,7 @@
     "core-js": "^3.6.5",
     "css-loader": "^5.2.1",
     "js-cookie": "^2.2.1",
+    "markdown-it-vue": "^1.1.6",
     "mustache": "^4.2.0",
     "sass": "^1.32.8",
     "sass-loader": "^10.1.1",

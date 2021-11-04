@@ -58,7 +58,8 @@ class ServiceUser(AbstractUser):
         return self.annotations.filter(pk=annotation.pk).count() > 0
 
 
-
+def default_document_input_preview():
+    return {"text": "<p>Some html text <strong>in bold</strong>.</p><p>Paragraph 2.</p>"}
 
 class Project(models.Model):
     """
@@ -66,12 +67,26 @@ class Project(models.Model):
     """
     name = models.TextField(default="New project")
     description = models.TextField(default="")
+    annotator_guideline = models.TextField(default="")
     created = models.DateTimeField(default=timezone.now)
     configuration = models.JSONField(default=list)
     owner = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, related_name="owns")
     annotations_per_doc = models.IntegerField(default=3)
     annotator_max_annotation = models.FloatField(default=0.6)
     annotation_timeout = models.IntegerField(default=60)
+    document_input_preview = models.JSONField(default=default_document_input_preview)
+
+    project_config_fields = {
+        "name",
+        "description",
+        "annotator_guideline",
+        "configuration",
+        "annotations_per_doc",
+        "annotator_max_annotation",
+        "annotation_timeout",
+        "document_input_preview"
+    }
+
 
     @property
     def num_documents(self):
@@ -103,6 +118,23 @@ class Project(models.Model):
 
 
     @property
+    def is_project_configured(self):
+        return len(self.configuration) > 0 and self.num_documents > 0
+
+    @property
+    def project_configuration_error_message(self):
+
+        errors = []
+
+        if len(self.configuration) < 1:
+            errors.append("No annotation widgets defined in the configuration")
+
+        if self.num_documents < 1:
+            errors.append("No documents to annotate")
+
+        return errors
+
+    @property
     def num_occupied_tasks(self):
         num_tasks = 0
         for doc in self.documents.all():
@@ -121,6 +153,11 @@ class Project(models.Model):
             return False
 
         return self.num_annotation_tasks_total - self.num_completed_tasks < 1
+
+
+    @property
+    def num_annotators(self):
+        return self.annotators.all().count()
 
     def add_annotator(self, user):
         self.annotators.add(user)
@@ -178,6 +215,22 @@ class Project(models.Model):
         if self.is_completed:
             for annotator in self.annotators.all():
                 self.remove_annotator(annotator)
+
+    def get_project_stats(self):
+        return {
+            "owned_by": self.owner.username,
+            "documents": self.num_documents,
+            "completed_tasks": self.num_completed_tasks,
+            "pending_tasks": self.num_pending_tasks,
+            "rejected_tasks": self.num_rejected_tasks,
+            "timed_out_tasks": self.num_timed_out_tasks,
+            "aborted_tasks": self.num_aborted_tasks,
+            "total_tasks": self.num_annotation_tasks_total,
+            "is_configured": self.is_project_configured,
+            "configuration_error": None if self.is_project_configured else self.project_configuration_error_message,
+            "is_completed": self.is_completed,
+            "num_annotators": self.num_annotators,
+        }
 
 
 class Document(models.Model):
@@ -276,6 +329,7 @@ class Annotation(models.Model):
         return {
             "project_name": project.name,
             "project_description": project.description,
+            "project_annotator_guideline": project.annotator_guideline,
             "project_config": project.configuration,
             "project_id": project.pk,
             "document_id": document.pk,

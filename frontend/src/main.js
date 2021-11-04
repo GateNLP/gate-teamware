@@ -3,21 +3,31 @@ import AnnotationApp from './AnnotationApp.vue'
 import router from './router'
 import store from './store'
 import titleMixin from "@/utils/titleMixin";
+
+
+
+
 import {mapActions} from 'vuex'
 import {BootstrapVue, BootstrapVueIcons, IconsPlugin} from 'bootstrap-vue'
 import VJsoneditor from 'v-jsoneditor'
+import MarkdownItVue from 'markdown-it-vue'
+
 
 
 // Import Bootstrap an BootstrapVue CSS files (order is important)
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
 
+
 //Importing scss assets needs an @/ in front of it
+
 import "@/assets/sass/app.scss"
+
 
 Vue.use(BootstrapVue)
 Vue.use(BootstrapVueIcons)
 Vue.use(VJsoneditor)
+Vue.use(MarkdownItVue)
 // Vue.use(IconsPlugin) //optional
 
 Vue.mixin(titleMixin)

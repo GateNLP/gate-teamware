@@ -39,6 +39,9 @@ User = get_user_model()
 
 @rpc_method
 def is_authenticated(request):
+    """
+    Checks that the current user has logged in.
+    """
     context = {
         "isAuthenticated": False,
         "isManager": False,
@@ -326,28 +329,65 @@ def get_user_annotations(request):
 ##################################
 
 @rpc_method_manager
-@transaction.atomic
 def create_project(request):
-    proj = Project.objects.create()
-    proj.owner = request.user
-    proj.save()
 
-    return serializer.serialize(proj)
+    with transaction.atomic():
+
+        proj = Project.objects.create()
+        proj.owner = request.user
+        proj.save()
+
+        return serializer.serialize(proj)
 
 
 @rpc_method_manager
-@transaction.atomic
 def update_project(request, project_dict):
-    project = serializer.deserialize(Project, project_dict)
-
-    return True
+    with transaction.atomic():
+        project = serializer.deserialize(Project, project_dict)
+        return True
 
 
 @rpc_method_manager
-def get_project(request, pk):
-    proj = Project.objects.get(pk=pk)
-    return serializer.serialize(proj)
+def get_project(request, project_id):
+    proj = Project.objects.get(pk=project_id)
+    out_proj = {
+        **serializer.serialize(proj),
+        **proj.get_project_stats()
+    }
+    return out_proj
 
+
+
+@rpc_method_manager
+def clone_project(request, project_id):
+    with transaction.atomic():
+        current_project = Project.objects.get(pk=project_id)
+        new_project = Project.objects.create()
+        new_project.owner = request.user
+        for field_name in Project.project_config_fields:
+            if field_name == "name":
+                setattr(new_project, field_name, "Copy of " + getattr(current_project, field_name))
+            else:
+                setattr(new_project, field_name, getattr(current_project, field_name))
+        new_project.save()
+
+        return serializer.serialize(new_project)
+
+
+
+@rpc_method_manager
+def import_project_config(request, pk, project_dict):
+    with transaction.atomic():
+        serializer.deserialize(Project, {
+            "id": pk,
+            **project_dict
+        }, Project.project_config_fields)
+
+
+@rpc_method_manager
+def export_project_config(request, pk):
+    proj = Project.objects.get(pk=pk)
+    return serializer.serialize(proj, Project.project_config_fields)
 
 @rpc_method_manager
 def get_projects(request):
@@ -355,15 +395,10 @@ def get_projects(request):
 
     output_projects = []
     for proj in projects:
-        out_proj = serializer.serialize(proj)
-        out_proj["owned_by"] = proj.owner.username
-        out_proj["documents"] = proj.num_documents
-        out_proj["completed_tasks"] = proj.num_completed_tasks
-        out_proj["pending_tasks"] = proj.num_pending_tasks
-        out_proj["rejected_tasks"] = proj.num_rejected_tasks
-        out_proj["timed_out_tasks"] = proj.num_timed_out_tasks
-        out_proj["aborted_tasks"] = proj.num_aborted_tasks
-        out_proj["total_tasks"] = proj.num_annotation_tasks_total
+        out_proj = {
+            **serializer.serialize(proj, {"id", "name", "created"}),
+            **proj.get_project_stats()
+        }
         output_projects.append(out_proj)
     return output_projects
 
@@ -410,22 +445,24 @@ def get_project_documents(request, project_id):
 
 
 @rpc_method_manager
-@transaction.atomic
 def add_project_document(request, project_id, document_data):
-    project = Project.objects.get(pk=project_id)
-    document = Document.objects.create(project=project)
-    document.data = document_data
-    document.save()
 
-    return document.pk
+    with transaction.atomic():
+        project = Project.objects.get(pk=project_id)
+        document = Document.objects.create(project=project)
+        document.data = document_data
+        document.save()
+
+        return document.pk
 
 
 @rpc_method_manager
-@transaction.atomic
 def add_document_annotation(request, doc_id, annotation):
-    document = Document.objects.get(pk=doc_id)
-    annotation = Annotation.objects.create(document=document, data=annotation, user=request.user)
-    return annotation.pk
+
+    with transaction.atomic():
+        document = Document.objects.get(pk=doc_id)
+        annotation = Annotation.objects.create(document=document, data=annotation, user=request.user)
+        return annotation.pk
 
 
 @rpc_method_manager
@@ -481,23 +518,23 @@ def get_project_annotators(request, proj_id):
 
 
 @rpc_method_manager
-@transaction.atomic
 def add_project_annotator(request, proj_id, username):
-    annotator = User.objects.get(username=username)
-    project = Project.objects.get(pk=proj_id)
-    project.add_annotator(annotator)
-    project.save()
-    return True
+    with transaction.atomic():
+        annotator = User.objects.get(username=username)
+        project = Project.objects.get(pk=proj_id)
+        project.add_annotator(annotator)
+        project.save()
+        return True
 
 
 @rpc_method_manager
-@transaction.atomic
 def remove_project_annotator(request, proj_id, username):
-    annotator = User.objects.get(username=username)
-    project = Project.objects.get(pk=proj_id)
-    project.remove_annotator(annotator)
-    project.save()
-    return True
+    with transaction.atomic():
+        annotator = User.objects.get(username=username)
+        project = Project.objects.get(pk=proj_id)
+        project.remove_annotator(annotator)
+        project.save()
+        return True
 
 
 ###############################
@@ -505,70 +542,75 @@ def remove_project_annotator(request, proj_id, username):
 ###############################
 
 @rpc_method_auth
-@transaction.atomic
 def get_annotation_task(request):
     """ Gets the annotator's current task """
 
-    # Times out any pending annotation
-    Annotation.check_for_timed_out_annotations()
+    with transaction.atomic():
 
-    # Gets project the user's associated with
-    user = request.user
-    project = user.annotates
+        # Times out any pending annotation
+        Annotation.check_for_timed_out_annotations()
 
-    # No project to annotate
-    if not project:
-        return None
+        # Gets project the user's associated with
+        user = request.user
+        project = user.annotates
 
-    # User has existing task
-    annotation = project.get_current_annotator_task(user)
-
-    # Check that user has not reached quota
-    if not annotation:
-        # Check that the user has quota first
-        if project.annotator_reached_quota(user):
-            project.remove_annotator(user)
+        # No project to annotate
+        if not project:
             return None
 
-        # Return
-        annotation = project.assign_annotator_task(user)
+        # User has existing task
+        annotation = project.get_current_annotator_task(user)
 
-    if annotation:
-        return annotation.get_annotation_task()
+        # Check that user has not reached quota
+        if not annotation:
+            # Check that the user has quota first
+            if project.annotator_reached_quota(user):
+                project.remove_annotator(user)
+                return None
 
-    return None
+            # Return
+            annotation = project.assign_annotator_task(user)
+
+        if annotation:
+            return annotation.get_annotation_task()
+
+        return None
 
 
 @rpc_method_auth
-@transaction.atomic
 def complete_annotation_task(request, annotation_id, annotation_data):
     """ Complete the annotator's current task, with option to get the next task """
-    # Gets project the user's associated with
-    user = request.user
 
-    annotation = Annotation.objects.get(pk=annotation_id)
-    if not annotation.user_allowed_to_annotate(user):
-        raise PermissionError(
-            f"User {user.username} trying to complete annotation id {annotation_id} that doesn't belong to them")
+    with transaction.atomic():
 
-    if annotation:
-        annotation.complete_annotation(annotation_data)
+        # Gets project the user's associated with
+        user = request.user
+
+        annotation = Annotation.objects.get(pk=annotation_id)
+        if not annotation.user_allowed_to_annotate(user):
+            raise PermissionError(
+                f"User {user.username} trying to complete annotation id {annotation_id} that doesn't belong to them")
+
+        if annotation:
+            annotation.complete_annotation(annotation_data)
 
 
 @rpc_method_auth
-@transaction.atomic
 def reject_annotation_task(request, annotation_id):
     """  """
-    # Gets project the user's associated with
-    user = request.user
 
-    annotation = Annotation.objects.get(pk=annotation_id)
-    if not annotation.user_allowed_to_annotate(user):
-        raise PermissionError(
-            f"User {user.username} trying to complete annotation id {annotation_id} that doesn't belong to them")
+    with transaction.atomic():
 
-    if annotation:
-        annotation.reject_annotation()
+        # Gets project the user's associated with
+        user = request.user
+
+        annotation = Annotation.objects.get(pk=annotation_id)
+        if not annotation.user_allowed_to_annotate(user):
+            raise PermissionError(
+                f"User {user.username} trying to complete annotation id {annotation_id} that doesn't belong to them")
+
+        if annotation:
+            annotation.reject_annotation()
 
 
 @rpc_method_auth
@@ -634,3 +676,13 @@ def admin_update_user_password(request, username, password):
     user = User.objects.get(username=username)
     user.set_password(password)
     user.save()
+
+
+###############################
+### Utility Methods         ###
+###############################
+
+@rpc_method
+def get_endpoint_listing(request):
+    from .rpcserver import JSONRPCEndpoint
+    return JSONRPCEndpoint.endpoint_listing()

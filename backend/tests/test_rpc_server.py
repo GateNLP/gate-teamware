@@ -8,9 +8,13 @@ from django.contrib.auth.models import AnonymousUser
 from django.test.client import RequestFactory
 from backend.models import Annotation, Document, Project
 from backend.rpcserver import rpc_method, rpc_method_auth, AuthError, rpc_method_manager, rpc_method_admin, \
-    UNAUTHORIZED_ERROR, AUTHENTICATION_ERROR
+    UNAUTHORIZED_ERROR, AUTHENTICATION_ERROR, JSONRPCEndpoint
 import backend.rpcserver
 
+@rpc_method
+def rpc_test_function_listing(request, param1, param2=30, param3="Test"):
+    """ Used in the testing of endpoints listing """
+    return param1 + param2
 
 @rpc_method
 def rpc_test_add_func(request, a, b):
@@ -292,6 +296,9 @@ class TestRPCServer(TestEndpoint):
         response = self.call_rpc(client, "rpc_test_need_admin")
         self.assertEqual(response.status_code, 200)
 
+    def test_endpoint_listing(self):
+        listing = JSONRPCEndpoint.endpoint_listing()
+        print(listing)
 
 
 

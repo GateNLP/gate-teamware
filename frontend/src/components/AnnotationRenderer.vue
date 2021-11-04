@@ -101,7 +101,8 @@ export default {
         const elemName = elemConfig.name
         const elemType = elemConfig.type
 
-        if (!this.ignoreValidateTypes.includes(elemType) && !elemConfig.optional) {
+        if (!this.ignoreValidateTypes.includes(elemType) && 
+            (!elemConfig.optional || (elemType === "checkbox" && "minSelected" in elemConfig))) {
           // Validate to false as default
           this.validation[elemName] = false
 

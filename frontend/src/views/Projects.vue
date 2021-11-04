@@ -3,7 +3,7 @@
     <h1>Projects</h1>
 
     <b-button-toolbar class="mb-4">
-      <b-button @click="handleCreateProject">Create project</b-button>
+      <b-button @click="handleCreateProject" variant="primary">Create project</b-button>
     </b-button-toolbar>
 
     <Search @input="searchProject"></Search>
@@ -13,40 +13,15 @@
         <b-list-group-item v-for="project in pageItems" :key="project.id">
           <div class="d-flex justify-content-between">
             <div>
-              <b-link :to="'/project/'+project.id">{{ project.name }}</b-link>
 
+              <b-link :to="'/project/'+project.id">
+                <ProjectIcon :project-id="project.id" scale="1" shift-v="0"></ProjectIcon>
+                {{ project.name }}
+              </b-link>
+              <b-badge variant="warning" v-if="!project.is_configured" :title="project.configuration_error.join(', ')" class="ml-2"><b-icon-exclamation-triangle></b-icon-exclamation-triangle></b-badge>
+              <b-badge variant="success" v-else-if="project.is_completed" title="All annotation tasks in the project are completed." class="ml-2"><b-icon-check-square></b-icon-check-square></b-badge>
             </div>
-            <div>
-              <b-badge variant="success" class="mr-2" title="Completed annotations">
-                <b-icon-pencil-fill></b-icon-pencil-fill>
-                {{ project.completed_tasks }}
-              </b-badge>
-              <b-badge variant="danger" class="mr-2" title="Rejected annotations">
-                <b-icon-x-square-fill></b-icon-x-square-fill>
-                {{ project.rejected_tasks }}
-              </b-badge>
-              <b-badge variant="warning" class="mr-2" title="Timed out annotations">
-                <b-icon-clock></b-icon-clock>
-                {{ project.timed_out_tasks }}
-              </b-badge>
-              <b-badge variant="secondary" class="mr-2" title="Aborted annotations">
-                <b-icon-stop-fill></b-icon-stop-fill>
-                {{ project.aborted_tasks }}
-              </b-badge>
-              <b-badge variant="primary" class="mr-2" title="Pending annotations">
-                <b-icon-play-fill></b-icon-play-fill>
-                {{ project.pending_tasks }}
-              </b-badge>
-              <b-badge variant="dark" class="mr-2" title="Occupied (completed & pending)/Total tasks">
-                <b-icon-card-checklist></b-icon-card-checklist>
-                {{ project.completed_tasks + project.pending_tasks }}/{{ project.total_tasks }}
-              </b-badge>
-              <b-badge variant="info" class="mr-2" title="Number of documents">
-                <b-icon-file-earmark-fill></b-icon-file-earmark-fill>
-                {{ project.documents }}
-              </b-badge>
-
-            </div>
+            <ProjectStatusBadges :project="project"></ProjectStatusBadges>
 
           </div>
 
@@ -74,19 +49,31 @@ import {mapActions, mapState} from 'vuex'
 import Pagination from "@/components/Pagination";
 import Search from "@/components/Search";
 import _ from "lodash"
+import {toastError} from "@/utils";
+import ProjectIcon from "@/components/ProjectIcon";
+import ProjectStatusBadges from "@/components/ProjectStatusBadges";
 
 export default {
   name: 'Projects',
   title: "Projects",
-  components: {Search, Pagination},
+  components: {ProjectStatusBadges, ProjectIcon, Search, Pagination},
   data(){
     return {
       searchStr: null,
+      projects: [],
     }
   },
   props: {},
   methods: {
     ...mapActions(["getProjects", "createProject"]),
+    async updateProjectList(){
+      try{
+        this.projects = await this.getProjects();
+      }catch (e){
+        toastError(this, "Could not fetch project list", e)
+      }
+
+    },
     async handleCreateProject() {
       if (this.user && this.user.isAuthenticated) {
         let projectObj = await this.createProject()
@@ -98,7 +85,7 @@ export default {
     }
   },
   computed: {
-    ...mapState(["projects", "user"]),
+    ...mapState(["user"]),
     filteredProjects(){
       if(!this.searchStr || this.searchStr.trim().length < 1)
         return this.projects
@@ -115,7 +102,7 @@ export default {
     }
   },
   mounted() {
-    this.getProjects();
+    this.updateProjectList()
   }
 }
 </script>
