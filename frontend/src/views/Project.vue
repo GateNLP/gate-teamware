@@ -23,7 +23,7 @@
             <b-button @click="cloneProjectConfigHandler" :variant="loadingVariant" :disabled="loading"
                       title="Create a new project using this project's configuration. Does not copy documents, annotations or annotator list.">
               <b-icon-clipboard :animation="loadingIconAnimation"></b-icon-clipboard>
-              Clone
+              Clone this project
             </b-button>
 
 
