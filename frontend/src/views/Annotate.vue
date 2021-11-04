@@ -12,8 +12,9 @@
 
         <div v-if="annotationTask.project_annotator_guideline && annotationTask.project_annotator_guideline.length > 0">
           <h3>Annotator guideline</h3>
-          <MarkdownRenderer :content="annotationTask.project_annotator_guideline"></MarkdownRenderer>
+          <CollapseText><MarkdownRenderer :content="annotationTask.project_annotator_guideline"></MarkdownRenderer></CollapseText>
         </div>
+
 
 
 
@@ -51,11 +52,12 @@ import _ from "lodash"
 import {mapActions, mapState} from "vuex";
 import AnnotationRenderer from "@/components/AnnotationRenderer";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
+import CollapseText from "@/components/CollapseText";
 
 export default {
   name: "Annotate",
   title: "Annotate",
-  components: {MarkdownRenderer, AnnotationRenderer},
+  components: {CollapseText, MarkdownRenderer, AnnotationRenderer},
   data() {
     return {
       annotationTask: null
