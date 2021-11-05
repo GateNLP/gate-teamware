@@ -203,15 +203,18 @@
               <b-icon-upload></b-icon-upload>
               Upload
             </b-button>
-            <b-dropdown  split variant="primary" @click="exportAnnotationsHandler" title="Export documents with annotation.">
+            <b-dropdown  split variant="primary" @click="exportAnnotationsHandler('json')" title="Export documents with annotation.">
               <template v-slot:button-content>
                 <span>
                   <b-icon-download></b-icon-download>
                   Export
                 </span>
               </template>
-              <b-dropdown-item title="Export with differnt">
-                Hello
+              <b-dropdown-item title="Export as .csv files" @click="exportAnnotationsHandler('jsonl')">
+                Export as JSONL
+              </b-dropdown-item>
+              <b-dropdown-item title="Export as .csv files" @click="exportAnnotationsHandler('csv')">
+                Export as CSV
               </b-dropdown-item>
             </b-dropdown>
 
@@ -479,23 +482,31 @@ export default {
     async setLoading(isLoading) {
       this.loading = isLoading
     },
-    async exportAnnotationsHandler() {
-      try {
-        let response = await this.getAnnotations(this.projectId)
-        let fileURL = window.URL.createObjectURL(new Blob([response]));
-        let fileLink = document.createElement('a');
+    async exportAnnotationsHandler(exportType) {
+      // try {
+      //   let response = await this.getAnnotations(this.projectId)
+      //   let fileURL = window.URL.createObjectURL(new Blob([response]));
+      //   let fileLink = document.createElement('a');
+      //
+      //
+      //   fileLink.href = fileURL;
+      //   fileLink.setAttribute('download', 'annotations.json');
+      //   document.body.appendChild(fileLink);
+      //
+      //   fileLink.click();
+      //
+      // } catch (e) {
+      //   toastError(this, "Could not export annotations", e)
+      // }
 
-
-        fileLink.href = fileURL;
-        fileLink.setAttribute('download', 'annotations.json');
-        document.body.appendChild(fileLink);
-
-        fileLink.click();
-
-      } catch (e) {
-        toastError(this, "Could not export annotations", e)
+      const supportedExportType = new Set(["json", "jsonl", "csv"])
+      if(supportedExportType.has(exportType)){
+        window.location.href = `/download_annotations/${this.projectId}/${exportType}/`
       }
-
+      else{
+        const errorMsg = "Export type " + exportType + " not available."
+        toastError(this, errorMsg, { message: errorMsg})
+      }
 
     },
     goToAnnotatePage(e) {

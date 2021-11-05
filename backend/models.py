@@ -266,6 +266,13 @@ class Document(models.Model):
         return self.annotations.filter(
             Q(status=Annotation.COMPLETED) | Q(status=Annotation.PENDING)).count()
 
+    @property
+    def doc_annotation_dict(self):
+        doc_dict = self.data
+        annotations = [anno.data for anno in self.annotations.all()]
+        doc_dict["annotations"] = annotations
+        return doc_dict
+
     def user_can_annotate_document(self, user):
         """ User must not have completed, pending or rejected the document"""
         num_user_annotation_in_doc = self.num_user_completed_annotations(user) + self.num_user_rejected_annotations(
