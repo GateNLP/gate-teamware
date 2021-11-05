@@ -23,7 +23,7 @@ python libraries and nodejs which is used to install js libraries.
 * Install anaconda/miniconda
 * Create a blank virtual conda env
   ```bash
-  $ conda create -n annotation
+  $ conda create -n annotation python=3.9
   ```
 * Activate conda environment
   ```bash
@@ -38,7 +38,7 @@ python libraries and nodejs which is used to install js libraries.
 * Install nodejs, postgresql and openssl in the conda environment
 ```
 (annotation)$ conda install -y -c anaconda postgresql
-(annotation)$ conda install -y -c conda-forge nodejs=12.*
+(annotation)$ conda install -y -c conda-forge nodejs=14.*
 ```
 * Install nodejs dependencies
   ```bash
