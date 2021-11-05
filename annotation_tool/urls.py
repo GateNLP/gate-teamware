@@ -22,6 +22,6 @@ from backend.rpcserver import JSONRPCEndpoint
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('rpc/', JSONRPCEndpoint.as_view()),
-    path('download_annotations/<int:project_id>/<str:export_type>/', views.DownloadAnnotations.as_view()),
+    path('download_annotations/<int:project_id>/<str:export_type>/', views.DownloadAnnotationsView.as_view()),
     re_path('^.*$', views.MainView.as_view(), name="index"),
 ]

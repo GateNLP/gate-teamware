@@ -93,6 +93,10 @@
                         description="Specify the number of minutes a user has to complete an annotation task (i.e. annotating a single document).">
             <b-form-input v-model="local_project.annotation_timeout"></b-form-input>
           </b-form-group>
+          <b-form-group label="Document ID field"
+                        description="The field in your uploaded documents that is used as a unique identifier. GATE's json format uses the name field. You can use a dot limited key path to access subfields e.g. enter features.name to get the id from the object {'features':{'name':'nameValue'}}">
+            <b-form-input v-model="local_project.document_id_field"></b-form-input>
+          </b-form-group>
           <b-form-row>
             <b-col>
               <h4 id="annotation-preview">Annotation configuration</h4>
@@ -259,7 +263,7 @@
 
         <div v-if="documents">
           <b-overlay :show="loading">
-            <DocumentsList ref="docsList" :documents="documents"
+            <DocumentsList ref="docsList" :documents="documents" :document-id-field="local_project.document_id_field"
                            @selection-changed="docAnnoSelectionChanged"></DocumentsList>
           </b-overlay>
         </div>
@@ -330,6 +334,7 @@ export default {
         document_input_preview: {},
         is_configured: false,
         is_completed: false,
+        document_id_field: "",
       },
       configurationStr: "",
       documents: [],

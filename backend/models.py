@@ -75,6 +75,7 @@ class Project(models.Model):
     annotator_max_annotation = models.FloatField(default=0.6)
     annotation_timeout = models.IntegerField(default=60)
     document_input_preview = models.JSONField(default=default_document_input_preview)
+    document_id_field = models.TextField(default="name")
 
     project_config_fields = {
         "name",

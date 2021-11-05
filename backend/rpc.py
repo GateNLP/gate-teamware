@@ -25,6 +25,7 @@ from gatenlp import annotation_set
 from backend.errors import AuthError
 from backend.rpcserver import rpc_method, rpc_method_auth, rpc_method_manager, rpc_method_admin
 from backend.models import Project, Document, Annotation
+from backend.utils.misc import get_value_from_key_path, insert_value_to_key_path
 from backend.utils.serialize import ModelSerializer
 
 log = logging.getLogger(__name__)
@@ -437,11 +438,21 @@ def get_project_documents(request, project_id):
             "timed_out": document.num_timed_out_annotations,
             "pending": document.num_pending_annotations,
             "aborted": document.num_aborted_annotations,
+            "data": {}
         }
 
+        # Also fetch the document's ID field for rendering
+        insert_user_defined_id_into_doc_dict(doc_out["data"], project.document_id_field, document)
         documents_out.append(doc_out)
 
     return documents_out
+
+def insert_user_defined_id_into_doc_dict(doc_dict_out, id_key, document):
+    value = get_value_from_key_path(document.data, id_key)
+    if value is not None:
+        insert_value_to_key_path(doc_dict_out, id_key, value)
+
+
 
 
 @rpc_method_manager

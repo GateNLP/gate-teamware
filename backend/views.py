@@ -34,7 +34,7 @@ class MainView(View):
 
 
 
-class DownloadAnnotations(View):
+class DownloadAnnotationsView(View):
 
 
     def get(self, request, project_id, export_type):
@@ -44,7 +44,7 @@ class DownloadAnnotations(View):
             response['Content-Disposition'] = f'attachment;filename="project-{project_id}-{export_type}.zip"'
             return response
 
-        return HttpResponse("No permission")
+        return HttpResponse("No permission to access this endpoint", status=401)
 
     def generate_download(self, project_id, export_type="json", chunk_size=512, documents_per_file=500):
 
@@ -134,9 +134,12 @@ class DownloadAnnotations(View):
                     val[i + delim + j] = get[j]
             elif isinstance(b[i], list):
                 for index, obj in enumerate(b[i]):
-                    get = self.flatten_json(obj, delim)
-                    for j in get.keys():
-                        val[i + delim + str(index) + delim + j] = get[j]
+                    if isinstance(obj, dict):
+                        get = self.flatten_json(obj, delim)
+                        for j in get.keys():
+                            val[i + delim + str(index) + delim + j] = get[j]
+                    else:
+                        val[i + delim + str(index)] = obj
             else:
                 val[i] = b[i]
 

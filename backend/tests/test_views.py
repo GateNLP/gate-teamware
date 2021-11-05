@@ -1,10 +1,10 @@
 from django.test import TestCase
-from backend.views import DownloadAnnotations
+from backend.views import DownloadAnnotationsView
 
 class TestDownloadAnnotations(TestCase):
 
     def test_csv_generation(self):
-        v = DownloadAnnotations()
+        v = DownloadAnnotationsView()
         key = ["one", "two", "four"]
         key2 = ["two", "three"]
         key3 = []
