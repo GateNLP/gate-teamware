@@ -1,5 +1,4 @@
-# Runs frontend, backend and integration testing
-name: Test Image Build
+name: Test Images
 on:
   push:
     branches:
@@ -23,3 +22,10 @@ jobs:
       - uses: docker-practice/actions-setup-docker@master
       - run: |
           ./build-images.sh
+          docker build -t annotate-test:latest --target test .
+          
+          # Run backend tests
+          docker run --rm --entrypoint npm annotate-test:latest run test:backend
+
+          # Run frontend tests
+          docker run --rm --entrypoint npm annotate-test:latest run test:frontend
