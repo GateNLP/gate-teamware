@@ -1,4 +1,4 @@
-describe('My First Test', () => {
+describe('Site serve test', () => {
 
     beforeEach(() => {
         // Run setup if needed
