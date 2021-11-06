@@ -2,7 +2,7 @@
   <div>
     <Search class="mt-4" @input="searchDocs"></Search>
     <Pagination class="mt-4" :items="filteredDocuments" v-slot:default="{ pageItems }">
-      <BCard v-for="doc in pageItems" :key="doc.id" :class="{ 'mb-2': true, 'selectedDoc': isDocSelected(doc)}">
+      <BCard v-for="doc in pageItems" :key="`${doc.project_id}-${doc.id}`" :class="{ 'mb-2': true, 'selectedDoc': isDocSelected(doc)}">
         <BMedia>
           <div class="d-flex justify-content-between">
             <div>
@@ -13,16 +13,17 @@
                                              :class="{ 'docIcon': true, 'docIconSelected': isDocSelected(doc)}"></b-icon-file-earmark-check>
                   <b-icon-file-earmark-text-fill v-else
                                                  :class="{ 'docIcon': true, 'docIconSelected': isDocSelected(doc)}"></b-icon-file-earmark-text-fill>
-
                   </b-badge>
 
                 </span>
+
                 <strong >
-                  <span v-if="getValueFromKeyPath(doc.data, documentIdField)">{{ getValueFromKeyPath(doc.data, documentIdField) }}</span>
-                  <b-badge v-else variant="warning" :title="`Field '${documentIdField}' does not exist.`">
+                  <span v-if="doc.doc_id" title="ID of the document. ID is obtained from the field specified in the project's configuration.">{{ doc.doc_id }}</span>
+                  <b-badge v-else variant="warning" :title="`Specified field does not exist in document.`">
                     <b-icon-exclamation-triangle></b-icon-exclamation-triangle>
                   </b-badge>
                 </strong>
+
 
               </div>
               <div>
@@ -88,7 +89,7 @@
                     <b-icon-play-fill :class="{ 'docIcon': true, 'docIconSelected': isAnnotationSelected(anno)}"></b-icon-play-fill>
                   </b-badge>
                 </span>
-                <strong>{{ anno.id }}</strong>
+                <strong title="ID of the annotation object. Used internally by the application.">{{ anno.id }}</strong>
               </div>
               <div title="Annotated by">
                 <b-icon-person-fill></b-icon-person-fill>
@@ -169,14 +170,9 @@ export default {
         return []
       }
     },
-    documentIdField: {
-      type: String,
-      default: "name"
-    }
   },
   computed: {
     filteredDocuments() {
-      let self = this
 
       //Returns all if no or empty search string
       if (!this.searchStr || this.searchStr.trim().length < 1)
@@ -188,7 +184,7 @@ export default {
       let result = _.filter(
           this.documents,
           function (o) {
-            return _.includes(_.lowerCase(self.getValueFromKeyPath(o.data, self.documentIdField)), _.lowerCase(searchStr))
+            return _.includes(_.lowerCase(o.doc_id), _.lowerCase(searchStr))
           }
       )
       return result
@@ -297,21 +293,6 @@ export default {
         this.emitSelectionList()
 
     },
-    getValueFromKeyPath(dictObj, keyPath, delimiter="."){
-      let splitKeyPath = keyPath.split(delimiter)
-      let curentObj = dictObj
-      for( let key of splitKeyPath){
-        if(key in curentObj){
-          curentObj = curentObj[key]
-        }
-        else{
-          return false
-        }
-      }
-
-      return curentObj
-
-    }
   },
   watch:{
     documents(val){

@@ -3,6 +3,9 @@ def get_value_from_key_path(obj_dict, key_path, delimiter="."):
     Gets value from a dictionary following a delimited key_path. Does not work for path with array elements.
     Returns None if path does not exist.
     """
+    if key_path is None:
+        return None
+
     key_path_split = key_path.split(delimiter)
     current_value = obj_dict
     for key in key_path_split:

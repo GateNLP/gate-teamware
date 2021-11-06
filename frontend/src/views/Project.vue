@@ -263,7 +263,7 @@
 
         <div v-if="documents">
           <b-overlay :show="loading">
-            <DocumentsList ref="docsList" :documents="documents" :document-id-field="local_project.document_id_field"
+            <DocumentsList ref="docsList" :documents="documents"
                            @selection-changed="docAnnoSelectionChanged"></DocumentsList>
           </b-overlay>
         </div>

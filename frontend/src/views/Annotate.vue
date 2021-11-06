@@ -21,7 +21,7 @@
       </b-card>
 
       <b-card class="mt-4">
-        <h4 class="mb-4">Annotating document ID{{annotationTask.document_id}}</h4>
+        <h4 class="mb-4">Annotating document <b-badge>{{annotationTask.document_field_id}}</b-badge></h4>
 
         <AnnotationRenderer :config="annotationTask.project_config"
                           :document="annotationTask.document_data"
