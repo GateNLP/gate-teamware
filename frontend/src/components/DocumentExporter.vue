@@ -34,8 +34,8 @@ export default {
     return {
       exportType: "json",
       jsonExportFormat: "raw",
-      rawJsonExportDescription: "Export raw json export",
-      gateJsonExportDescription: "Export gate format"
+      rawJsonExportDescription: "Export as JSON in the same format that's uploaded. Additional field named 'annotation_sets' is added for storing annotations. If you've originally uploaded in GATE format then choose this option.",
+      gateJsonExportDescription: "Convert documents to GATE JSON format and export. A 'name' field is added that takes the ID value from the ID field specified in te project config. Fields apart from 'text' and the ID field specified in the project config are placed in the 'features' field. An 'annotation_sets' field is added for storing annotations."
 
     }
   },
