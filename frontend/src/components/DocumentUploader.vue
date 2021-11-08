@@ -6,8 +6,7 @@
                    class="mr-2"
                    accept=".json,.jsonl,.csv,.zip"
       ></b-form-file>
-      <b-button variant="primary" :disabled="selectedFilesStats.length < 1" @click="documentUploadHandler">Upload
-      </b-button>
+
     </b-input-group>
 
     <div v-if="selectedFilesStats.length > 0" class="mt-2">
@@ -18,6 +17,17 @@
         </li>
       </ul>
     </div>
+
+    <template v-slot:modal-footer>
+      <div style="display: flex">
+        <b-button @click="modalShow = false" class="mr-2">Close</b-button>
+        <b-button variant="primary" :disabled="selectedFilesStats.length < 1" @click="documentUploadHandler">Upload
+      </b-button>
+
+      </div>
+
+
+    </template>
   </b-modal>
 </template>
 
