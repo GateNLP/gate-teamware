@@ -207,21 +207,10 @@
               <b-icon-upload></b-icon-upload>
               Upload
             </b-button>
-            <b-dropdown  split variant="primary" @click="exportAnnotationsHandler('json')" title="Export documents with annotation.">
-              <template v-slot:button-content>
-                <span>
+            <b-button @click="showDocumentExportModal = true" variant="primary">
                   <b-icon-download></b-icon-download>
                   Export
-                </span>
-              </template>
-              <b-dropdown-item title="Export as .csv files" @click="exportAnnotationsHandler('jsonl')">
-                Export as JSONL
-              </b-dropdown-item>
-              <b-dropdown-item title="Export as .csv files" @click="exportAnnotationsHandler('csv')">
-                Export as CSV
-              </b-dropdown-item>
-            </b-dropdown>
-
+            </b-button>
           </b-button-group>
 
 
@@ -231,6 +220,10 @@
                           :project-id="projectId"
                           @uploading="documentStartUploadHandler"
                           @completed="documentUploadHandler"></DocumentUploader>
+
+        <DocumentExporter v-model="showDocumentExportModal"
+                          :project-id="projectId">
+        </DocumentExporter>
 
         <b-modal v-model="showDeleteConfirmModal"
                  ok-variant="danger"
@@ -308,6 +301,7 @@ import MarkdownEditor from "@/components/MarkdownEditor";
 import ProjectIcon from "@/components/ProjectIcon";
 import ProjectStatusBadges from "@/components/ProjectStatusBadges";
 import DocumentUploader from "@/components/DocumentUploader";
+import DocumentExporter from "@/components/DocumentExporter";
 
 export default {
   name: "Project",
@@ -315,6 +309,7 @@ export default {
     return `Project - ${this.local_project.name}`
   },
   components: {
+    DocumentExporter,
     DocumentUploader,
     ProjectStatusBadges,
     ProjectIcon,
@@ -342,6 +337,7 @@ export default {
       selectedAnnotations: [],
       showDeleteConfirmModal: false,
       showDocumentUploadModal: false,
+      showDocumentExportModal: false,
       deleteLocked: true,
       loading: false,
     }
@@ -487,33 +483,7 @@ export default {
     async setLoading(isLoading) {
       this.loading = isLoading
     },
-    async exportAnnotationsHandler(exportType) {
-      // try {
-      //   let response = await this.getAnnotations(this.projectId)
-      //   let fileURL = window.URL.createObjectURL(new Blob([response]));
-      //   let fileLink = document.createElement('a');
-      //
-      //
-      //   fileLink.href = fileURL;
-      //   fileLink.setAttribute('download', 'annotations.json');
-      //   document.body.appendChild(fileLink);
-      //
-      //   fileLink.click();
-      //
-      // } catch (e) {
-      //   toastError(this, "Could not export annotations", e)
-      // }
 
-      const supportedExportType = new Set(["json", "jsonl", "csv"])
-      if(supportedExportType.has(exportType)){
-        window.location.href = `/download_annotations/${this.projectId}/${exportType}/`
-      }
-      else{
-        const errorMsg = "Export type " + exportType + " not available."
-        toastError(this, errorMsg, { message: errorMsg})
-      }
-
-    },
     goToAnnotatePage(e) {
       this.$router.push(`/annotate/${this.projectId}/${this.documents[0].id}`)
 

@@ -378,3 +378,122 @@ class TestAnnotationModel(ModelTestCase):
 
         num_timed_out = Annotation.check_for_timed_out_annotations(timeout_check_time + timedelta(hours=1))
         self.assertEqual(0, num_timed_out, "Must not be anymore annotations to timeout")
+
+class TestDocumentAnnotationModelExport(TestCase):
+
+    def setUp(self):
+        self.test_user = get_user_model().objects.create(username="project_creator")
+        self.annotators = [get_user_model().objects.create(username=f"anno{i}") for i in range(3)]
+        self.project = Project.objects.create(owner=self.test_user)
+        for i in range(10):
+            document = Document.objects.create(
+                project=self.project,
+                data={
+                    "id": i,
+                    "text": f"Text {i}",
+                    "feature1": "Testvalue 1",
+                    "feature2": "Testvalue 1",
+                    "feature3": "Testvalue 1",
+
+                }
+            )
+
+            for annotator in self.annotators:
+                annotation = Annotation.objects.create(user=annotator,
+                                                       document=document,
+                                                       status=Annotation.COMPLETED,
+                                                       data={
+                                                           "text1": "Value1",
+                                                           "checkbox1": ["val1", "val2", "val3"],
+                                                       })
+
+                annotation_pending = Annotation.objects.create(user=annotator,
+                                                       document=document,
+                                                       status=Annotation.PENDING)
+
+                annotation_timed_out = Annotation.objects.create(user=annotator,
+                                                              document=document,
+                                                              status=Annotation.TIMED_OUT)
+
+                annotation_reject = Annotation.objects.create(user=annotator,
+                                                              document=document,
+                                                              status=Annotation.REJECTED)
+
+                annotation_aborted = Annotation.objects.create(user=annotator,
+                                                              document=document,
+                                                              status=Annotation.ABORTED)
+
+
+        self.project.refresh_from_db()
+
+    def test_export_raw(self):
+
+        for document in self.project.documents.all():
+            doc_dict = document.get_doc_annotation_dict("raw")
+            print(doc_dict)
+            self.assertTrue("id" in doc_dict)
+            self.assertTrue("text" in doc_dict)
+            self.assertTrue("feature1" in doc_dict)
+            self.assertTrue("feature2" in doc_dict)
+            self.assertTrue("feature3" in doc_dict)
+
+
+            self.check_raw_gate_annotation_formatting(doc_dict)
+
+
+
+    def test_export_gate(self):
+
+        for document in self.project.documents.all():
+            doc_dict = document.get_doc_annotation_dict("gate")
+            print(doc_dict)
+
+            self.assertTrue("text" in doc_dict)
+            self.assertTrue("features" in doc_dict)
+            doc_features = doc_dict["features"]
+            self.assertTrue("id" in doc_features)
+            self.assertTrue("feature1" in doc_features)
+            self.assertTrue("feature2" in doc_features)
+            self.assertTrue("feature3" in doc_features)
+
+            self.check_raw_gate_annotation_formatting(doc_dict)
+
+    def check_raw_gate_annotation_formatting(self, doc_dict):
+        self.assertTrue("annotation_sets" in doc_dict)
+        self.assertTrue(len(doc_dict["annotation_sets"]) == 3)
+
+        # Test annotation formatting
+        for aset_key, aset_data in doc_dict["annotation_sets"].items():
+            self.assertTrue("name" in aset_data)
+            self.assertTrue("annotations" in aset_data)
+            self.assertEqual(len(aset_data["annotations"]), 1)
+            anno_dict = aset_data["annotations"][0]
+            self.assertTrue("type" in anno_dict)
+            self.assertTrue("start" in anno_dict)
+            self.assertTrue("end" in anno_dict)
+            self.assertTrue("id" in anno_dict)
+            self.assertTrue("features" in anno_dict)
+            self.assertTrue("label" in anno_dict["features"])
+            label_dict = anno_dict["features"]["label"]
+            self.assertTrue("text1" in label_dict)
+            self.assertTrue("checkbox1" in label_dict)
+
+    def test_export_csv(self):
+
+        for document in self.project.documents.all():
+            doc_dict = document.get_doc_annotation_dict("csv")
+            print(doc_dict)
+
+            self.assertTrue("id" in doc_dict)
+            self.assertTrue("text" in doc_dict)
+            self.assertTrue("feature1" in doc_dict)
+            self.assertTrue("feature2" in doc_dict)
+            self.assertTrue("feature3" in doc_dict)
+            self.assertTrue("annotations" in doc_dict)
+            self.assertTrue(len(doc_dict["annotations"]) == 3)
+            anno_set_dict = doc_dict["annotations"]
+            for set_key in anno_set_dict:
+                self.assertTrue(isinstance(anno_set_dict[set_key]["text1"], str))
+                self.assertTrue(isinstance(anno_set_dict[set_key]["checkbox1"], str))
+
+

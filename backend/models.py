@@ -269,12 +269,8 @@ class Document(models.Model):
         return self.annotations.filter(
             Q(status=Annotation.COMPLETED) | Q(status=Annotation.PENDING)).count()
 
-    @property
-    def doc_annotation_dict(self):
-        doc_dict = self.data
-        annotations = [anno.data for anno in self.annotations.all()]
-        doc_dict["annotations"] = annotations
-        return doc_dict
+
+
 
     def user_can_annotate_document(self, user):
         """ User must not have completed, pending or rejected the document"""
@@ -323,6 +319,71 @@ class Document(models.Model):
         }
 
         return doc_out
+
+    def get_doc_annotation_dict(self, json_format="raw"):
+        """
+        Get dictionary of document and its annotations for export
+        """
+
+        # Create dictionary for document
+        doc_dict = None
+        if json_format == "raw" or json_format == "csv":
+            doc_dict = self.data
+        elif json_format == "gate":
+
+            ignore_keys = {"text", self.project.document_id_field}
+            features_dict = {key: value for key, value in self.data.items() if key not in ignore_keys}
+
+            doc_dict = {
+                "text": self.data["text"],
+                "features": features_dict,
+                "offset_type": "p",
+                "name": get_value_from_key_path(self.data, self.project.document_id_field)
+            }
+            pass
+
+        # Insert annotation sets into the doc dict
+        annotations = self.annotations.filter(status=Annotation.COMPLETED)
+        if json_format == "csv":
+            # Format annotations for CSV export
+            annotation_sets = {}
+            for annotation in annotations:
+                a_data = annotation.data
+                annotation_dict = {}
+                # Format for csv, flatten list values
+                for a_key, a_value in a_data.items():
+                    if isinstance(a_value, list):
+                        annotation_dict[a_key] = ",".join(a_value)
+                    else:
+                        annotation_dict[a_key] = a_value
+                annotation_sets[annotation.user.username] = annotation_dict
+
+            doc_dict["annotations"] = annotation_sets
+
+        else:
+            # Format for JSON in line with GATE formatting
+            annotation_sets = {}
+            for annotation in annotations:
+                a_data = annotation.data
+                annotation_set = {
+                    "name": annotation.user.username,
+                    "annotations": [
+                        {
+                            "type": "Document",
+                            "start": 0,
+                            "end": 0,
+                            "id": 0,
+                            "features": {
+                                "label": a_data
+                            }
+                        }
+                    ],
+                    "next_annid": 1,
+                }
+                annotation_sets[annotation.user.username] = annotation_set
+            doc_dict["annotation_sets"] = annotation_sets
+
+        return doc_dict
 
 class Annotation(models.Model):
     """
