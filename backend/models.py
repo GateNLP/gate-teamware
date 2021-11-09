@@ -87,7 +87,8 @@ class Project(models.Model):
         "annotations_per_doc",
         "annotator_max_annotation",
         "annotation_timeout",
-        "document_input_preview"
+        "document_input_preview",
+        "document_id_field",
     }
 
 
