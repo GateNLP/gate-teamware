@@ -30,8 +30,8 @@ case $BRANCH in
     *)
         # other builds, e.g. in development
         DEPLOY_ENV=development
-        MAIN_IMAGE=annotate-backend-$BRANCH
-        STATIC_IMAGE=annotate-static-$BRANCH
+        MAIN_IMAGE=annotate-backend-dev
+        STATIC_IMAGE=annotate-static-dev
         ;;
 esac
 

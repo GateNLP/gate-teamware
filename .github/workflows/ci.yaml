@@ -35,5 +35,5 @@ jobs:
       - name: Run frontend test
         run: npm run test:frontend
       - name: Run integration test
-        run: npm run test:integration
+        run: npm run test:ci_integration
 

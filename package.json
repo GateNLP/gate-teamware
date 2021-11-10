@@ -7,6 +7,7 @@
     "postinstall": "(cd frontend && npm install --unsafe-perm) #Install npm packages in frontend also",
     "migrate": "./manage.py migrate",
     "migrate:integration": "./manage.py flush --noinput --settings='annotation_tool.settings.integration' && ./manage.py migrate --noinput --settings='annotation_tool.settings.integration' &&  ./manage.py loaddata --settings='annotation_tool.settings.integration' backend/fixtures/db_users.json",
+    "dj-collectstatic": "python manage.py collectstatic --noinput --settings='annotation_tool.settings.integration'",
     "preserve:docs": "run-s build:apidocs",
     "serve:docs": "vuepress dev docs",
     "serve:frontend": "cd frontend && npm run serve",
@@ -26,6 +27,7 @@
     "test:backend": "pytest -v",
     "test:cypress": "cypress run",
     "test:integration": "run-p --race serve:frontendintegration test:cypress",
+    "test:ci_integration": "npm run build && run-p --race serve:integration test:cypress",
     "test": "run-s test:frontend test:backend test:integration"
   },
   "repository": {
