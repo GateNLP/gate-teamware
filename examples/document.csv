@@ -1,0 +1,5 @@
+id,text,annotation.label1,annotation.label2
+1,Test 1 csv,Label value1,
+2,Test 2 csv,Label value 2,Label2 value 2
+3,Test 3 csv,Label value 3,
+4,Test 4 csv,,Label 2 value 4

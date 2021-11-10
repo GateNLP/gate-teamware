@@ -25,6 +25,7 @@ from gatenlp import annotation_set
 from backend.errors import AuthError
 from backend.rpcserver import rpc_method, rpc_method_auth, rpc_method_manager, rpc_method_admin
 from backend.models import Project, Document, Annotation
+from backend.utils.misc import get_value_from_key_path, insert_value_to_key_path
 from backend.utils.serialize import ModelSerializer
 
 log = logging.getLogger(__name__)
@@ -292,36 +293,24 @@ def get_user_details(request):
 def get_user_annotations(request):
     user = request.user
 
-    annotation_out = []
-    documents_out = []
-    for annotation in Annotation.objects.filter(user=user):
-        document = annotation.document
+    projects_list = []
 
-        annotation_out = {
-            "id": annotation.pk,
-            "annotated_by": annotation.user.username,
-            "created": annotation.created,
-            "completed": annotation.status_time if annotation.status == Annotation.COMPLETED else None,
-            "rejected": annotation.status_time if annotation.status == Annotation.REJECTED else None,
-            "timed_out": annotation.status_time if annotation.status == Annotation.TIMED_OUT else None,
-            "aborted": annotation.status_time if annotation.status == Annotation.ABORTED else None,
-            "times_out_at": annotation.times_out_at,
-        }
+    for project in Project.objects.filter(documents__annotations__user_id=user.pk).distinct().order_by("-id"):
 
-        doc_out = {
-            "id": document.pk,
-            "annotations": [annotation_out],
-            "created": document.created,
-            "completed": document.num_completed_annotations,
-            "rejected": document.num_rejected_annotations,
-            "timed_out": document.num_timed_out_annotations,
-            "pending": document.num_pending_annotations,
-            "aborted": document.num_aborted_annotations,
-        }
+        user_annotated_docs = project.documents.filter(annotations__user_id=user.pk).distinct()
+        documents_out = []
 
-        documents_out.append(doc_out)
+        for document in user_annotated_docs:
+            annotations_list = [annotation.get_listing() for annotation in document.annotations.filter(user=user)]
+            documents_out.append(document.get_listing(annotations_list))
 
-    return documents_out
+        projects_list.append({
+            "id": project.pk,
+            "name": project.name,
+            "documents": documents_out
+        })
+
+    return projects_list
 
 
 ##################################
@@ -409,40 +398,13 @@ def get_project_documents(request, project_id):
 
     documents_out = []
 
-    documents = project.documents.all()
+    documents = project.documents.select_related("project").all()
 
-    # add additional and modified fields to the document json for the frontend
     for document in documents:
-
-        annotations_out = []
-        for annotation in document.annotations.all():
-            anno_out = {
-                "id": annotation.pk,
-                "annotated_by": annotation.user.username,
-                "created": annotation.created,
-                "completed": annotation.status_time if annotation.status == Annotation.COMPLETED else None,
-                "rejected": annotation.status_time if annotation.status == Annotation.REJECTED else None,
-                "timed_out": annotation.status_time if annotation.status == Annotation.TIMED_OUT else None,
-                "aborted": annotation.status_time if annotation.status == Annotation.ABORTED else None,
-                "times_out_at": annotation.times_out_at
-            }
-            annotations_out.append(anno_out)
-
-        doc_out = {
-            "id": document.pk,
-            "annotations": annotations_out,
-            "created": document.created,
-            "completed": document.num_completed_annotations,
-            "rejected": document.num_rejected_annotations,
-            "timed_out": document.num_timed_out_annotations,
-            "pending": document.num_pending_annotations,
-            "aborted": document.num_aborted_annotations,
-        }
-
-        documents_out.append(doc_out)
+        annotations_list = [a.get_listing() for a in document.annotations.all()]
+        documents_out.append(document.get_listing(annotations_list))
 
     return documents_out
-
 
 @rpc_method_manager
 def add_project_document(request, project_id, document_data):

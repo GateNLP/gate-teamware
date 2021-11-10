@@ -93,6 +93,10 @@
                         description="Specify the number of minutes a user has to complete an annotation task (i.e. annotating a single document).">
             <b-form-input v-model="local_project.annotation_timeout"></b-form-input>
           </b-form-group>
+          <b-form-group label="Document ID field"
+                        description="The field in your uploaded documents that is used as a unique identifier. GATE's json format uses the name field. You can use a dot limited key path to access subfields e.g. enter features.name to get the id from the object {'features':{'name':'nameValue'}}">
+            <b-form-input v-model="local_project.document_id_field"></b-form-input>
+          </b-form-group>
           <b-form-row>
             <b-col>
               <h4 id="annotation-preview">Annotation configuration</h4>
@@ -199,21 +203,27 @@
               <b-icon-arrow-clockwise :animation="loadingIconAnimation"></b-icon-arrow-clockwise>
               Refresh
             </b-button>
-            <b-button variant="primary" @click="$refs.documentUploadInput.click()" title="Upload documents">
+            <b-button variant="primary" @click="showDocumentUploadModal = true" title="Upload documents">
               <b-icon-upload></b-icon-upload>
               Upload
             </b-button>
-            <b-button variant="primary" @click="exportAnnotationsHandler" title="Export documents with annotation.">
-              <b-icon-download></b-icon-download>
-              Export
+            <b-button @click="showDocumentExportModal = true" variant="primary">
+                  <b-icon-download></b-icon-download>
+                  Export
             </b-button>
-
           </b-button-group>
-
-          <input ref="documentUploadInput" type="file" @change="documentUploadHandler" multiple hidden/>
 
 
         </b-button-toolbar>
+
+        <DocumentUploader v-model="showDocumentUploadModal"
+                          :project-id="projectId"
+                          @uploading="documentStartUploadHandler"
+                          @completed="documentUploadHandler"></DocumentUploader>
+
+        <DocumentExporter v-model="showDocumentExportModal"
+                          :project-id="projectId">
+        </DocumentExporter>
 
         <b-modal v-model="showDeleteConfirmModal"
                  ok-variant="danger"
@@ -290,6 +300,8 @@ import DocumentsList from "@/components/DocumentsList";
 import MarkdownEditor from "@/components/MarkdownEditor";
 import ProjectIcon from "@/components/ProjectIcon";
 import ProjectStatusBadges from "@/components/ProjectStatusBadges";
+import DocumentUploader from "@/components/DocumentUploader";
+import DocumentExporter from "@/components/DocumentExporter";
 
 export default {
   name: "Project",
@@ -297,6 +309,8 @@ export default {
     return `Project - ${this.local_project.name}`
   },
   components: {
+    DocumentExporter,
+    DocumentUploader,
     ProjectStatusBadges,
     ProjectIcon,
     MarkdownEditor, DocumentsList, JsonEditor, AnnotationRenderer, VTable, VJsoneditor, Annotators},
@@ -315,12 +329,15 @@ export default {
         document_input_preview: {},
         is_configured: false,
         is_completed: false,
+        document_id_field: "",
       },
       configurationStr: "",
       documents: [],
       selectedDocuments: [],
       selectedAnnotations: [],
       showDeleteConfirmModal: false,
+      showDocumentUploadModal: false,
+      showDocumentExportModal: false,
       deleteLocked: true,
       loading: false,
     }
@@ -456,60 +473,17 @@ export default {
       }
 
     },
-    async documentUploadHandler(e) {
-
+    async documentStartUploadHandler(e) {
       this.setLoading(true)
-      try {
-        const fileList = e.target.files
-
-        for (let file of fileList) {
-          try {
-            const documentsStr = await readFileAsync(file)
-            const documents = JSON.parse(documentsStr)
-            // Uploaded file must be an array of docs
-            if (documents instanceof Array) {
-              for (let document of documents) {
-                await this.addProjectDocument({projectId: this.projectId, document: document})
-              }
-            }
-
-          } catch (e) {
-            console.error("Could not parse uploaded file")
-            console.error(e)
-            toastError(this, "Could not parse uploaded file " + file, e)
-          }
-
-          await this.fetchProject()
-        }
-
-      } catch (e) {
-        toastError(this, "Could not upload document", e)
-      }
-
+    },
+    async documentUploadHandler(e) {
+      await this.fetchProject()
       this.setLoading(false)
     },
     async setLoading(isLoading) {
       this.loading = isLoading
     },
-    async exportAnnotationsHandler() {
-      try {
-        let response = await this.getAnnotations(this.projectId)
-        let fileURL = window.URL.createObjectURL(new Blob([response]));
-        let fileLink = document.createElement('a');
 
-
-        fileLink.href = fileURL;
-        fileLink.setAttribute('download', 'annotations.json');
-        document.body.appendChild(fileLink);
-
-        fileLink.click();
-
-      } catch (e) {
-        toastError(this, "Could not export annotations", e)
-      }
-
-
-    },
     goToAnnotatePage(e) {
       this.$router.push(`/annotate/${this.projectId}/${this.documents[0].id}`)
 

@@ -66,7 +66,8 @@ class TestEndpoint(TestCase):
         if not self.user:
             self.user = get_user_model().objects.create(username=self.username,
                                                         password=self.password,
-                                                        email=self.user_email)
+                                                        email=self.user_email,
+                                                        is_staff=True)
             self.user.set_password(self.password)
             self.user.save()
 

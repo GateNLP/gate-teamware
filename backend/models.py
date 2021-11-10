@@ -8,6 +8,8 @@ from django.db import models
 from django.utils import timezone
 from django.db.models import Q, F
 
+from backend.utils.misc import get_value_from_key_path, insert_value_to_key_path
+
 log = logging.getLogger(__name__)
 
 
@@ -75,6 +77,7 @@ class Project(models.Model):
     annotator_max_annotation = models.FloatField(default=0.6)
     annotation_timeout = models.IntegerField(default=60)
     document_input_preview = models.JSONField(default=default_document_input_preview)
+    document_id_field = models.TextField(default="name")
 
     project_config_fields = {
         "name",
@@ -84,7 +87,8 @@ class Project(models.Model):
         "annotations_per_doc",
         "annotator_max_annotation",
         "annotation_timeout",
-        "document_input_preview"
+        "document_input_preview",
+        "document_id_field",
     }
 
 
@@ -266,6 +270,9 @@ class Document(models.Model):
         return self.annotations.filter(
             Q(status=Annotation.COMPLETED) | Q(status=Annotation.PENDING)).count()
 
+
+
+
     def user_can_annotate_document(self, user):
         """ User must not have completed, pending or rejected the document"""
         num_user_annotation_in_doc = self.num_user_completed_annotations(user) + self.num_user_rejected_annotations(
@@ -295,6 +302,89 @@ class Document(models.Model):
     def user_completed_annotation_of_document(self, user):
         return self.num_user_completed_annotations(user) > 0
 
+    def get_listing(self, annotation_list=[]):
+        """
+        Get minimal dictionary representation of document for rendering an object list
+        """
+        doc_out = {
+            "id": self.pk,
+            "annotations": annotation_list,
+            "created": self.created,
+            "completed": self.num_completed_annotations,
+            "rejected": self.num_rejected_annotations,
+            "timed_out": self.num_timed_out_annotations,
+            "pending": self.num_pending_annotations,
+            "aborted": self.num_aborted_annotations,
+            "doc_id": get_value_from_key_path(self.data, self.project.document_id_field),
+            "project_id": self.project.id
+        }
+
+        return doc_out
+
+    def get_doc_annotation_dict(self, json_format="raw"):
+        """
+        Get dictionary of document and its annotations for export
+        """
+
+        # Create dictionary for document
+        doc_dict = None
+        if json_format == "raw" or json_format == "csv":
+            doc_dict = self.data
+        elif json_format == "gate":
+
+            ignore_keys = {"text", self.project.document_id_field}
+            features_dict = {key: value for key, value in self.data.items() if key not in ignore_keys}
+
+            doc_dict = {
+                "text": self.data["text"],
+                "features": features_dict,
+                "offset_type": "p",
+                "name": get_value_from_key_path(self.data, self.project.document_id_field)
+            }
+            pass
+
+        # Insert annotation sets into the doc dict
+        annotations = self.annotations.filter(status=Annotation.COMPLETED)
+        if json_format == "csv":
+            # Format annotations for CSV export
+            annotation_sets = {}
+            for annotation in annotations:
+                a_data = annotation.data
+                annotation_dict = {}
+                # Format for csv, flatten list values
+                for a_key, a_value in a_data.items():
+                    if isinstance(a_value, list):
+                        annotation_dict[a_key] = ",".join(a_value)
+                    else:
+                        annotation_dict[a_key] = a_value
+                annotation_sets[annotation.user.username] = annotation_dict
+
+            doc_dict["annotations"] = annotation_sets
+
+        else:
+            # Format for JSON in line with GATE formatting
+            annotation_sets = {}
+            for annotation in annotations:
+                a_data = annotation.data
+                annotation_set = {
+                    "name": annotation.user.username,
+                    "annotations": [
+                        {
+                            "type": "Document",
+                            "start": 0,
+                            "end": 0,
+                            "id": 0,
+                            "features": {
+                                "label": a_data
+                            }
+                        }
+                    ],
+                    "next_annid": 1,
+                }
+                annotation_sets[annotation.user.username] = annotation_set
+            doc_dict["annotation_sets"] = annotation_sets
+
+        return doc_dict
 
 class Annotation(models.Model):
     """
@@ -333,6 +423,7 @@ class Annotation(models.Model):
             "project_config": project.configuration,
             "project_id": project.pk,
             "document_id": document.pk,
+            "document_field_id": get_value_from_key_path(document.data, project.document_id_field),
             "document_data": document.data,
             "annotation_id": self.pk,
             "annotation_timeout": self.times_out_at
@@ -388,6 +479,18 @@ class Annotation(models.Model):
 
     def user_allowed_to_annotate(self, user):
         return self.user.id == user.id
+
+    def get_listing(self):
+        return {
+            "id": self.pk,
+            "annotated_by": self.user.username,
+            "created": self.created,
+            "completed": self.status_time if self.status == Annotation.COMPLETED else None,
+            "rejected": self.status_time if self.status == Annotation.REJECTED else None,
+            "timed_out": self.status_time if self.status == Annotation.TIMED_OUT else None,
+            "aborted": self.status_time if self.status == Annotation.ABORTED else None,
+            "times_out_at": self.times_out_at
+        }
 
     @staticmethod
     def check_for_timed_out_annotations(current_time=timezone.now()):

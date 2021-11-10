@@ -91,8 +91,16 @@
       <b-col>
         <h3>My Annotations</h3>
 
-        <div v-if="annotation_documents">
-          <DocumentsList :documents="annotation_documents"></DocumentsList>
+        <div v-if="annotation_projects">
+          <b-card v-for="project in annotation_projects"  class="mb-4">
+            <h3>
+              <ProjectIcon :project-id="project.id"></ProjectIcon>{{project.name}}
+            </h3>
+
+            <DocumentsList :documents="project.documents"></DocumentsList>
+
+          </b-card>
+
         </div>
         <div v-else>
           No annotations yet
@@ -107,11 +115,12 @@
 import {mapState, mapActions, mapGetters} from "vuex";
 import DocumentsList from "@/components/DocumentsList";
 import AccountActivationGenerator from "@/components/AccountActivationGenerator";
+import ProjectIcon from "@/components/ProjectIcon";
 
 export default {
   name: "UserProfile",
   title: "User Profile",
-  components: {AccountActivationGenerator, DocumentsList},
+  components: {ProjectIcon, AccountActivationGenerator, DocumentsList},
   data() {
     return {
       error: "",
@@ -130,7 +139,7 @@ export default {
         confirmpassword: null,
       },
       activationEmailSent: false,
-      annotation_documents: [],
+      annotation_projects: [],
 
     }
   },
@@ -172,7 +181,7 @@ export default {
   },
   async mounted() {
     this.user = await this.getUser();
-    this.annotation_documents = await this.getUserAnnotations();
+    this.annotation_projects = await this.getUserAnnotations();
   },
   watch: {
     form: {

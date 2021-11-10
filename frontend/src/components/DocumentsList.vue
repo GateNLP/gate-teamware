@@ -2,25 +2,29 @@
   <div>
     <Search class="mt-4" @input="searchDocs"></Search>
     <Pagination class="mt-4" :items="filteredDocuments" v-slot:default="{ pageItems }">
-      <BCard v-for="doc in pageItems" :key="doc.id" :class="{ 'mb-2': true, 'selectedDoc': isDocSelected(doc)}">
+      <BCard v-for="doc in pageItems" :key="`${doc.project_id}-${doc.id}`" :class="{ 'mb-2': true, 'selectedDoc': isDocSelected(doc)}">
         <BMedia>
-          <template v-slot:aside>
-            <div @click="toggleDocument(doc)" style="cursor: pointer">
-              <b-badge variant="primary" :class="{'docBgSelected': isDocSelected(doc)}">
-                <b-icon-file-earmark-check v-if="isDocSelected(doc)"
-                                         :class="{ 'docIcon': true, 'docIconSelected': isDocSelected(doc)}"></b-icon-file-earmark-check>
-              <b-icon-file-earmark-text-fill v-else
-                                             :class="{ 'docIcon': true, 'docIconSelected': isDocSelected(doc)}"></b-icon-file-earmark-text-fill>
-
-              </b-badge>
-
-
-            </div>
-          </template>
           <div class="d-flex justify-content-between">
             <div>
-              <div>
-                <strong>ID:{{ doc.id }}</strong>
+              <div class="mb-2">
+                <span @click="toggleDocument(doc)" style="cursor: pointer" class="mr-1">
+                  <b-badge variant="primary" :class="{'docBgSelected': isDocSelected(doc)}">
+                    <b-icon-file-earmark-check v-if="isDocSelected(doc)"
+                                             :class="{ 'docIcon': true, 'docIconSelected': isDocSelected(doc)}"></b-icon-file-earmark-check>
+                  <b-icon-file-earmark-text-fill v-else
+                                                 :class="{ 'docIcon': true, 'docIconSelected': isDocSelected(doc)}"></b-icon-file-earmark-text-fill>
+                  </b-badge>
+
+                </span>
+
+                <strong >
+                  <span v-if="doc.doc_id" title="ID of the document. ID is obtained from the field specified in the project's configuration.">{{ doc.doc_id }}</span>
+                  <b-badge v-else variant="warning" :title="`Specified field does not exist in document.`">
+                    <b-icon-exclamation-triangle></b-icon-exclamation-triangle>
+                  </b-badge>
+                </strong>
+
+
               </div>
               <div>
                 <b-icon-clock class="mr-2"></b-icon-clock>
@@ -67,27 +71,25 @@
                  :class="{ 'mt-4': true, 'selectedAnnotation': isAnnotationSelected(anno)}">
 
             <BMedia>
-              <template v-slot:aside>
-                <div @click="toggleAnnotation(anno, doc)" style="cursor: pointer">
-                  <b-badge v-if="anno.completed" variant="success" :class="{'mr-2': true, 'docBgSelected': isAnnotationSelected(anno)} " title="Annotation completed">
+              <div class="mb-2">
+                <span @click="toggleAnnotation(anno, doc)" style="cursor: pointer" class="mr-1">
+                  <b-badge v-if="anno.completed" variant="success" :class="{ 'docBgSelected': isAnnotationSelected(anno)} " title="Annotation completed">
                     <b-icon-pencil-fill :class="{ 'docIcon': true, 'docIconSelected': isAnnotationSelected(anno)}"></b-icon-pencil-fill>
                   </b-badge>
-                  <b-badge v-else-if="anno.rejected" variant="danger" :class="{'mr-2': true, 'docBgSelected': isAnnotationSelected(anno)} " title="Annotation rejected">
+                  <b-badge v-else-if="anno.rejected" variant="danger" :class="{ 'docBgSelected': isAnnotationSelected(anno)} " title="Annotation rejected">
                     <b-icon-x-square-fill :class="{ 'docIcon': true, 'docIconSelected': isAnnotationSelected(anno)}"></b-icon-x-square-fill>
                   </b-badge>
-                  <b-badge v-else-if="anno.timed_out" variant="warning" :class="{'mr-2': true, 'docBgSelected': isAnnotationSelected(anno)} " title="Annotation timed out">
+                  <b-badge v-else-if="anno.timed_out" variant="warning" :class="{ 'docBgSelected': isAnnotationSelected(anno)} " title="Annotation timed out">
                     <b-icon-clock :class="{ 'docIcon': true, 'docIconSelected': isAnnotationSelected(anno)}"></b-icon-clock>
                   </b-badge>
-                  <b-badge v-else-if="anno.aborted" variant="secondary" :class="{'mr-2': true, 'docBgSelected': isAnnotationSelected(anno)} " title="Annotation aborted">
+                  <b-badge v-else-if="anno.aborted" variant="secondary" :class="{ 'docBgSelected': isAnnotationSelected(anno)} " title="Annotation aborted">
                     <b-icon-stop-fill :class="{ 'docIcon': true, 'docIconSelected': isAnnotationSelected(anno)}"></b-icon-stop-fill>
                   </b-badge>
-                  <b-badge v-else variant="primary" :class="{'mr-2': true, 'docBgSelected': isAnnotationSelected(anno)} " title="Annotation still pending">
+                  <b-badge v-else variant="primary" :class="{ 'docBgSelected': isAnnotationSelected(anno)} " title="Annotation still pending">
                     <b-icon-play-fill :class="{ 'docIcon': true, 'docIconSelected': isAnnotationSelected(anno)}"></b-icon-play-fill>
                   </b-badge>
-                </div>
-              </template>
-              <div>
-                <strong>ID: {{ anno.id }}</strong>
+                </span>
+                <strong title="ID of the annotation object. Used internally by the application.">{{ anno.id }}</strong>
               </div>
               <div title="Annotated by">
                 <b-icon-person-fill></b-icon-person-fill>
@@ -182,7 +184,7 @@ export default {
       let result = _.filter(
           this.documents,
           function (o) {
-            return _.includes(_.lowerCase(o.id), _.lowerCase(searchStr))
+            return _.includes(_.lowerCase(o.doc_id), _.lowerCase(searchStr))
           }
       )
       return result
@@ -300,7 +302,7 @@ export default {
       this.emitSelectionList()
 
     }
-  }
+  },
 }
 </script>
 
