@@ -1,0 +1,25 @@
+# Runs frontend, backend and integration testing
+name: Test Image Build
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
+      - dev
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Generate env
+        shell: bash
+        run: |
+          ./generate-env.sh
+      
+      - uses: docker-practice/actions-setup-docker@master
+      - run: |
+          ./build-images.sh

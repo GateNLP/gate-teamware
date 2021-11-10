@@ -9,6 +9,7 @@
     "test": "jest"
   },
   "dependencies": {
+    "@vue/cli": "^4.5.15",
     "@vue/cli-plugin-babel": "~4.5.0",
     "@vue/cli-plugin-router": "~4.5.0",
     "@vue/cli-plugin-unit-jest": "^4.5.12",
@@ -43,7 +44,8 @@
   "devDependencies": {
     "@testing-library/jest-dom": "^5.12.0",
     "@testing-library/vue": "^5.6.2",
-    "@vue/test-utils": "^1.0.3"
+    "@vue/test-utils": "^1.0.3",
+    "jest": "~25"
   },
   "browserslist": [
     "> 1%",
