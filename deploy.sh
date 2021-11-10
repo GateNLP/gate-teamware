@@ -14,6 +14,10 @@ case $DEPLOY_ENV in
     DJANGO_SETTINGS_MODULE=annotation_tool.settings.staging
     ;;
 
+  integration)
+    DJANGO_SETTINGS_MODULE=annotation_tool.settings.integration
+    ;;
+
   *)
     exit 1
     ;;

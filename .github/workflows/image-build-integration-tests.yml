@@ -27,6 +27,7 @@ jobs:
       - name: Run integration tests with cypress
         uses: cypress-io/github-action@v2
         with:
-          start: /bin/bash deploy.sh production
+          start: /bin/bash deploy.sh integration
           wait-on: 'http://localhost:8076'
           config: baseUrl=http://localhost:8076
+          env: TESTENV=container
