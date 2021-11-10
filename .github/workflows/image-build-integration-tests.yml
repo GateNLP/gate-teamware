@@ -2,13 +2,12 @@ name: Test image build and run Integration tests
 on:
   push:
     branches:
-      - docker-tests
-  #     - main
-  #     - dev
-  # pull_request:
-  #   branches:
-  #     - main
-  #     - dev
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
+      - dev
 jobs:
   build:
     runs-on: ubuntu-latest
