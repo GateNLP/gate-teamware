@@ -41,7 +41,7 @@ COPY --from=nodebuilder /app/frontend/public/static /usr/share/nginx/html
 
 
 FROM backend as test
-ENV DJANGO_SETTINGS_MODULE annotation_tool.settings.integration
+ENV DJANGO_SETTINGS_MODULE annotation_tool.settings.test
 WORKDIR /app/
 USER root
 RUN apt-get update && \
