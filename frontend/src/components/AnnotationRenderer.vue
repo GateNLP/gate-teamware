@@ -22,7 +22,7 @@
       <b-col>
         <BButton @click.prevent="submitHandler" class="mr-4" variant="success">Submit</BButton>
         <BButton @click.prevent="clearFormHandler" class="mr-4" variant="warning">Clear</BButton>
-        <BButton @click.prevent="rejectHandler" variant="danger">Reject document</BButton>
+        <BButton v-if="allow_document_reject" @click.prevent="rejectHandler" variant="danger">Reject document</BButton>
       </b-col>
     </b-row>
   </div>
@@ -69,6 +69,9 @@ export default {
           text: "<p>Some html text <strong>in bold</strong>.</p><p>Paragraph 2.</p>"
         }
       }
+    },
+    allow_document_reject: {
+      default: null
     }
   },
   methods: {
