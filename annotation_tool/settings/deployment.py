@@ -1,6 +1,6 @@
 import logging
-import os
 import sys
+import os
 from .base import *
 
 # Enable csrf in production
@@ -8,7 +8,12 @@ MIDDLEWARE.append(
 'django.middleware.csrf.CsrfViewMiddleware'
 )
 
-ALLOWED_HOSTS.append('annotate-test.gate.ac.uk')
+if DJANGO_ALLOWED_HOSTS in os.environ:
+    # This looks a bit horrible, but the logic is split DJANGO_ALLOWED_HOSTS on
+    # commas, strip surrounding whitespace off each element, and filter out any
+    # remaining empty strings
+    ALLOWED_HOSTS.extend(host for host in (h.strip() for h in os.environ['DJANGO_ALLOWED_HOSTS'].split(',')) if host)
+
 
 LOGGING = {
    'version': 1,
