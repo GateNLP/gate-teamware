@@ -351,5 +351,67 @@ describe("AnnotationRenderer", () => {
 
     })
 
+    it('Test function of reject document button', async () => {
+
+        const annotationComps = [
+            {
+                name: "text",
+                type: "checkbox",
+                optional: true,
+                minSelected: 2,
+                options: {
+                    "val1": "Val 1",
+                    "val2": "Val 2",
+                    "val3": "Val 3",
+                    "val4": "Val 4",
+                }
+
+            }]
+
+        // Test reject button functions when enabled
+        const ar = render(AnnotationRenderer, {
+            props: {
+                config: annotationComps,
+                allow_document_reject: true
+            }
+        })
+
+        const rejectBtn = ar.getByText("Reject document")
+        await fireEvent.click(rejectBtn)
+        expect(ar.emitted().reject).toBeTruthy()
+
+    })
+
+
+    it('Test function of allow_document_reject config option', async () => {
+
+        const annotationComps = [
+            {
+                name: "text",
+                type: "checkbox",
+                optional: true,
+                minSelected: 2,
+                options: {
+                    "val1": "Val 1",
+                    "val2": "Val 2",
+                    "val3": "Val 3",
+                    "val4": "Val 4",
+                }
+
+            }]
+
+        // Test disabling reject button
+        const ar = render(AnnotationRenderer, {
+            props: {
+                config: annotationComps,
+                allow_document_reject: false
+            }
+        })
+
+        const rejectBtn = ar.queryByText("Reject document")
+        expect(rejectBtn).toBeNull()
+
+    })
+
 
 })
