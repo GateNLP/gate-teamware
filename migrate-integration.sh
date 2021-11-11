@@ -1,5 +1,7 @@
 #!/bin/bash
 
-./manage.py flush --noinput --settings='annotation_tool.settings.integration' &&\
-./manage.py migrate --noinput --settings='annotation_tool.settings.integration' &&\
-./manage.py loaddata --settings='annotation_tool.settings.integration' backend/fixtures/db_users.json
+export DJANGO_SETTINGS_MODULE=annotation_tool.settings.integration
+
+./manage.py flush --noinput &&\
+./manage.py migrate --noinput &&\
+./manage.py loaddata backend/fixtures/db_users.json
