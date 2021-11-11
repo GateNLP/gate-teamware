@@ -1,7 +1,11 @@
 describe('User Interface Permissions Test', () => {
 
     beforeEach(()=>{
-        cy.exec('npm run migrate:integration')
+        if (Cypress.env('TESTENV') == 'dev'){
+            cy.exec('npm run migrate:integration')
+        } else if (Cypress.env('TESTENV') == 'container') {
+            cy.exec('docker-compose exec -T backend ./migrate-integration.sh')
+        }
     })
 
     it('tests admin UI permissions', () => {

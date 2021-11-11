@@ -17,4 +17,4 @@ if [ "$OUT" == 0 ]; then
 fi
 
 
-python -m gunicorn annotation_tool.wsgi -b 0.0.0.0:8000 "$@"
+gunicorn annotation_tool.wsgi -b 0.0.0.0:8000 "$@"
