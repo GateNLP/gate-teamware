@@ -40,6 +40,6 @@ or a post from reddit), a pair of source post and reply or a part of a HTML web 
 ### Annotations
 
 An annotation represents a single annotation task against a single document. Like the document,
-an annotation is stored as an arbitrary JSON object and can represent a number 
+an annotation is stored as an arbitrary JSON object and can have any arbitrary structure.
 
 
