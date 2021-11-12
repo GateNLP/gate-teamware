@@ -25,6 +25,7 @@
 
         <AnnotationRenderer :config="annotationTask.project_config"
                           :document="annotationTask.document_data"
+                          :allow_document_reject="annotationTask.allow_document_reject"
                           @submit="submitHandler"
                           @reject="rejectHandler"
       ></AnnotationRenderer>
