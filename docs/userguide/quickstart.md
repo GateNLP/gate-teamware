@@ -1,6 +1,4 @@
-# Quickstart
-
-## Annotators
+# Annotators Quickstart
 
 Annotating a project:
 
@@ -17,6 +15,4 @@ Annotating a project:
   manager) your task will be deemed complete, and you will be able to be recruited into another annotation 
   project.
 
-## Managers
 
-## Admins

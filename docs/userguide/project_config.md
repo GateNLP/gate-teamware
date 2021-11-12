@@ -26,6 +26,7 @@ documents, annotations or annotators to the new project.
   more than this proportion of documents.
 * **Timeout for pending annotation tasks (minutes)** - Specify the number of minutes a user has to complete an
   annotation task (i.e. annotating a single document).
+* **Reject documents** - Switching this off will mean that annotators for this project will be unable to choose to reject documents.
 * **Document ID field** - The field in your uploaded documents that is used as a unique identifier. GATE's json format
   uses the name field. You can use a dot limited key path to access subfields e.g. enter features.name to get the id
   from the object `{'features':{'name':'nameValue'}}`

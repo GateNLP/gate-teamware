@@ -8,7 +8,7 @@
       </b-tab>
       <b-tab title="Preview">
         <b-card class="mb-2 mt-2">
-          <AnnotationRenderer :config="config" :document="document" v-model="annotationOutput"></AnnotationRenderer>
+          <AnnotationRenderer :config="config" :document="document" :allow_document_reject="true"  v-model="annotationOutput"></AnnotationRenderer>
         </b-card>
         <b-card class="mb-2 mt-2">
           <p><strong>Annotation output:</strong></p>
