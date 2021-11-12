@@ -2,7 +2,7 @@ const path = require("path");
 module.exports = {
     title: 'GATE Teamware Documentation',
     description: 'Documentation for GATE Teamware',
-    base: "/gate-annotation-service/",
+    base: "/gate-teamware/",
     themeConfig: {
         // nav: [
         //   { text: 'Home', link: '/' },

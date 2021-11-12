@@ -1,5 +1,5 @@
 {
-  "name": "gate-annotation-service",
+  "name": "gate-teamware",
   "version": "0.0.1",
   "description": "A service for collaborative document annotation. Project plan can be found here:",
   "main": "index.js",
@@ -32,14 +32,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/GateNLP/gate-annotation-service.git"
+    "url": "git+https://github.com/GateNLP/gate-teamware.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/GateNLP/gate-annotation-service/issues"
+    "url": "https://github.com/GateNLP/gate-teamware/issues"
   },
-  "homepage": "https://github.com/GateNLP/gate-annotation-service#readme",
+  "homepage": "https://github.com/GateNLP/gate-teamware",
   "devDependencies": {
     "cypress": "^7.1.0",
     "vuepress": "^1.8.2"
