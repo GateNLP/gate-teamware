@@ -91,6 +91,7 @@ class Project(models.Model):
         "annotation_timeout",
         "document_input_preview",
         "document_id_field",
+        "allow_document_reject",
     }
 
 

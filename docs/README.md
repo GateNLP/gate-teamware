@@ -1,6 +1,6 @@
-# Gate Annotation Service
+# GATE Teamware
 
-A service for collaborative document annotation.
+A web application for collaborative document annotation.
 
 
 

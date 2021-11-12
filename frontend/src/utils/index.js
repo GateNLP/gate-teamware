@@ -1,17 +1,5 @@
 import JSRPCClient from '../jrpc'
 
-export function generateBVOptions(options) {
-    let optionsList = []
-    for (let optionKey in options) {
-        optionsList.push({
-            value: optionKey,
-            text: options[optionKey]
-        })
-    }
-
-    return optionsList
-}
-
 /**
  *
  * @param file The file object obtained from DOM file upload input

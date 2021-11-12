@@ -6,7 +6,7 @@
 
 <script>
 
-import { generateBVOptions } from '@/utils'
+import { generateBVOptions } from '@/utils/annotations'
 import InputErrorDisplay from "@/components/annotation/InputErrorDisplay";
 export default {
   name: "SelectorInput",

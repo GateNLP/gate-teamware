@@ -281,14 +281,29 @@ Checks that the current user has logged in.
 
 
 
-### get_project(pk) <Badge text="manager" type="warning" title="Requires manager permission"/>
+### get_project(project_id) <Badge text="manager" type="warning" title="Requires manager permission"/>
 
 
 
 
 #### Parameters
 
-* pk
+* project_id
+
+
+
+
+
+
+
+### clone_project(project_id) <Badge text="manager" type="warning" title="Requires manager permission"/>
+
+
+
+
+#### Parameters
+
+* project_id
 
 
 
