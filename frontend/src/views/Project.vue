@@ -93,6 +93,17 @@
                         description="Specify the number of minutes a user has to complete an annotation task (i.e. annotating a single document).">
             <b-form-input v-model="local_project.annotation_timeout"></b-form-input>
           </b-form-group>
+          <b-form-group label="Reject documents"
+                        description="Switching this off will mean that annotators for this project will be unable to choose to reject documents.">
+                <b-form-checkbox
+                  id="reject-checkbox"
+                  v-model="local_project.allow_document_reject"
+                  name="reject-checkbox"
+                  switch
+                >
+                  Allow annotators to reject documents?
+                </b-form-checkbox>
+          </b-form-group>
           <b-form-group label="Document ID field"
                         description="The field in your uploaded documents that is used as a unique identifier. GATE's json format uses the name field. You can use a dot limited key path to access subfields e.g. enter features.name to get the id from the object {'features':{'name':'nameValue'}}">
             <b-form-input v-model="local_project.document_id_field"></b-form-input>
@@ -326,6 +337,7 @@ export default {
         data: null,
         annotations_per_doc: 3,
         annotator_max_annotation: 0.6,
+        allow_document_reject: true,
         document_input_preview: {},
         is_configured: false,
         is_completed: false,

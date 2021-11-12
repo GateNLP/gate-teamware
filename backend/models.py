@@ -75,6 +75,7 @@ class Project(models.Model):
     owner = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, related_name="owns")
     annotations_per_doc = models.IntegerField(default=3)
     annotator_max_annotation = models.FloatField(default=0.6)
+    allow_document_reject = models.BooleanField(default=True)
     annotation_timeout = models.IntegerField(default=60)
     document_input_preview = models.JSONField(default=default_document_input_preview)
     document_id_field = models.TextField(default="name")
@@ -86,6 +87,7 @@ class Project(models.Model):
         "configuration",
         "annotations_per_doc",
         "annotator_max_annotation",
+        "allow_document_reject",
         "annotation_timeout",
         "document_input_preview",
         "document_id_field",
@@ -426,6 +428,7 @@ class Annotation(models.Model):
             "document_field_id": get_value_from_key_path(document.data, project.document_id_field),
             "document_data": document.data,
             "annotation_id": self.pk,
+            "allow_document_reject": project.allow_document_reject,
             "annotation_timeout": self.times_out_at
         }
 
