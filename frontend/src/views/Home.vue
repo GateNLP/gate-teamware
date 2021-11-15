@@ -1,6 +1,9 @@
 <template>
   <div class="home container">
-    <h1>GATE Annotation Tool</h1>
+    <div class="mt-4 text-center">
+      <img src="/static/img/gate-teamware-logo.svg" alt="GATE Teamware" style="margin: auto"/>
+    </div>
+
 
     <AccountActivationGenerator></AccountActivationGenerator>
   </div>
