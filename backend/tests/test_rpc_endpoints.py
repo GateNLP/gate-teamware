@@ -639,6 +639,50 @@ class TestAnnotationTaskManager(TestEndpoint):
         task_context = get_annotation_task(ann1_request)
         self.assertIsNone(task_context)
 
+    def test_task_rejection(self):
+        """
+        User should be removed from the project if they don't have more tasks due to rejecting
+        documents.
+        """
+
+        # Create users and project, add them as annotators
+        manager = self.get_default_user()
+        manager_request = self.get_loggedin_request()
+
+        ann1 = get_user_model().objects.create(username="ann1")
+        ann1_request = self.get_request()
+        ann1_request.user = ann1
+
+        proj = Project.objects.create(owner=manager)
+        proj.annotations_per_doc = 3
+        proj.annotator_max_annotation = 0.6  # Annotator can annotator max of 60% of docs
+
+        # Create documents
+        num_docs = 10
+        docs = list()
+        for i in range(num_docs):
+            docs.append(Document.objects.create(project=proj))
+
+        # Add ann1 as the project's annotator
+        self.assertTrue(add_project_annotator(manager_request, proj.id, ann1.username))
+        ann1.refresh_from_db()
+
+        # Reject all tasks
+        for i in range(num_docs+1):
+            task_context = get_annotation_task(ann1_request)
+
+            if task_context is None:
+                ann1.refresh_from_db()
+                self.assertTrue(ann1.annotates is None)
+                return
+            else:
+                reject_annotation_task(ann1_request, task_context["annotation_id"])
+
+        self.assertTrue(False, "All documents rejected but annotator still getting annotation tasks")
+
+
+
+
     def test_multi_user_annotation_task(self):
         num_annotators = 5
         num_documents = 10
