@@ -17,7 +17,7 @@ describe('User Registration Test', () => {
         cy.contains('Password').type('123456')
         cy.contains('Confirm Password').type('123456')
         cy.get('form').contains('Register').click()
-        cy.contains('GATE Annotation Tool')
+        cy.contains('TEAMWARE')
     })
 
     it('tests password mismatch', () => {
