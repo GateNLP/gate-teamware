@@ -14,7 +14,7 @@
 import AccountActivationGenerator from "@/components/AccountActivationGenerator";
 export default {
   name: 'Home',
-  title: "Gate Annotation Service",
+  title: "GATE Teamware",
   components: {
     AccountActivationGenerator
   }
