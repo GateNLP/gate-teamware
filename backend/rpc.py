@@ -520,20 +520,9 @@ def get_annotation_task(request):
         if not project:
             return None
 
-        # User has existing task
-        annotation = project.get_current_annotator_task(user)
+        # Gets the annotation task or None
+        return project.get_annotator_task(user)
 
-        # Generate new task if there's no existing task and user has not reached quota
-        if not annotation and not project.annotator_reached_quota(user):
-            annotation = project.assign_annotator_task(user)
-
-        # Returns annotation task dict or remove user from project if there's no task
-        if annotation:
-            return annotation.get_annotation_task()
-        else:
-            # If there's no new annotation task then remove user from project
-            project.remove_annotator(user)
-            return None
 
 
 

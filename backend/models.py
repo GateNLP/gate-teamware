@@ -176,6 +176,27 @@ class Project(models.Model):
 
         Annotation.clear_all_pending_user_annotations(user)
 
+    def get_annotator_task(self, user):
+        """
+        Gets or creates a new annotation task for user (annotator). Returns None and removes
+        user from annotator list if there's no more tasks.
+        """
+
+        # User has existing task
+        annotation = self.get_current_annotator_task(user)
+
+        # Generate new task if there's no existing task and user has not reached quota
+        if not annotation and not self.annotator_reached_quota(user):
+            annotation = self.assign_annotator_task(user)
+
+        # Returns annotation task dict or remove user from project if there's no task
+        if annotation:
+            return annotation.get_annotation_task()
+        else:
+            # If there's no new annotation task then remove user from project
+            self.remove_annotator(user)
+            return None
+
     def annotator_reached_quota(self, user):
         num_docs = self.documents.count()
         num_user_annotated_docs = 0
@@ -187,6 +208,9 @@ class Project(models.Model):
         return percentage_of_docs_annotated >= self.annotator_max_annotation
 
     def get_current_annotator_task(self, user):
+        """
+        Gets annotator's current pending task in the project.
+        """
 
         current_annotations = user.annotations.filter(status=Annotation.PENDING)
         num_annotations = current_annotations.count()
@@ -204,6 +228,10 @@ class Project(models.Model):
         return annotation
 
     def assign_annotator_task(self, user):
+        """
+        Assign an available annotation task to a user
+        """
+
         if self.num_annotation_tasks_remaining > 0:
             for doc in self.documents.all():
                 # Check that annotator hasn't annotated and that
@@ -273,19 +301,19 @@ class Document(models.Model):
         return self.annotations.filter(
             Q(status=Annotation.COMPLETED) | Q(status=Annotation.PENDING)).count()
 
-
-
-
     def user_can_annotate_document(self, user):
         """ User must not have completed, pending or rejected the document"""
-        num_user_annotation_in_doc = self.num_user_completed_annotations(user) + self.num_user_rejected_annotations(
-            user) + self.num_user_pending_annotations(user)
+        num_user_annotation_in_doc = self.annotations.filter(
+            Q(user_id=user.pk, status=Annotation.COMPLETED) |
+            Q(user_id=user.pk, status=Annotation.PENDING) |
+            Q(user_id=user.pk, status=Annotation.REJECTED)).count()
 
         if num_user_annotation_in_doc > 1:
             raise RuntimeError(
                 f"The user {user.username} has more than one annotation ({num_user_annotation_in_doc}) in the document.")
 
-        return num_user_annotation_in_doc < 1
+        return (num_user_annotation_in_doc < 1 and
+                self.num_completed_and_pending_annotations < self.project.annotations_per_doc)
 
     def num_user_completed_annotations(self, user):
         return self.annotations.filter(user_id=user.pk, status=Annotation.COMPLETED).count()

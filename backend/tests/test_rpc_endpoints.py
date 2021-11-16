@@ -684,12 +684,10 @@ class TestAnnotationTaskManager(TestEndpoint):
 
 
     def test_multi_user_annotation_task(self):
-        num_annotators = 5
+        num_annotators = 10
         num_documents = 10
         num_annotations_per_doc = 5
         annotator_max_annotation = 0.6  # Annotator can annotator max of 60% of docs
-        num_rejections_per_annotator = 3
-        num_timeouts_per_annotator = 5
 
         # Create users and project, add them as annotators
         manager = self.get_default_user()
@@ -708,18 +706,28 @@ class TestAnnotationTaskManager(TestEndpoint):
 
         documents = [Document.objects.create(project=proj) for i in range(num_documents)]
 
-        for i in range(num_rejections_per_annotator):
-            for annotator in annotators:
-                self.reject_annotation(annotator)
-                print(
-                    f"Remaining/completed/total {proj.num_annotation_tasks_remaining}/{proj.num_completed_tasks}/{proj.num_annotation_tasks_total}")
-
 
         for i in range(num_annotations_per_doc + 1):
             for annotator in annotators:
                 self.perform_annotation(annotator, expect_completed=proj.num_annotation_tasks_remaining < 1)
                 print(
                     f"Remaining/completed/total {proj.num_annotation_tasks_remaining}/{proj.num_completed_tasks}/{proj.num_annotation_tasks_total}")
+
+
+        proj.refresh_from_db()
+        self.assertEqual(proj.num_annotation_tasks_remaining, 0, "There must be no remaining tasks")
+
+        for doc in documents:
+            doc.refresh_from_db()
+            self.assertEqual(doc.num_completed_annotations, proj.annotations_per_doc, "Documents must have exact number of annotations when finished")
+
+            user_id_set = set()
+            for anno in doc.annotations.filter(status=Annotation.COMPLETED):
+                self.assertFalse(anno.user.pk in user_id_set, "Annotator must only annotate a document once")
+                user_id_set.add(anno.user.pk)
+
+            print(f"Doc ID: {doc.pk} completed_annotations: {doc.num_completed_annotations} annotator_ids: {','.join(str(v) for v in user_id_set)}")
+
 
     def get_annotator_request(self, annotator):
         annotator.refresh_from_db()
