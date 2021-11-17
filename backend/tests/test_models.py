@@ -1,3 +1,4 @@
+import math
 from datetime import timedelta
 from django.db import models
 from django.contrib.auth import get_user_model
@@ -151,11 +152,6 @@ class TestProjectModel(ModelTestCase):
             "document_input_preview": models.JSONField,
         })
 
-    def check_project_props(self, project, total_tasks, completed_tasks, occupied_tasks, remaining_tasks):
-        self.assertEqual(total_tasks, project.num_annotation_tasks_total, "Total tasks check")
-        self.assertEqual(completed_tasks, project.num_completed_tasks, "Completed tasks check")
-        self.assertTrue(occupied_tasks == project.num_occupied_tasks, "Occupied tasks check")
-        self.assertEqual(remaining_tasks, project.num_annotation_tasks_remaining, "Remaining tasks check")
 
     def test_project_documents(self):
         annotator = get_user_model().objects.create(username="test1")
@@ -216,6 +212,12 @@ class TestProjectModel(ModelTestCase):
                                  occupied_tasks=4,
                                  remaining_tasks=self.num_total_tasks - 4)
 
+    def check_project_props(self, project, total_tasks, completed_tasks, occupied_tasks, remaining_tasks):
+        self.assertEqual(total_tasks, project.num_annotation_tasks_total, "Total tasks check")
+        self.assertEqual(completed_tasks, project.num_completed_tasks, "Completed tasks check")
+        self.assertTrue(occupied_tasks == project.num_occupied_tasks, "Occupied tasks check")
+        self.assertEqual(remaining_tasks, project.num_annotation_tasks_remaining, "Remaining tasks check")
+
     def test_project_annotation_timeout(self):
         annotator = get_user_model().objects.create(username="test1")
         project = Project.objects.create(annotations_per_doc=self.annotations_per_doc,
@@ -232,6 +234,36 @@ class TestProjectModel(ModelTestCase):
 
         # Timeout should be more than minutes set in project
         self.assertTrue(annotation.times_out_at > annotation.created)
+
+    def test_project_get_annotator_remaining_task(self):
+
+        annotator = get_user_model().objects.create(username="test1")
+        annotator2 = get_user_model().objects.create(username="test2")
+        project = Project.objects.create(annotations_per_doc=self.annotations_per_doc,
+                                         annotator_max_annotation=self.annotator_max_annotation)
+        docs = [Document.objects.create(project=project) for i in range(self.num_docs)]
+
+        num_docs_user_can_annotate = math.ceil(project.documents.count() * project.annotator_max_annotation)
+
+        project.add_annotator(annotator)
+
+        project.refresh_from_db()
+
+        for doc in docs:
+            Annotation.objects.create(user=annotator2, document=doc, status=Annotation.COMPLETED)
+            Annotation.objects.create(user=annotator2, document=doc, status=Annotation.ABORTED)
+
+        for i in range(1):
+            doc = docs[i]
+            Annotation.objects.create(user=annotator, document=doc, status=Annotation.COMPLETED)
+            Annotation.objects.create(user=annotator, document=doc, status=Annotation.ABORTED)
+            self.assertEqual(project.num_annotator_task_remaining(annotator), num_docs_user_can_annotate - (i+1))
+
+        print(project.num_annotator_task_remaining(annotator))
+
+
+
+
 
     def test_saving_and_loading(self):
         name = "Test name"

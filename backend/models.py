@@ -1,3 +1,5 @@
+import math
+
 from django.conf import settings
 import logging
 import django
@@ -6,7 +8,7 @@ from django.contrib.auth.models import AbstractUser
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils import timezone
-from django.db.models import Q, F
+from django.db.models import Q, F, Count
 
 from backend.utils.misc import get_value_from_key_path, insert_value_to_key_path
 
@@ -176,6 +178,56 @@ class Project(models.Model):
 
         Annotation.clear_all_pending_user_annotations(user)
 
+    def num_annotator_task_remaining(self, user):
+
+        num_annotable = self.get_user_annotatable_documents_query(user).count()
+        num_occupied_by_user = self.get_user_occupied_documents_query(user).count()
+        max_num_docs_user_can_annotate = math.ceil(self.documents.all().count() * self.annotator_max_annotation)
+        remaining_docs_in_quota = max_num_docs_user_can_annotate - num_occupied_by_user
+
+        if remaining_docs_in_quota < num_annotable:
+            return remaining_docs_in_quota
+        else:
+            return num_annotable
+
+    def get_user_annotatable_documents_query(self, user):
+        # Filter to get the count of occupied annotations in the document
+        # (annotations with COMPLETED and PENDING status)
+        occupied_filter = (Q(annotations__status=Annotation.COMPLETED) |
+                           Q(annotations__status=Annotation.PENDING))
+        occupied_count = Count('annotations', filter=occupied_filter)
+
+        # Filter to get the count of user occupied annotation in the document
+        # (annotations with COMPLETED, PENDING, and REJECTED status)
+        user_occupied_filter = (Q(annotations__user_id=user.pk, annotations__status=Annotation.COMPLETED) |
+                                Q(annotations__user_id=user.pk, annotations__status=Annotation.PENDING) |
+                                Q(annotations__user_id=user.pk, annotations__status=Annotation.REJECTED))
+        user_occupied_count = Count('annotations', filter=user_occupied_filter)
+
+        # All remaining documents that user can annotate
+        annotatable_docs = Document.objects.filter(project_id=self.pk) \
+            .annotate(num_occupied=occupied_count) \
+            .annotate(num_user_occupied=user_occupied_count) \
+            .filter(num_occupied__lt=self.annotations_per_doc, num_user_occupied__lt=1)
+
+        return annotatable_docs
+
+    def get_user_occupied_documents_query(self, user):
+        # Filter to get the count of user occupied annotation in the document
+        # (annotations with COMPLETED, PENDING, and REJECTED status)
+        user_occupied_filter = (Q(annotations__user_id=user.pk, annotations__status=Annotation.COMPLETED) |
+                                Q(annotations__user_id=user.pk, annotations__status=Annotation.PENDING) |
+                                Q(annotations__user_id=user.pk, annotations__status=Annotation.REJECTED))
+        user_occupied_count = Count('annotations', filter=user_occupied_filter)
+
+        # Number of user annotated docs in the project
+        user_annotated = Document.objects \
+            .annotate(num_user_occupied=user_occupied_count) \
+            .filter(project_id=self.pk, num_user_occupied__gt=0)
+
+        return user_annotated
+
+
     def get_annotator_task(self, user):
         """
         Gets or creates a new annotation task for user (annotator). Returns None and removes
@@ -323,6 +375,7 @@ class Document(models.Model):
 
     def num_user_rejected_annotations(self, user):
         return self.annotations.filter(user_id=user.pk, status=Annotation.REJECTED).count()
+
 
     def num_user_timed_out_annotations(self, user):
         return self.annotations.filter(user_id=user.pk, status=Annotation.TIMED_OUT).count()
