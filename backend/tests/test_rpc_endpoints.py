@@ -75,68 +75,72 @@ class TestUserAuth(TestCase):
 class TestUserRegistration(TestEndpoint):
 
     def test_user_registration(self):
-        username = "testuser"
-        user_pass = "123456789"
-        user_email = "test@test.com"
+        # Force e-mail activation
+        with self.settings(ACTIVATION_WITH_EMAIL=True):
+            username = "testuser"
+            user_pass = "123456789"
+            user_email = "test@test.com"
 
-        # Register user, will have e-mail activation
-        self.call_rpc(self.get_client(), "register", {
-            "username": username,
-            "password": user_pass,
-            "email": user_email
-        })
+            # Register user, will have e-mail activation
+            self.call_rpc(self.get_client(), "register", {
+                "username": username,
+                "password": user_pass,
+                "email": user_email
+            })
 
-        # Check that mail is sent
-        self.assertTrue(len(mail.outbox) > 0, "Mail to user must have been sent")
+            # Check that mail is sent
+            self.assertTrue(len(mail.outbox) > 0, "Mail to user must have been sent")
 
-        test_user = get_user_model().objects.get(username=username)
+            test_user = get_user_model().objects.get(username=username)
 
-        # Check that a token has been generated with length specified by the settings
-        self.assertTrue(len(test_user.activate_account_token) > settings.ACTIVATION_TOKEN_LENGTH)
-        self.assertTrue(test_user.activate_account_token_expire > timezone.now())
+            # Check that a token has been generated with length specified by the settings
+            self.assertTrue(len(test_user.activate_account_token) > settings.ACTIVATION_TOKEN_LENGTH)
+            self.assertTrue(test_user.activate_account_token_expire > timezone.now())
 
-        with self.assertRaises(ValueError, msg="Should raise an error if user doesn't exist"):
-            activate_account(self.get_request(), "doesnotexist", "tokendoesnotexist")
+            with self.assertRaises(ValueError, msg="Should raise an error if user doesn't exist"):
+                activate_account(self.get_request(), "doesnotexist", "tokendoesnotexist")
 
-        with self.assertRaises(ValueError, msg="Should raise error if token is wrong or expired"):
-            activate_account(self.get_request(), test_user.username, "tokendoesnotexist")
+            with self.assertRaises(ValueError, msg="Should raise error if token is wrong or expired"):
+                activate_account(self.get_request(), test_user.username, "tokendoesnotexist")
 
-        with self.assertRaises(ValueError, msg="Should raise an error if token doesn't exist"):
-            activate_account(self.get_request(), test_user.username, None)
+            with self.assertRaises(ValueError, msg="Should raise an error if token doesn't exist"):
+                activate_account(self.get_request(), test_user.username, None)
 
-        with self.assertRaises(ValueError, msg="Should raise an error if token is blank"):
-            activate_account(self.get_request(), test_user.username, "")
+            with self.assertRaises(ValueError, msg="Should raise an error if token is blank"):
+                activate_account(self.get_request(), test_user.username, "")
 
-        # Should activate properly this time
-        activate_account(self.get_request(), test_user.username, test_user.activate_account_token)
+            # Should activate properly this time
+            activate_account(self.get_request(), test_user.username, test_user.activate_account_token)
 
-        #  Gets user again, now should be activate
-        test_user.refresh_from_db()
-        self.assertTrue(test_user.is_account_activated)
-        self.assertTrue(test_user.activate_account_token is None)
-        self.assertTrue(test_user.activate_account_token_expire is None)
+            #  Gets user again, now should be activate
+            test_user.refresh_from_db()
+            self.assertTrue(test_user.is_account_activated)
+            self.assertTrue(test_user.activate_account_token is None)
+            self.assertTrue(test_user.activate_account_token_expire is None)
 
     def test_generate_user_activation(self):
+        # Force e-mail activation
+        with self.settings(ACTIVATION_WITH_EMAIL=True):
 
-        with self.assertRaises(ValueError, msg="Raise an error if user doesn't exist"):
-            generate_user_activation(self.get_request(), "doesnotexist")
+            with self.assertRaises(ValueError, msg="Raise an error if user doesn't exist"):
+                generate_user_activation(self.get_request(), "doesnotexist")
 
-        # Gets a test user
-        test_user = self.get_default_user()
+            # Gets a test user
+            test_user = self.get_default_user()
 
-        # Generates
-        generate_user_activation(self.get_request(), test_user.username)
-
-        test_user.refresh_from_db()
-        self.assertTrue(len(test_user.activate_account_token) > settings.ACTIVATION_TOKEN_LENGTH)
-        self.assertTrue(test_user.activate_account_token_expire > timezone.now())
-
-
-        test_user.is_account_activated = True
-        test_user.save()
-
-        with self.assertRaises(ValueError, msg="Raises an error if user is already activated"):
+            # Generates
             generate_user_activation(self.get_request(), test_user.username)
+
+            test_user.refresh_from_db()
+            self.assertTrue(len(test_user.activate_account_token) > settings.ACTIVATION_TOKEN_LENGTH)
+            self.assertTrue(test_user.activate_account_token_expire > timezone.now())
+
+
+            test_user.is_account_activated = True
+            test_user.save()
+
+            with self.assertRaises(ValueError, msg="Raises an error if user is already activated"):
+                generate_user_activation(self.get_request(), test_user.username)
 
 
 
