@@ -103,28 +103,60 @@ class Project(models.Model):
 
     @property
     def num_annotation_tasks_total(self):
-        return self.documents.count() * self.annotations_per_doc
+        return self.num_documents * self.annotations_per_doc
 
     @property
     def num_completed_tasks(self):
-        return Annotation.objects.filter(document__project_id=self.pk, status=Annotation.COMPLETED).count()
+        return self._get_project_annotations_query(status=Annotation.COMPLETED).count()
 
     @property
     def num_pending_tasks(self):
-        return Annotation.objects.filter(document__project_id=self.pk, status=Annotation.PENDING).count()
+        return self._get_project_annotations_query(status=Annotation.PENDING).count()
 
     @property
     def num_rejected_tasks(self):
-        return Annotation.objects.filter(document__project_id=self.pk, status=Annotation.REJECTED).count()
+        return self._get_project_annotations_query(status=Annotation.REJECTED).count()
 
     @property
     def num_timed_out_tasks(self):
-        return Annotation.objects.filter(document__project_id=self.pk, status=Annotation.TIMED_OUT).count()
+        return self._get_project_annotations_query(status=Annotation.TIMED_OUT).count()
 
     @property
     def num_aborted_tasks(self):
         return Annotation.objects.filter(document__project_id=self.pk, status=Annotation.ABORTED).count()
 
+
+
+    @property
+    def num_occupied_tasks(self):
+        return (self._get_project_annotations_query(Annotation.COMPLETED) |
+                self._get_project_annotations_query(Annotation.PENDING)).count()
+
+    @property
+    def num_annotation_tasks_remaining(self):
+        return self.num_annotation_tasks_total - self.num_occupied_tasks
+
+    def _get_project_annotations_query(self, status=None):
+        if status is None:
+            return Annotation.objects.filter(document__project_id=self.pk)
+        else:
+            return Annotation.objects.filter(document__project_id=self.pk, status=status)
+
+    @property
+    def is_completed(self):
+        # Project must have documents to be completed
+        if self.num_annotation_tasks_total <= 0:
+            return False
+
+        return self.num_annotation_tasks_total - self.num_completed_tasks < 1
+
+    @property
+    def max_num_task_per_annotator(self):
+        return math.ceil(self.annotator_max_annotation * self.documents.all().count())
+
+    @property
+    def num_annotators(self):
+        return self.annotators.all().count()
 
     @property
     def is_project_configured(self):
@@ -143,31 +175,6 @@ class Project(models.Model):
 
         return errors
 
-    @property
-    def num_occupied_tasks(self):
-        num_tasks = 0
-        for doc in self.documents.all():
-            num_tasks += doc.num_completed_and_pending_annotations
-
-        return num_tasks
-
-    @property
-    def num_annotation_tasks_remaining(self):
-        return self.num_annotation_tasks_total - self.num_occupied_tasks
-
-    @property
-    def is_completed(self):
-        # Project must have documents to be completed
-        if self.num_annotation_tasks_total <= 0:
-            return False
-
-        return self.num_annotation_tasks_total - self.num_completed_tasks < 1
-
-
-    @property
-    def num_annotators(self):
-        return self.annotators.all().count()
-
     def add_annotator(self, user):
         self.annotators.add(user)
         self.save()
@@ -180,17 +187,17 @@ class Project(models.Model):
 
     def num_annotator_task_remaining(self, user):
 
-        num_annotable = self.get_user_annotatable_documents_query(user).count()
-        num_occupied_by_user = self.get_user_occupied_documents_query(user).count()
-        max_num_docs_user_can_annotate = math.ceil(self.documents.all().count() * self.annotator_max_annotation)
-        remaining_docs_in_quota = max_num_docs_user_can_annotate - num_occupied_by_user
+        num_annotable = self.get_annotator_annotatable_documents_query(user).count()
+        num_completed_by_user = self.get_annotator_completed_documents_query(user).count()
+        max_num_docs_user_can_annotate = self.max_num_task_per_annotator
+        remaining_docs_in_quota = max_num_docs_user_can_annotate - num_completed_by_user
 
         if remaining_docs_in_quota < num_annotable:
             return remaining_docs_in_quota
         else:
             return num_annotable
 
-    def get_user_annotatable_documents_query(self, user):
+    def get_annotator_annotatable_documents_query(self, user):
         # Filter to get the count of occupied annotations in the document
         # (annotations with COMPLETED and PENDING status)
         occupied_filter = (Q(annotations__status=Annotation.COMPLETED) |
@@ -212,7 +219,7 @@ class Project(models.Model):
 
         return annotatable_docs
 
-    def get_user_occupied_documents_query(self, user):
+    def get_annotator_occupied_documents_query(self, user):
         # Filter to get the count of user occupied annotation in the document
         # (annotations with COMPLETED, PENDING, and REJECTED status)
         user_occupied_filter = (Q(annotations__user_id=user.pk, annotations__status=Annotation.COMPLETED) |
@@ -221,11 +228,37 @@ class Project(models.Model):
         user_occupied_count = Count('annotations', filter=user_occupied_filter)
 
         # Number of user annotated docs in the project
-        user_annotated = Document.objects \
+        occupied_docs = Document.objects \
             .annotate(num_user_occupied=user_occupied_count) \
             .filter(project_id=self.pk, num_user_occupied__gt=0)
 
-        return user_annotated
+        return occupied_docs
+
+    def get_annotator_completed_documents_query(self, user):
+        # Filter to get the count of user occupied annotation in the document
+        # (annotations with COMPLETED, PENDING, and REJECTED status)
+        completed_filter = (Q(annotations__user_id=user.pk, annotations__status=Annotation.COMPLETED))
+        completed_count = Count('annotations', filter=completed_filter)
+
+        # Number of user completed annotated docs in the project
+        completed_docs = Document.objects \
+            .annotate(num_user_occupied=completed_count) \
+            .filter(project_id=self.pk, num_user_occupied__gt=0)
+
+        return completed_docs
+
+    def get_annotator_pending_documents_query(self, user):
+        # Filter to get the count of user occupied annotation in the document
+        # (annotations with COMPLETED, PENDING, and REJECTED status)
+        pending_filter = (Q(annotations__user_id=user.pk, annotations__status=Annotation.PENDING))
+        pending_count = Count('annotations', filter=pending_filter)
+
+        # Number of user completed annotated docs in the project
+        pending_docs = Document.objects \
+            .annotate(num_user_occupied=pending_count) \
+            .filter(project_id=self.pk, num_user_occupied__gt=0)
+
+        return pending_docs
 
 
     def get_annotator_task(self, user):
@@ -243,21 +276,18 @@ class Project(models.Model):
 
         # Returns annotation task dict or remove user from project if there's no task
         if annotation:
-            return annotation.get_annotation_task()
+            return self.get_annotation_task_dict(annotation)
         else:
             # If there's no new annotation task then remove user from project
             self.remove_annotator(user)
             return None
 
     def annotator_reached_quota(self, user):
-        num_docs = self.documents.count()
-        num_user_annotated_docs = 0
-        for doc in self.documents.all():
-            if doc.user_completed_annotation_of_document(user):
-                num_user_annotated_docs += 1
 
-        percentage_of_docs_annotated = num_user_annotated_docs / num_docs
-        return percentage_of_docs_annotated >= self.annotator_max_annotation
+        num_user_annotated_docs = (self.get_annotator_completed_documents_query(user) |
+                                   self.get_annotator_pending_documents_query(user)).count()
+
+        return num_user_annotated_docs >= self.max_num_task_per_annotator
 
     def get_current_annotator_task(self, user):
         """
@@ -278,6 +308,24 @@ class Project(models.Model):
                 "The annotation doesn't belong to this project! Annotator should only work on one project at a time")
 
         return annotation
+
+    def get_annotation_task_dict(self, annotation):
+        document = annotation.document
+        return {
+            "project_name": self.name,
+            "project_description": self.description,
+            "project_annotator_guideline": self.annotator_guideline,
+            "project_config": self.configuration,
+            "project_id": self.pk,
+            "document_id": document.pk,
+            "document_field_id": get_value_from_key_path(document.data, self.document_id_field),
+            "document_data": document.data,
+            "annotation_id": annotation.pk,
+            "allow_document_reject": self.allow_document_reject,
+            "annotation_timeout": annotation.times_out_at,
+            "annotator_remaining_tasks": self.num_annotator_task_remaining(user=annotation.user),
+            "annotator_completed_tasks": self.get_annotator_completed_documents_query(user=annotation.user).count()
+        }
 
     def assign_annotator_task(self, user):
         """
@@ -497,22 +545,7 @@ class Annotation(models.Model):
     status = models.IntegerField(choices=ANNOTATION_STATUS, default=PENDING)
     status_time = models.DateTimeField(default=None, null=True)
 
-    def get_annotation_task(self):
-        document = self.document
-        project = self.document.project
-        return {
-            "project_name": project.name,
-            "project_description": project.description,
-            "project_annotator_guideline": project.annotator_guideline,
-            "project_config": project.configuration,
-            "project_id": project.pk,
-            "document_id": document.pk,
-            "document_field_id": get_value_from_key_path(document.data, project.document_id_field),
-            "document_data": document.data,
-            "annotation_id": self.pk,
-            "allow_document_reject": project.allow_document_reject,
-            "annotation_timeout": self.times_out_at
-        }
+
 
     def _set_new_status(self, status, time=timezone.now()):
         self.ensure_status_pending()
