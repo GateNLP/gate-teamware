@@ -3,7 +3,7 @@ RUN mkdir /app/
 WORKDIR /app/
 COPY package.json package-lock.json ./
 COPY frontend/package.json frontend/package-lock.json ./frontend/
-RUN npm install --unsafe-perm --only=production
+RUN npm install --unsafe-perm --only=production --no-optional
 COPY frontend/ ./frontend/
 RUN npm run build
 
@@ -52,5 +52,5 @@ USER gate:gate
 COPY requirements-dev.txt .
 RUN pip install -r requirements-dev.txt
 COPY --from=nodebuilder --chown=gate:gate /app/ /app/
-RUN npm install --unsafe-perm
+RUN npm install --no-optional
 ENTRYPOINT [ "/bin/bash" ]
