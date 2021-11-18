@@ -19,14 +19,17 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 SETTINGS_DIR = Path(__file__).resolve().parent
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
+if 'DJANGO_SECRET_KEY' in os.environ:
+    SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
+else:
+    SECRET_KEY = 'django-insecure-+rh5#u6=19q90g$)e%ca&wpfjsju*5*=9b#ah2b&dlwpkx%4$o'
+    print("DEFAULT SECRET IS BEING USED!! This should only happen in development and automated testing")
 
-# Import secret settings or default secret for testing
-try:
-    from .secret import *
-except ModuleNotFoundError:
-    from .secret_default import *
+if 'DB_USERNAME' in os.environ:
+    POSTGRES_USERNAME = os.environ.get('DB_USERNAME')
+
+if 'DB_PASSWORD' in os.environ:
+    POSTGRES_PASSWORD = os.environ.get('DB_PASSWORD')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -173,6 +176,4 @@ ACTIVATION_TOKEN_LENGTH = 128
 PASSWORD_RESET_URL_PATH = "/passwordreset"
 PASSWORD_RESET_TIMEOUT_HOURS = 10
 PASSWORD_RESET_TOKEN_LENGTH = 128
-
-
 
