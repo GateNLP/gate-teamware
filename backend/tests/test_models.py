@@ -1,3 +1,4 @@
+import math
 from datetime import timedelta
 from django.db import models
 from django.contrib.auth import get_user_model
@@ -136,7 +137,15 @@ class TestProjectModel(ModelTestCase):
         self.annotations_per_doc = 3
         self.annotator_max_annotation = 0.6
         self.num_docs = 10
+        self.num_annotators = 10
         self.num_total_tasks = self.num_docs * self.annotations_per_doc
+
+        self.project = Project.objects.create(annotations_per_doc=self.annotations_per_doc,
+                                         annotator_max_annotation=self.annotator_max_annotation)
+        self.docs = [Document.objects.create(project=self.project) for i in range(self.num_docs)]
+        self.annotators = [get_user_model().objects.create(username=f"test{i}") for i in range(self.num_annotators)]
+        for annotator in self.annotators:
+            self.project.add_annotator(annotator)
 
     def test_model_fields(self):
         self.check_model_fields(Project, {
@@ -151,78 +160,72 @@ class TestProjectModel(ModelTestCase):
             "document_input_preview": models.JSONField,
         })
 
-    def check_project_props(self, project, total_tasks, completed_tasks, occupied_tasks, remaining_tasks):
-        self.assertEqual(total_tasks, project.num_annotation_tasks_total, "Total tasks check")
-        self.assertEqual(completed_tasks, project.num_completed_tasks, "Completed tasks check")
-        self.assertTrue(occupied_tasks == project.num_occupied_tasks, "Occupied tasks check")
-        self.assertEqual(remaining_tasks, project.num_annotation_tasks_remaining, "Remaining tasks check")
+    def test_num_documents(self):
+        self.assertEqual(self.project.num_documents, self.num_docs)
 
-    def test_project_documents(self):
-        annotator = get_user_model().objects.create(username="test1")
-        project = Project.objects.create(annotations_per_doc=self.annotations_per_doc,
-                                         annotator_max_annotation=self.annotator_max_annotation)
-        docs = [Document.objects.create(project=project) for i in range(self.num_docs)]
+    def test_num_annotation_tasks_total(self):
+        self.assertEqual(self.project.num_annotation_tasks_total, self.num_docs * self.annotations_per_doc)
 
-        self.check_project_props(project, total_tasks=self.num_total_tasks,
-                                 completed_tasks=0,
-                                 occupied_tasks=0,
-                                 remaining_tasks=self.num_total_tasks)
+    def test_num_completed_tasks(self):
+        self.annotate_docs_all_states(self.docs, self.annotators[0])
+        self.assertEqual(self.project.num_completed_tasks, self.num_docs)
 
-        doc = docs[0]
-        reject_annotation = Annotation.objects.create(user=annotator, document=doc)
-        reject_annotation.reject_annotation()
-        self.check_project_props(project, total_tasks=self.num_total_tasks,
-                                 completed_tasks=0,
-                                 occupied_tasks=0,
-                                 remaining_tasks=self.num_total_tasks)
+    def test_num_pending_tasks(self):
+        self.annotate_docs_all_states(self.docs, self.annotators[0])
+        self.assertEqual(self.project.num_pending_tasks, self.num_docs)
 
-        timeout_annotation = Annotation.objects.create(user=annotator, document=doc)
-        timeout_annotation.timeout_annotation()
-        self.check_project_props(project, total_tasks=self.num_total_tasks,
-                                 completed_tasks=0,
-                                 occupied_tasks=0,
-                                 remaining_tasks=self.num_total_tasks)
+    def test_num_rejected_tasks(self):
+        self.annotate_docs_all_states(self.docs, self.annotators[0])
+        self.assertEqual(self.project.num_rejected_tasks, self.num_docs)
 
-        pending_annotation = Annotation.objects.create(user=annotator, document=doc)
-        self.check_project_props(project, total_tasks=self.num_total_tasks,
-                                 completed_tasks=0,
-                                 occupied_tasks=1,
-                                 remaining_tasks=self.num_total_tasks - 1)
+    def test_num_timed_out_tasks(self):
+        self.annotate_docs_all_states(self.docs, self.annotators[0])
+        self.assertEqual(self.project.num_timed_out_tasks, self.num_docs)
 
-        pending_annotation.complete_annotation({})
-        self.check_project_props(project, total_tasks=self.num_total_tasks,
-                                 completed_tasks=1,
-                                 occupied_tasks=1,
-                                 remaining_tasks=self.num_total_tasks - 1)
+    def test_num_aborted_tasks(self):
+        self.annotate_docs_all_states(self.docs, self.annotators[0])
+        self.assertEqual(self.project.num_aborted_tasks, self.num_docs)
 
-        complete_annotation1 = Annotation.objects.create(user=annotator, document=doc)
-        complete_annotation1.complete_annotation({})
-        self.check_project_props(project, total_tasks=self.num_total_tasks,
-                                 completed_tasks=2,
-                                 occupied_tasks=2,
-                                 remaining_tasks=self.num_total_tasks - 2)
+    def test_num_occupied_tasks(self):
+        self.annotate_docs_all_states(self.docs, self.annotators[0])
+        self.assertEqual(self.project.num_occupied_tasks, self.num_docs*2, f"Must have {self.num_docs*2} annotations (completed + pending)")
 
-        complete_annotation2 = Annotation.objects.create(user=annotator, document=docs[1])
-        complete_annotation2.complete_annotation({})
-        self.check_project_props(project, total_tasks=self.num_total_tasks,
-                                 completed_tasks=3,
-                                 occupied_tasks=3,
-                                 remaining_tasks=self.num_total_tasks - 3)
+    def num_annotation_tasks_remaining(self):
+        self.annotate_docs_all_states(self.docs, self.annotators[0])
+        self.assertEqual(self.project.num_annotation_tasks_remaining, self.num_docs*self.annotations_per_doc - self.num_docs*2)
 
-        complete_annotation3 = Annotation.objects.create(user=annotator, document=docs[2])
-        complete_annotation3.complete_annotation({})
-        self.check_project_props(project, total_tasks=self.num_total_tasks,
-                                 completed_tasks=4,
-                                 occupied_tasks=4,
-                                 remaining_tasks=self.num_total_tasks - 4)
+
+    def annotate_docs_all_states(self, docs, annotator):
+        for doc in docs:
+            Annotation.objects.create(user=annotator, document=doc, status=Annotation.REJECTED)
+            Annotation.objects.create(user=annotator, document=doc, status=Annotation.COMPLETED)
+            Annotation.objects.create(user=annotator, document=doc, status=Annotation.ABORTED)
+            Annotation.objects.create(user=annotator, document=doc, status=Annotation.PENDING)
+            Annotation.objects.create(user=annotator, document=doc, status=Annotation.TIMED_OUT)
+
+    def test_max_num_task_per_annotator(self):
+        self.assertEqual(self.project.max_num_task_per_annotator, math.ceil(self.num_docs*self.annotator_max_annotation))
+
+    def test_num_annotators(self):
+        self.assertEqual(self.project.num_annotators, self.num_annotators)
+
+    def test_is_project_configured_and_config_error_message(self):
+        # Project has docs but is not configured
+        self.assertFalse(self.project.is_project_configured)
+        self.assertEqual(len(self.project.project_configuration_error_message), 1)
+
+        # Add a blank configuration with one item
+        self.project.configuration = [{}]
+        self.project.save()
+
+        # Project is considered configured
+        self.assertTrue(self.project.is_project_configured)
+        self.assertEqual(len(self.project.project_configuration_error_message), 0)
 
     def test_project_annotation_timeout(self):
-        annotator = get_user_model().objects.create(username="test1")
-        project = Project.objects.create(annotations_per_doc=self.annotations_per_doc,
-                                         annotator_max_annotation=self.annotator_max_annotation)
-        docs = [Document.objects.create(project=project) for i in range(self.num_docs)]
-        project.add_annotator(annotator)
-        project.save()
+        annotator = self.annotators[0]
+        project = self.project
+        docs = self.docs
 
         annotation = project.assign_annotator_task(annotator)
 
@@ -232,6 +235,107 @@ class TestProjectModel(ModelTestCase):
 
         # Timeout should be more than minutes set in project
         self.assertTrue(annotation.times_out_at > annotation.created)
+
+    def test_num_annotator_task_remaining(self):
+
+        project = self.project
+        docs = self.docs
+        annotator = self.annotators[0]
+        annotator2 = self.annotators[1]
+
+        num_docs_user_can_annotate = project.max_num_task_per_annotator
+
+        project.refresh_from_db()
+
+        for doc in docs:
+            Annotation.objects.create(user=annotator2, document=doc, status=Annotation.COMPLETED)
+            Annotation.objects.create(user=annotator2, document=doc, status=Annotation.ABORTED)
+
+        for i in range(math.ceil(project.annotator_max_annotation*project.documents.all().count())):
+            project.refresh_from_db()
+            doc = docs[i]
+            Annotation.objects.create(user=annotator, document=doc, status=Annotation.COMPLETED)
+            Annotation.objects.create(user=annotator, document=doc, status=Annotation.ABORTED)
+            self.assertEqual(project.num_annotator_task_remaining(annotator), num_docs_user_can_annotate - (i+1))
+            print(project.num_annotator_task_remaining(annotator))
+
+        self.assertEqual(project.num_annotator_task_remaining(annotator), 0, "Must have 0 tasks remaining")
+
+    def test_get_annotator_annotatable_occupied_completed_pending_documents_query(self):
+        project = self.project
+        annotator = self.annotators[0]
+
+        # Can annotate all docs when blank
+        self.assertEqual(project.get_annotator_annotatable_documents_query(annotator).count(), self.num_docs)
+
+        # No annotations so no occupied, completed or pending
+        self.assertEqual(project.get_annotator_occupied_documents_query(annotator).count(), 0)
+        self.assertEqual(project.get_annotator_completed_documents_query(annotator).count(), 0)
+        self.assertEqual(project.get_annotator_pending_documents_query(annotator).count(), 0)
+
+
+        # One less doc if other annotator has annotated
+        for i in range(self.annotations_per_doc):
+            ann = self.annotators[i+1]
+            Annotation.objects.create(user=ann, document=self.docs[0], status=Annotation.COMPLETED)
+
+        self.assertEqual(project.get_annotator_annotatable_documents_query(annotator).count(), self.num_docs-1)
+
+        # Reset annotation state
+        Annotation.objects.all().delete()
+
+        # One less doc if other annotator has annotated, should also happen for pending status
+        for i in range(self.annotations_per_doc):
+            ann = self.annotators[i + 1]
+            Annotation.objects.create(user=ann, document=self.docs[0], status=Annotation.PENDING)
+
+        self.assertEqual(project.get_annotator_annotatable_documents_query(annotator).count(), self.num_docs - 1)
+
+        # Rejected
+        Annotation.objects.create(user=annotator, document=self.docs[1], status=Annotation.REJECTED)
+        self.assertEqual(project.get_annotator_annotatable_documents_query(annotator).count(), self.num_docs - 2)
+        self.assertEqual(project.get_annotator_occupied_documents_query(annotator).count(), 1)
+        self.assertEqual(project.get_annotator_completed_documents_query(annotator).count(), 0)
+        self.assertEqual(project.get_annotator_pending_documents_query(annotator).count(), 0)
+
+        # Pending
+        Annotation.objects.create(user=annotator, document=self.docs[2], status=Annotation.PENDING)
+        self.assertEqual(project.get_annotator_annotatable_documents_query(annotator).count(), self.num_docs - 3)
+        self.assertEqual(project.get_annotator_occupied_documents_query(annotator).count(), 2)
+        self.assertEqual(project.get_annotator_completed_documents_query(annotator).count(), 0)
+        self.assertEqual(project.get_annotator_pending_documents_query(annotator).count(), 1)
+
+        # Completed
+        Annotation.objects.create(user=annotator, document=self.docs[3], status=Annotation.COMPLETED)
+        self.assertEqual(project.get_annotator_annotatable_documents_query(annotator).count(), self.num_docs - 4)
+        self.assertEqual(project.get_annotator_occupied_documents_query(annotator).count(), 3)
+        self.assertEqual(project.get_annotator_completed_documents_query(annotator).count(), 1)
+        self.assertEqual(project.get_annotator_pending_documents_query(annotator).count(), 1)
+
+        # Aborted should not affect count
+        Annotation.objects.create(user=annotator, document=self.docs[3], status=Annotation.ABORTED)
+        self.assertEqual(project.get_annotator_annotatable_documents_query(annotator).count(), self.num_docs - 4)
+        self.assertEqual(project.get_annotator_occupied_documents_query(annotator).count(), 3)
+        self.assertEqual(project.get_annotator_completed_documents_query(annotator).count(), 1)
+        self.assertEqual(project.get_annotator_pending_documents_query(annotator).count(), 1)
+
+        # Timed out should not affect count
+        Annotation.objects.create(user=annotator, document=self.docs[3], status=Annotation.TIMED_OUT)
+        self.assertEqual(project.get_annotator_annotatable_documents_query(annotator).count(), self.num_docs - 4)
+        self.assertEqual(project.get_annotator_occupied_documents_query(annotator).count(), 3)
+        self.assertEqual(project.get_annotator_completed_documents_query(annotator).count(), 1)
+        self.assertEqual(project.get_annotator_pending_documents_query(annotator).count(), 1)
+
+    def test_annotator_reached_quota(self):
+        num_tasks_to_complete = math.ceil(self.num_docs * self.annotator_max_annotation)
+        annotator = self.annotators[0]
+
+        for i in range(num_tasks_to_complete):
+            self.assertFalse(self.project.annotator_reached_quota(annotator))
+            Annotation.objects.create(user=annotator, document=self.docs[i], status=Annotation.COMPLETED)
+
+        self.assertTrue(self.project.annotator_reached_quota(annotator))
+
 
     def test_saving_and_loading(self):
         name = "Test name"
@@ -244,7 +348,7 @@ class TestProjectModel(ModelTestCase):
         proj = Project(name=name, created=created_at, configuration=data)
         proj.save()
 
-        loaded_proj = Project.objects.get(pk=1)
+        loaded_proj = Project.objects.get(pk=proj.pk)
         self.assertEqual(loaded_proj.name, name)
         self.assertEqual(loaded_proj.created, created_at)
         proj_data = loaded_proj.configuration
@@ -276,8 +380,8 @@ class TestProjectModel(ModelTestCase):
         user1.owns.add(proj)
         user1.save()
 
-        # Load a fresh project model to serialize
-        proj = Project.objects.get(pk=1)
+        # Refresh project model and serialize
+        proj.refresh_from_db()
 
         serializer = ModelSerializer()
         serialized_proj = serializer.serialize(proj)

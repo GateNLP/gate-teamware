@@ -5,16 +5,12 @@ Uses a clean database every time
 """
 from .base import *
 
-ACTIVATION_WITH_EMAIL = True
-
-
 """
 # Email Configuration - Specify e-mail backend here
 # https://docs.djangoproject.com/en/3.2/topics/email/
 # django-gmailapi-backend (https://github.com/dolfim/django-gmailapi-backend) is used for sending
 # emails though Google's API. See README.md for more details.
 """
-
 
 """
 Send e-mail through Gmail using Google's API

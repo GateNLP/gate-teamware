@@ -75,68 +75,72 @@ class TestUserAuth(TestCase):
 class TestUserRegistration(TestEndpoint):
 
     def test_user_registration(self):
-        username = "testuser"
-        user_pass = "123456789"
-        user_email = "test@test.com"
+        # Force e-mail activation
+        with self.settings(ACTIVATION_WITH_EMAIL=True):
+            username = "testuser"
+            user_pass = "123456789"
+            user_email = "test@test.com"
 
-        # Register user, will have e-mail activation
-        self.call_rpc(self.get_client(), "register", {
-            "username": username,
-            "password": user_pass,
-            "email": user_email
-        })
+            # Register user, will have e-mail activation
+            self.call_rpc(self.get_client(), "register", {
+                "username": username,
+                "password": user_pass,
+                "email": user_email
+            })
 
-        # Check that mail is sent
-        self.assertTrue(len(mail.outbox) > 0, "Mail to user must have been sent")
+            # Check that mail is sent
+            self.assertTrue(len(mail.outbox) > 0, "Mail to user must have been sent")
 
-        test_user = get_user_model().objects.get(username=username)
+            test_user = get_user_model().objects.get(username=username)
 
-        # Check that a token has been generated with length specified by the settings
-        self.assertTrue(len(test_user.activate_account_token) > settings.ACTIVATION_TOKEN_LENGTH)
-        self.assertTrue(test_user.activate_account_token_expire > timezone.now())
+            # Check that a token has been generated with length specified by the settings
+            self.assertTrue(len(test_user.activate_account_token) > settings.ACTIVATION_TOKEN_LENGTH)
+            self.assertTrue(test_user.activate_account_token_expire > timezone.now())
 
-        with self.assertRaises(ValueError, msg="Should raise an error if user doesn't exist"):
-            activate_account(self.get_request(), "doesnotexist", "tokendoesnotexist")
+            with self.assertRaises(ValueError, msg="Should raise an error if user doesn't exist"):
+                activate_account(self.get_request(), "doesnotexist", "tokendoesnotexist")
 
-        with self.assertRaises(ValueError, msg="Should raise error if token is wrong or expired"):
-            activate_account(self.get_request(), test_user.username, "tokendoesnotexist")
+            with self.assertRaises(ValueError, msg="Should raise error if token is wrong or expired"):
+                activate_account(self.get_request(), test_user.username, "tokendoesnotexist")
 
-        with self.assertRaises(ValueError, msg="Should raise an error if token doesn't exist"):
-            activate_account(self.get_request(), test_user.username, None)
+            with self.assertRaises(ValueError, msg="Should raise an error if token doesn't exist"):
+                activate_account(self.get_request(), test_user.username, None)
 
-        with self.assertRaises(ValueError, msg="Should raise an error if token is blank"):
-            activate_account(self.get_request(), test_user.username, "")
+            with self.assertRaises(ValueError, msg="Should raise an error if token is blank"):
+                activate_account(self.get_request(), test_user.username, "")
 
-        # Should activate properly this time
-        activate_account(self.get_request(), test_user.username, test_user.activate_account_token)
+            # Should activate properly this time
+            activate_account(self.get_request(), test_user.username, test_user.activate_account_token)
 
-        #  Gets user again, now should be activate
-        test_user.refresh_from_db()
-        self.assertTrue(test_user.is_account_activated)
-        self.assertTrue(test_user.activate_account_token is None)
-        self.assertTrue(test_user.activate_account_token_expire is None)
+            #  Gets user again, now should be activate
+            test_user.refresh_from_db()
+            self.assertTrue(test_user.is_account_activated)
+            self.assertTrue(test_user.activate_account_token is None)
+            self.assertTrue(test_user.activate_account_token_expire is None)
 
     def test_generate_user_activation(self):
+        # Force e-mail activation
+        with self.settings(ACTIVATION_WITH_EMAIL=True):
 
-        with self.assertRaises(ValueError, msg="Raise an error if user doesn't exist"):
-            generate_user_activation(self.get_request(), "doesnotexist")
+            with self.assertRaises(ValueError, msg="Raise an error if user doesn't exist"):
+                generate_user_activation(self.get_request(), "doesnotexist")
 
-        # Gets a test user
-        test_user = self.get_default_user()
+            # Gets a test user
+            test_user = self.get_default_user()
 
-        # Generates
-        generate_user_activation(self.get_request(), test_user.username)
-
-        test_user.refresh_from_db()
-        self.assertTrue(len(test_user.activate_account_token) > settings.ACTIVATION_TOKEN_LENGTH)
-        self.assertTrue(test_user.activate_account_token_expire > timezone.now())
-
-
-        test_user.is_account_activated = True
-        test_user.save()
-
-        with self.assertRaises(ValueError, msg="Raises an error if user is already activated"):
+            # Generates
             generate_user_activation(self.get_request(), test_user.username)
+
+            test_user.refresh_from_db()
+            self.assertTrue(len(test_user.activate_account_token) > settings.ACTIVATION_TOKEN_LENGTH)
+            self.assertTrue(test_user.activate_account_token_expire > timezone.now())
+
+
+            test_user.is_account_activated = True
+            test_user.save()
+
+            with self.assertRaises(ValueError, msg="Raises an error if user is already activated"):
+                generate_user_activation(self.get_request(), test_user.username)
 
 
 
@@ -639,13 +643,55 @@ class TestAnnotationTaskManager(TestEndpoint):
         task_context = get_annotation_task(ann1_request)
         self.assertIsNone(task_context)
 
+    def test_task_rejection(self):
+        """
+        User should be removed from the project if they don't have more tasks due to rejecting
+        documents.
+        """
+
+        # Create users and project, add them as annotators
+        manager = self.get_default_user()
+        manager_request = self.get_loggedin_request()
+
+        ann1 = get_user_model().objects.create(username="ann1")
+        ann1_request = self.get_request()
+        ann1_request.user = ann1
+
+        proj = Project.objects.create(owner=manager)
+        proj.annotations_per_doc = 3
+        proj.annotator_max_annotation = 0.6  # Annotator can annotator max of 60% of docs
+
+        # Create documents
+        num_docs = 10
+        docs = list()
+        for i in range(num_docs):
+            docs.append(Document.objects.create(project=proj))
+
+        # Add ann1 as the project's annotator
+        self.assertTrue(add_project_annotator(manager_request, proj.id, ann1.username))
+        ann1.refresh_from_db()
+
+        # Reject all tasks
+        for i in range(num_docs+1):
+            task_context = get_annotation_task(ann1_request)
+
+            if task_context is None:
+                ann1.refresh_from_db()
+                self.assertTrue(ann1.annotates is None)
+                return
+            else:
+                reject_annotation_task(ann1_request, task_context["annotation_id"])
+
+        self.assertTrue(False, "All documents rejected but annotator still getting annotation tasks")
+
+
+
+
     def test_multi_user_annotation_task(self):
-        num_annotators = 5
+        num_annotators = 10
         num_documents = 10
         num_annotations_per_doc = 5
         annotator_max_annotation = 0.6  # Annotator can annotator max of 60% of docs
-        num_rejections_per_annotator = 3
-        num_timeouts_per_annotator = 5
 
         # Create users and project, add them as annotators
         manager = self.get_default_user()
@@ -664,18 +710,28 @@ class TestAnnotationTaskManager(TestEndpoint):
 
         documents = [Document.objects.create(project=proj) for i in range(num_documents)]
 
-        for i in range(num_rejections_per_annotator):
-            for annotator in annotators:
-                self.reject_annotation(annotator)
-                print(
-                    f"Remaining/completed/total {proj.num_annotation_tasks_remaining}/{proj.num_completed_tasks}/{proj.num_annotation_tasks_total}")
-
 
         for i in range(num_annotations_per_doc + 1):
             for annotator in annotators:
                 self.perform_annotation(annotator, expect_completed=proj.num_annotation_tasks_remaining < 1)
                 print(
                     f"Remaining/completed/total {proj.num_annotation_tasks_remaining}/{proj.num_completed_tasks}/{proj.num_annotation_tasks_total}")
+
+
+        proj.refresh_from_db()
+        self.assertEqual(proj.num_annotation_tasks_remaining, 0, "There must be no remaining tasks")
+
+        for doc in documents:
+            doc.refresh_from_db()
+            self.assertEqual(doc.num_completed_annotations, proj.annotations_per_doc, "Documents must have exact number of annotations when finished")
+
+            user_id_set = set()
+            for anno in doc.annotations.filter(status=Annotation.COMPLETED):
+                self.assertFalse(anno.user.pk in user_id_set, "Annotator must only annotate a document once")
+                user_id_set.add(anno.user.pk)
+
+            print(f"Doc ID: {doc.pk} completed_annotations: {doc.num_completed_annotations} annotator_ids: {','.join(str(v) for v in user_id_set)}")
+
 
     def get_annotator_request(self, annotator):
         annotator.refresh_from_db()

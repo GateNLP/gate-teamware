@@ -520,23 +520,10 @@ def get_annotation_task(request):
         if not project:
             return None
 
-        # User has existing task
-        annotation = project.get_current_annotator_task(user)
+        # Gets the annotation task or None
+        return project.get_annotator_task(user)
 
-        # Check that user has not reached quota
-        if not annotation:
-            # Check that the user has quota first
-            if project.annotator_reached_quota(user):
-                project.remove_annotator(user)
-                return None
 
-            # Return
-            annotation = project.assign_annotator_task(user)
-
-        if annotation:
-            return annotation.get_annotation_task()
-
-        return None
 
 
 @rpc_method_auth
