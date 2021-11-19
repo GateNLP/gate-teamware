@@ -119,7 +119,7 @@
                            href="https://gatenlp.github.io/gate-teamware/userguide/projectconfig.html">documentation
                   page on configuring project annotation</a>
                 for more details.</p>
-              <JsonEditor v-model="local_project.configuration"></JsonEditor>
+              <JsonEditor v-model="local_project.configuration" data-cy="editor"></JsonEditor>
             </b-col>
             <b-col>
               <h4>Annotation preview</h4>

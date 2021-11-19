@@ -42,6 +42,7 @@
   "homepage": "https://github.com/GateNLP/gate-teamware",
   "devDependencies": {
     "cypress": "^7.1.0",
+    "cypress-file-upload": "^5.0.8",
     "vuepress": "^1.8.2"
   },
   "dependencies": {

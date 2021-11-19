@@ -1,9 +1,5 @@
 <template>
-  <div>
     <VJsoneditor v-model="inputVal" :options="jeOptions" :plus="false" height="800px"></VJsoneditor>
-
-  </div>
-
 </template>
 
 <script>
