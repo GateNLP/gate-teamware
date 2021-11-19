@@ -2,7 +2,12 @@
   <div id="navbar">
     <div>
       <b-navbar type="light" variant="light">
-        <b-navbar-brand to="/">GATE Teamware</b-navbar-brand>
+        <b-navbar-brand to="/">
+          <div style="display: flex; align-content: center">
+            <div class="mr-1"><img src="/static/img/GATEName.svg" alt="GATE" style="height: 1em; width: auto;"/></div>
+          <div style="font-size: 1.2em ;color: #e60000">TEAMWARE</div>
+          </div>
+        </b-navbar-brand>
 
         <b-navbar-nav>
           <b-nav-item to="/projects" v-if="user && (user.isManager || user.isAdmin) && user.isActivated">Projects</b-nav-item>

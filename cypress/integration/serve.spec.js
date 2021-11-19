@@ -11,11 +11,10 @@ describe('Site serve test', () => {
 
     it('About page', () => {
         cy.visit("/")
-
-        cy.contains('GATE Annotation Tool')
         cy.contains('About').click()
         cy.contains('About GATE Annotate')
         expect(true).to.equal(true) // Example assert
+        cy.contains('TEAMWARE')
     })
 
 })
