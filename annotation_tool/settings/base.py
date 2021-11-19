@@ -156,7 +156,7 @@ AUTH_USER_MODEL = 'backend.ServiceUser'
 CSRF_USE_SESSIONS = False
 CSRF_COOKIE_HTTPONLY = False
 
-APP_NAME = "Gate Annotation Service"
+APP_NAME = "GATE Teamware"
 APP_URL = "http://127.0.0.1:8000"
 
 # Admin email - The mail address to be used for contacting
