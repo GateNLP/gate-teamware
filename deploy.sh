@@ -4,6 +4,9 @@ set -e
 
 DEPLOY_ENV=$1
 
+DJANGO_SETTINGS_MODULE=annotation_tool.settings.deployment
+export DJANGO_SETTINGS_MODULE
+
 case $DEPLOY_ENV in
 
   production|prod)

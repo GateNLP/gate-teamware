@@ -2,9 +2,6 @@
 
 set -e
 
-# rename the secret_docker file to secret.py to use environment variables
-(cd /app/annotation_tool/settings && cp secret_docker.py secret.py)
-
 python manage.py makemigrations
 python manage.py migrate --no-input
 

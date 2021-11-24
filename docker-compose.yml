@@ -6,6 +6,7 @@ services:
     image: ${IMAGE_REGISTRY}${MAIN_IMAGE}:${IMAGE_TAG}
     restart: always
     environment:
+      - DJANGO_ALLOWED_HOSTS
       - DJANGO_SETTINGS_MODULE
       - DJANGO_SECRET_KEY
       - DJANGO_DB_NAME
