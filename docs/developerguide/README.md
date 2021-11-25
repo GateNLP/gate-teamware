@@ -8,26 +8,26 @@ python libraries and nodejs which is used to install javascript libraries.
 * Install anaconda/miniconda
 * Create a blank virtual conda env
   ```bash
-  $ conda create -n annotation python=3.9
+  $ conda create -n teamware python=3.9
   ```
 * Activate conda environment
   ```bash
-  $ source activate annotation
+  $ source activate teamware
   # or
-  $ conda activate annotation
+  $ conda activate teamware
   ```
 * Install python dependencies in conda environment using pip
 ```
-(annotation)$ pip install -r requirements.txt -r requirements-dev.txt
+(teamware)$ pip install -r requirements.txt -r requirements-dev.txt
 ```
 * Install nodejs, postgresql and openssl in the conda environment
 ```
-(annotation)$ conda install -y -c anaconda postgresql
-(annotation)$ conda install -y -c conda-forge nodejs=14.*
+(teamware)$ conda install -y -c anaconda postgresql
+(teamware)$ conda install -y -c conda-forge nodejs=14.*
 ```
 * Install nodejs dependencies
   ```bash
-  (annotation)$ npm install
+  (teamware)$ npm install
   ```
 
 ## Updating packages
@@ -35,7 +35,7 @@ To update packages after a merge, run the following commands:
 
 ```bash
 # Activate the conda environment
-source activate annotation
+source activate teamware
 # Update any packages changed in the python requirements.txt and requirements-dev.txt files
 pip install -r requirements.txt -r requirements-dev.txt
 # Update any packages changed in package.json
@@ -65,24 +65,23 @@ To run separately:
   ```
 
 ## Deployment using Docker
-Deployment is via docker-compose, using nginx to serve static content.
+Deployment is via [docker-compose](https://docs.docker.com/compose/), using [NGINX](https://www.nginx.com/) to serve static content, a separate [postgreSQL](https://hub.docker.com/_/postgres) service containing the database and a database backup service (see `docker-compose.yml` for details).
 
-A deployment script is provided to launch the docker-compose stack with the correct environment variables.
+1. Run `./generate-env.sh` to create a `.env` file containing randomly generated secrets which are mounted as environment variables into the container.
 
-To create the environment variables run `./generate-env.sh` to create a `.env` file containing randomly generated secrets which are mounted as environment variables into the container.
-
-Then build the images via:
+1. Then build the images via:
 ```bash
 ./build-images.sh
 ```
 
-then deploy the stack with
+1. then deploy the stack with
 
 ```bash
 ./deploy.sh production # (or prod) to deploy with production settings
 ./deploy.sh staging # (or stag) to deploy with staging settings
 ```
 
+To bring the stack down, run `docker-compose down`, using the `-v` flag to destroy the database volume (be careful with this).
 
 ## Django settings files
 
@@ -97,12 +96,12 @@ and this must be overridden depending on use.
 
 
 ### Sending E-mail 
-It's recommended to specify e-mail configurations inside the `secrets.py` settings file. As these settings will
+It's recommended to specify e-mail configurations inside the `secret.py` settings file. As these settings will
 include username and passwords that should not be tracked by version control.
 
 #### E-mail using SMTP
 SMTP is supported as standard in Django, add the following configurations with your own details
-to the `secret.py` settings file:
+to the corresponding settings file:
 
 ```python
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
