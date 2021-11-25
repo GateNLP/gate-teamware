@@ -25,6 +25,7 @@
     "build": "run-s build:frontend build:server",
     "test:frontend": "cd frontend && npm run test",
     "test:backend": "pytest -v",
+    "test:backend-cov": "pytest --cov=backend/ -v > pytest-coverage.txt",
     "test:cypress": "cypress run --env TESTENV=dev",
     "test:integration": "run-p --race serve:frontendintegration test:cypress",
     "test:ci_integration": "npm run build && run-p --race serve:integration test:cypress",

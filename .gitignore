@@ -173,3 +173,6 @@ cython_debug/
 webpack-stats\.json
 
 *secret.py
+
+# pytest-cov output
+pytest-coverage.txt

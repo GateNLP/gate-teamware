@@ -30,8 +30,12 @@ jobs:
           node-version: '14'
       - name: Install npm packages
         run: npm install
-      - name: Run backend test
-        run: npm run test:backend
+      - name: Run backend test with codecov report
+        run: npm run test:backend-cov
+      - name: pytest-coverage-commentator
+        uses: coroo/pytest-coverage-commentator@v1.0.2
+        with:
+          pytest-coverage: pytest-coverage.txt
       - name: Run frontend test
         run: npm run test:frontend
       - name: Run integration test
