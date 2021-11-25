@@ -23,6 +23,13 @@ module.exports = {
                     "userguide/api_docs",
                 ]
             },
+            {
+                title: "Developer guide",
+                children: [
+                    'developerguide/',
+                    'developerguide/testing'
+                ]
+            },
         ],
     },
     configureWebpack: {

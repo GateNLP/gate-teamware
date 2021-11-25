@@ -16,7 +16,7 @@ jobs:
           miniconda-version: "latest"
           auto-update-conda: true
           python-version: 3.9
-      - name: Install python dependencies
+      - name: Install python dependencies 🐍
         run: pip install -r requirements.txt -r requirements-dev.txt
       - name: Use Node.js v14
         uses: actions/setup-node@v2
