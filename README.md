@@ -8,10 +8,17 @@ Full documentation can be found at: <https://gatenlp.github.io/gate-teamware/>
 
 GATE teamware provides a flexible web app platform for managing classification of documents by human annotators.
 
+## Key Features
+* Configure annotation options using a highly flexible JSON config.
+* Set limits on proportions of a task that annotators can annotate.
+* Import existing annotations as CSV or JSON.
+* Export annotations as CSV or JSON.
+* Annotation instructions and document rendering supports markdown and HTML.
+
 # Running the app
 ## Requirements
 We recommend the following software as a minimum requirement for running GATE Teamware:
-* OS: Linux
+* recommended OS: linux or macOS.
 * git
 * docker & docker-compose
 * bash (or similar shell)
@@ -23,7 +30,7 @@ Follow these steps to run the app on your local machine:
 1. Run `./build-images.sh` to build the backend and frontend images, this may take a while the first time it is run. 
 1. Run `./deploy.sh production` or `./deploy.sh staging`. Note: You may want to change the value of `DJANGO_ALLOWED_HOSTS` in `deploy.sh` to match the URL(s) that you are deploying to.
 
-Open `127.0.0.1:8076` (the default IP & port) in your browser. The initial admin login has the username `admin` and password `password`, this should be changed immediately.`
+Open `127.0.0.1:8076` (the default IP & port) in your browser. The initial admin login has the username `admin` and password `password`, this should be changed immediately. Note: the port is set in `docker-compose.yml`.
 
 
 # Development

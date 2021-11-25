@@ -1,7 +1,7 @@
 {
   "name": "gate-teamware",
   "version": "0.0.1",
-  "description": "A service for collaborative document annotation. Project plan can be found here:",
+  "description": "A service for collaborative document annotation.",
   "main": "index.js",
   "scripts": {
     "postinstall": "(cd frontend && npm install --unsafe-perm) #Install npm packages in frontend also",

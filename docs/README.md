@@ -1,8 +1,11 @@
 # GATE Teamware
 
+![](../frontend/public/static/img/gate-teamware-logo.svg "GATE Teamware")
+
 A web application for collaborative document annotation.
 
-## Features
+## Key Features
+* Free and open source software.
 * Configure annotation options using a highly flexible JSON config.
 * Set limits on proportions of a task that annotators can annotate.
 * Import existing annotations as CSV or JSON.
