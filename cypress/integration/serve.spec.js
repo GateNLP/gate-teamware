@@ -18,7 +18,11 @@ describe('Site serve test', () => {
         cy.contains('TEAMWARE')
     })
 
-    it('Test creating a project', () => {
+    /**
+     * Tests the entire annotation cycle including loggin in, creating a project, configuring a project, upload
+     * documents, add self as annotator and annotating something.
+     */
+    it('Test app annotation cycle', () => {
         cy.login("admin", "testpassword").then((response) => {
             cy.visit("/")
 
@@ -35,11 +39,13 @@ describe('Site serve test', () => {
             // Change project name
             cy.get("input[name='project_name']").clear().type("New project name")
 
+            // Chagne project id field
+            cy.get("input[name='project_document_id_field']").clear().type("id")
+
 
             cy.get("[data-cy='editor']").type("{backspace}{backspace}{del}{del}")
             cy.fixture("project_config_sentiment.json").then((configObj) => {
                 let outStr = JSON.stringify(configObj).replace(/([\{\}])/g,'{$1}')
-                cy.log(outStr)
                 cy.get("[data-cy='editor']").type(outStr)
                 cy.contains("Save").click()
 
@@ -64,6 +70,17 @@ describe('Site serve test', () => {
                 //Check can annotate
                 cy.contains("Annotate").click()
                 cy.contains("New project name")
+                cy.contains("Document 1")
+                cy.contains("Negative").click()
+                cy.contains("Submit").click()
+                cy.contains("Document 2")
+
+                //Check annotation exists in documents list
+                cy.contains("Projects").click()
+                cy.contains("New project name").click()
+                cy.contains("Documents & Annotations").click()
+                cy.wait(500)
+                cy.get("[data-role='annotation-display-container']").first().contains("admin")
 
             })
 
