@@ -187,6 +187,7 @@ export default new Vuex.Store({
                     email: params.email,
                     is_manager: params.is_manager,
                     is_admin: params.is_admin,
+                    is_activated: params.is_activated,
                 }
                 let user = await rpc.call("admin_update_user",payload);
                 return user
