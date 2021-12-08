@@ -30,8 +30,14 @@ jobs:
           node-version: '14'
       - name: Install npm packages
         run: npm install
-      - name: Run backend test
-        run: npm run test:backend
+      - name: Run backend test with codecov report
+        run: npm run test:backend-cov
+      - name: Pytest coverage comment
+        uses: MishaKav/pytest-coverage-comment@main
+        with:
+          pytest-coverage-path: ./pytest-coverage.txt
+          badge-title: Backend Coverage
+          
       - name: Run frontend test
         run: npm run test:frontend
       - name: Run integration test
