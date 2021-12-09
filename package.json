@@ -17,7 +17,7 @@
     "serve:frontendintegration": "run-p serve:frontend serve:integration",
     "serve:cypressintegration": "run-p serve:frontendintegration serve:cypress",
     "serve": "run-p serve:frontend serve:server",
-    "build:apidocs": "./manage.py build_api_docs docs/userguide/api_docs.md",
+    "build:apidocs": "./manage.py build_api_docs docs/developerguide/api_docs.md",
     "prebuild:docs": "run-s build:apidocs",
     "build:docs": "vuepress build docs",
     "build:frontend": "cd frontend && npm run build",

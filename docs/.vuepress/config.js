@@ -20,14 +20,14 @@ module.exports = {
                     "userguide/project_config",
                     "userguide/documents_annotations_management",
                     "userguide/annotators_management",
-                    "userguide/api_docs",
                 ]
             },
             {
                 title: "Developer guide",
                 children: [
                     'developerguide/',
-                    'developerguide/testing'
+                    'developerguide/testing',
+                    "developerguide/api_docs"
                 ]
             },
         ],
