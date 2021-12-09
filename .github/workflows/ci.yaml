@@ -33,6 +33,7 @@ jobs:
       - name: Run backend test with codecov report
         run: npm run test:backend-cov
       - name: Pytest coverage comment
+        if: ${{ github.event_name == 'pull_request'}}
         uses: MishaKav/pytest-coverage-comment@main
         with:
           pytest-coverage-path: ./pytest-coverage.txt
