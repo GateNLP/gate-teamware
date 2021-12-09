@@ -26,7 +26,7 @@ RUN pip install -r requirements.txt
 RUN pip install gunicorn~=20.1.0
 COPY --chown=gate:gate run-server.sh generate-env.sh count_superusers.py manage.py migrate-integration.sh ./
 COPY --chown=gate:gate examples/ ./examples/
-COPY --chown=gate:gate annotation_tool/ ./annotation_tool/
+COPY --chown=gate:gate teamware/ ./teamware/
 COPY --chown=gate:gate backend/ ./backend
 COPY --chown=gate:gate frontend/ ./frontend/
 COPY --chown=gate:gate --from=nodebuilder /app/frontend/templates/base-vue.html ./backend/templates/
@@ -41,7 +41,7 @@ COPY --from=nodebuilder /app/frontend/public/static /usr/share/nginx/html
 
 
 FROM backend as test
-ENV DJANGO_SETTINGS_MODULE annotation_tool.settings.test
+ENV DJANGO_SETTINGS_MODULE teamware.settings.test
 WORKDIR /app/
 USER root
 RUN apt-get update && \

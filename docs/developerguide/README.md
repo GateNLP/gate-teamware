@@ -3,7 +3,7 @@
 ## Architecture
 ```
 ├── .github/workflows/    # github actions workflow files
-├── annotation_tool/      # Django project
+├── teamware/      # Django project
 │   └── settings/
 ├── backend/              # Django app
 ├── cypress/              # integration test configurations
@@ -120,13 +120,13 @@ To bring the stack down, run `docker-compose down`, using the `-v` flag to destr
 
 ### Django settings files
 
-Django settings are located in `annotation_tool/settings` folder. The app will use `base.py` setting by default
+Django settings are located in `teamware/settings` folder. The app will use `base.py` setting by default
 and this must be overridden depending on use.
 
 ### Database
 A SQLite3 database is used during development and during integration testing.
 
-For staging and production, postgreSQL is used, running from a `postgres-12` docker container. Settings are found in `annotation_tool/settings/base.py` and `deployment.py` as well as being set as environment variables by `./generate-env.sh` and passed to the container as configured in `docker-compose.yml`.
+For staging and production, postgreSQL is used, running from a `postgres-12` docker container. Settings are found in `teamware/settings/base.py` and `deployment.py` as well as being set as environment variables by `./generate-env.sh` and passed to the container as configured in `docker-compose.yml`.
 
 
 ### Sending E-mail 

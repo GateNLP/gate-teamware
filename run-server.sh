@@ -14,4 +14,4 @@ if [ "$OUT" == 0 ]; then
 fi
 
 
-gunicorn annotation_tool.wsgi -b 0.0.0.0:8000 "$@"
+gunicorn teamware.wsgi -b 0.0.0.0:8000 "$@"
