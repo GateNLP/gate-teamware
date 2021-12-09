@@ -1,7 +1,7 @@
 {
   "name": "gate-teamware",
   "version": "0.0.1",
-  "description": "A service for collaborative document annotation. Project plan can be found here:",
+  "description": "A service for collaborative document annotation.",
   "main": "index.js",
   "scripts": {
     "postinstall": "(cd frontend && npm install --unsafe-perm) #Install npm packages in frontend also",
@@ -17,7 +17,7 @@
     "serve:frontendintegration": "run-p serve:frontend serve:integration",
     "serve:cypressintegration": "run-p serve:frontendintegration serve:cypress",
     "serve": "run-p serve:frontend serve:server",
-    "build:apidocs": "./manage.py build_api_docs docs/userguide/api_docs.md",
+    "build:apidocs": "./manage.py build_api_docs docs/developerguide/api_docs.md",
     "prebuild:docs": "run-s build:apidocs",
     "build:docs": "vuepress build docs",
     "build:frontend": "cd frontend && npm run build",
