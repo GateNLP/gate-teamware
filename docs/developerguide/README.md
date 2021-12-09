@@ -69,12 +69,12 @@ Deployment is via [docker-compose](https://docs.docker.com/compose/), using [NGI
 
 1. Run `./generate-env.sh` to create a `.env` file containing randomly generated secrets which are mounted as environment variables into the container.
 
-1. Then build the images via:
+2. Then build the images via:
 ```bash
 ./build-images.sh
 ```
 
-1. then deploy the stack with
+3. then deploy the stack with
 
 ```bash
 ./deploy.sh production # (or prod) to deploy with production settings
@@ -83,13 +83,14 @@ Deployment is via [docker-compose](https://docs.docker.com/compose/), using [NGI
 
 To bring the stack down, run `docker-compose down`, using the `-v` flag to destroy the database volume (be careful with this).
 
-## Django settings files
-
-Django settings are located in `annotation_tool/settings` folder. The app will use `base.py` setting by default
-and this must be overridden depending on use.
 
 
 ## Configuration
+
+### Django settings files
+
+Django settings are located in `annotation_tool/settings` folder. The app will use `base.py` setting by default
+and this must be overridden depending on use.
 
 ### Database
 
@@ -124,17 +125,17 @@ created through Google's cloud console.
 This package includes the script linked in the documentation above, which simplifies the setup of the API credentials. The following outlines the key steps:
 
 1. Create a project in the Google developer console, [https://console.cloud.google.com/](https://console.cloud.google.com/)
-1. Enable the Gmail API
-1. Create OAuth 2.0 credentials, you'll likely want to create a `Desktop` 
-1. Create a valid refresh_token using the helper script included in the package:
+2. Enable the Gmail API
+3. Create OAuth 2.0 credentials, you'll likely want to create a `Desktop` 
+4. Create a valid refresh_token using the helper script included in the package:
   ```bash
   gmail_oauth2 --generate_oauth2_token \
     --client_id="<client_id>" \
     --client_secret="<client_secret>" \
     --scope="https://www.googleapis.com/auth/gmail.send"
   ```
-1. Add the created credentials and tokens to the `secret.py` as shown below:
-  ```
+5. Add the created credentials and tokens to the `secret.py` as shown below:
+  ```python
   EMAIL_BACKEND = 'gmailapi_backend.mail.GmailBackend'
   GMAIL_API_CLIENT_ID = 'google_assigned_id'
   GMAIL_API_CLIENT_SECRET = 'google_assigned_secret'
