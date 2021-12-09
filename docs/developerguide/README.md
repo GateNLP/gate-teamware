@@ -1,5 +1,38 @@
 # Developer guide
 
+## Architecture
+```
+├── .github/workflows/    # github actions workflow files
+├── annotation_tool/      # Django project
+│   └── settings/
+├── backend/              # Django app
+├── cypress/              # integration test configurations
+├── docs/                 # documentation
+├── examples/             # example data files
+├── frontend/             # all frontend, in VueJS framework
+├── nginx/                # Nginx configurations
+|
+# Top level directory contains scripts for management and deployment,
+# main project package.json, python requirements, docker configs
+├── build-images.sh
+├── count_superusers.py
+├── deploy.sh
+├── create-django-db.sh
+├── docker-compose.yml
+├── Dockerfile
+├── generate-env.sh
+├── manage.py
+├── migrate-integration.sh
+├── package.json
+├── package-lock.json
+├── pytest.ini
+├── README.md
+├── requirements-dev.txt
+├── requirements.txt
+└── run-server.sh
+
+```
+
 ## Installation for development
 
 The service depends on a combination of python and javascript libraries. We recommend developing inside a `conda` conda environment as it is able to install
@@ -17,14 +50,14 @@ python libraries and nodejs which is used to install javascript libraries.
   $ conda activate teamware
   ```
 * Install python dependencies in conda environment using pip
-```
-(teamware)$ pip install -r requirements.txt -r requirements-dev.txt
-```
+  ```bash
+  (teamware)$ pip install -r requirements.txt -r requirements-dev.txt
+  ```
 * Install nodejs, postgresql and openssl in the conda environment
-```
-(teamware)$ conda install -y -c anaconda postgresql
-(teamware)$ conda install -y -c conda-forge nodejs=14.*
-```
+  ```bash
+  (teamware)$ conda install -y -c anaconda postgresql
+  (teamware)$ conda install -y -c conda-forge nodejs=14.*
+  ```
 * Install nodejs dependencies
   ```bash
   (teamware)$ npm install
@@ -49,9 +82,9 @@ during development.
 
 To run both servers together:
 
-```bash
-npm run serve
-```
+  ```bash
+  npm run serve
+  ```
 
 To run separately:
 
@@ -70,20 +103,18 @@ Deployment is via [docker-compose](https://docs.docker.com/compose/), using [NGI
 1. Run `./generate-env.sh` to create a `.env` file containing randomly generated secrets which are mounted as environment variables into the container.
 
 2. Then build the images via:
-```bash
-./build-images.sh
-```
+  ```bash
+  ./build-images.sh
+  ```
 
 3. then deploy the stack with
 
-```bash
-./deploy.sh production # (or prod) to deploy with production settings
-./deploy.sh staging # (or stag) to deploy with staging settings
-```
+  ```bash
+  ./deploy.sh production # (or prod) to deploy with production settings
+  ./deploy.sh staging # (or stag) to deploy with staging settings
+  ```
 
 To bring the stack down, run `docker-compose down`, using the `-v` flag to destroy the database volume (be careful with this).
-
-
 
 ## Configuration
 
