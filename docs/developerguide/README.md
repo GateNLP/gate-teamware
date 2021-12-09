@@ -93,7 +93,9 @@ Django settings are located in `annotation_tool/settings` folder. The app will u
 and this must be overridden depending on use.
 
 ### Database
+A SQLite3 database is used during development and during integration testing.
 
+For staging and production, postgreSQL is used, running from a `postgres-12` docker container. Settings are found in `annotation_tool/settings/base.py` and `deployment.py` as well as being set as environment variables by `./generate-env.sh` and passed to the container as configured in `docker-compose.yml`.
 
 
 ### Sending E-mail 
