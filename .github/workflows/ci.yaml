@@ -18,20 +18,25 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
+
       - uses: conda-incubator/setup-miniconda@v2
         with:
           miniconda-version: "latest"
           auto-update-conda: true
           python-version: 3.9
       - run: pip install -r requirements.txt -r requirements-dev.txt
+
       - name: Use Node.js v14
         uses: actions/setup-node@v2
         with:
           node-version: '14'
+
       - name: Install npm packages
         run: npm install
+
       - name: Run backend test with codecov report
         run: npm run test:backend-cov
+
       - name: Pytest coverage comment
         if: ${{ github.event_name == 'pull_request'}}
         uses: MishaKav/pytest-coverage-comment@main
@@ -40,7 +45,16 @@ jobs:
           badge-title: Backend Coverage
           
       - name: Run frontend test
+        if: ${{ github.event_name != 'pull_request'}}
         run: npm run test:frontend
+
+      - name: Comment with frontend test coverage
+        if: ${{ github.event_name == 'pull_request'}}
+        uses: dkershner6/jest-coverage-commenter-action@v1
+        with:
+          github_token: "${{ secrets.GITHUB_TOKEN }}"
+          test_command: "npm run test:frontend-cov"
+
       - name: Run integration test
         run: npm run test:ci_integration
 

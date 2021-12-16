@@ -24,6 +24,7 @@
     "build:server": "",
     "build": "run-s build:frontend build:server",
     "test:frontend": "cd frontend && npm run test",
+    "test:frontend-cov": "cd frontend && npm run test:coverage",
     "test:backend": "pytest -v",
     "test:backend-cov": "pytest --cov=backend/ --cov-report=term-missing:skip-covered -v > pytest-coverage.txt",
     "test:cypress": "cypress run --env TESTENV=dev",
