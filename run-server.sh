@@ -2,9 +2,6 @@
 
 set -e
 
-# rename the secret_docker file to secret.py to use environment variables
-(cd /app/annotation_tool/settings && cp secret_docker.py secret.py)
-
 python manage.py makemigrations
 python manage.py migrate --no-input
 
@@ -17,4 +14,4 @@ if [ "$OUT" == 0 ]; then
 fi
 
 
-gunicorn annotation_tool.wsgi -b 0.0.0.0:8000 "$@"
+gunicorn teamware.wsgi -b 0.0.0.0:8000 "$@"

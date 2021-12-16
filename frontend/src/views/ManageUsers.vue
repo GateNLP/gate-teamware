@@ -49,7 +49,6 @@
                 id="manager_checkbox"
                 v-model="form.is_manager"
                 name="manager_checkbox"
-                unchecked-value="not_accepted"
             >
               Manager
             </b-form-checkbox>
@@ -57,7 +56,6 @@
                 id="admin_checkbox"
                 v-model="form.is_admin"
                 name="admin_checkbox"
-                unchecked-value="not_accepted"
             >
               Admin
             </b-form-checkbox>

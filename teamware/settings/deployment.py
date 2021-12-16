@@ -8,7 +8,7 @@ MIDDLEWARE.append(
 'django.middleware.csrf.CsrfViewMiddleware'
 )
 
-if DJANGO_ALLOWED_HOSTS in os.environ:
+if 'DJANGO_ALLOWED_HOSTS' in os.environ:
     # This looks a bit horrible, but the logic is split DJANGO_ALLOWED_HOSTS on
     # commas, strip surrounding whitespace off each element, and filter out any
     # remaining empty strings
