@@ -4,7 +4,7 @@ set -e
 
 DEPLOY_ENV=$1
 
-DJANGO_SETTINGS_MODULE=annotation_tool.settings.deployment
+DJANGO_SETTINGS_MODULE=teamware.settings.deployment
 export DJANGO_SETTINGS_MODULE
 
 case $DEPLOY_ENV in
@@ -22,7 +22,7 @@ case $DEPLOY_ENV in
     ;;
 
   integration)
-    DJANGO_SETTINGS_MODULE=annotation_tool.settings.integration
+    DJANGO_SETTINGS_MODULE=teamware.settings.integration
     export DJANGO_SETTINGS_MODULE
     echo "Deploying with DJANGO_SETTINGS_MODULE: $DJANGO_SETTINGS_MODULE"
     ;;

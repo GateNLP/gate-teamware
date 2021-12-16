@@ -138,7 +138,7 @@ describe('HelloWorld.vue', () => {
 ## Integration testing
 [Cypress](https://www.cypress.io/) is used for integration testing.
 
-The integration settings are located at `annotation_tool/settings/integration.py`
+The integration settings are located at `teamware/settings/integration.py`
 
 To run the integration test:
 ```bash

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export DJANGO_SETTINGS_MODULE=annotation_tool.settings.integration
+export DJANGO_SETTINGS_MODULE=teamware.settings.integration
 
 ./manage.py flush --noinput &&\
 ./manage.py migrate --noinput &&\

@@ -1,5 +1,5 @@
 """
-Django settings for annotation_tool project.
+Django settings for teamware project.
 
 The base.py file is loaded by default.
 
@@ -61,7 +61,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
 ]
 
-ROOT_URLCONF = 'annotation_tool.urls'
+ROOT_URLCONF = 'teamware.urls'
 
 TEMPLATES = [
     {
@@ -84,7 +84,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'annotation_tool.wsgi.application'
+WSGI_APPLICATION = 'teamware.wsgi.application'
 
 
 # Database
