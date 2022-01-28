@@ -333,7 +333,7 @@ class Project(models.Model):
         """
 
         if self.num_annotation_tasks_remaining > 0:
-            for doc in self.documents.all():
+            for doc in self.documents.order_by('?').all():
                 # Check that annotator hasn't annotated and that
                 # doc hasn't been fully annotated
                 if doc.user_can_annotate_document(user):
