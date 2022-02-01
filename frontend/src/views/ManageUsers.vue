@@ -37,11 +37,11 @@
         <b-form href="" method="post">
 
           <b-form-group label="Username">
-            <b-form-input type="text" v-model="form.username"/>
+            <b-form-input name="username" type="text" v-model="form.username"/>
           </b-form-group>
 
           <b-form-group label="Email address">
-            <b-form-input type="text" v-model="form.email"/>
+            <b-form-input name="email" type="text" v-model="form.email"/>
           </b-form-group>
 
           <b-form-group label="Roles">
@@ -76,11 +76,11 @@
             <b-form href="" method="post">
 
               <b-form-group label="New Password">
-                <b-form-input type="password" v-model="newPassword" placeholder="Enter new password"/>
+                <b-form-input name="password" type="password" v-model="newPassword" placeholder="Enter new password"/>
               </b-form-group>
 
               <b-form-group label="Confirm Password">
-                <b-form-input type="password" v-model="newPasswordConfirm"
+                <b-form-input name="password_confirm" type="password" v-model="newPasswordConfirm"
                               placeholder="Type password again to confirm"/>
               </b-form-group>
 
@@ -154,6 +154,7 @@ export default {
       try {
         let response = await this.adminUpdateUser(this.form);
         this.form = response;
+        this.users = await this.getAllUsers() // Refresh the user selection
         toastSuccess(this, "Save user details", "User details saved.")
 
       } catch (e) {
