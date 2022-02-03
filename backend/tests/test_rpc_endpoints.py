@@ -749,10 +749,11 @@ class TestAnnotationTaskManager(TestEndpoint):
             self.assertTrue(task_context is None)
             return
 
-        annotation_id = task_context['annotation_id']
-        self.annotation_info(annotation_id, "Annotated")
+        if task_context: #ignore if annotation task returned is None
+            annotation_id = task_context['annotation_id']
+            self.annotation_info(annotation_id, "Annotated")
 
-        complete_annotation_task(request, annotation_id, {})
+            complete_annotation_task(request, annotation_id, {})
 
     def reject_annotation(self, annotator):
         request = self.get_annotator_request(annotator)
