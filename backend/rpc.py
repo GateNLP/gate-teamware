@@ -527,7 +527,7 @@ def get_annotation_task(request):
 
 
 @rpc_method_auth
-def complete_annotation_task(request, annotation_id, annotation_data):
+def complete_annotation_task(request, annotation_id, annotation_data, elapsed_time):
     """ Complete the annotator's current task, with option to get the next task """
 
     with transaction.atomic():
@@ -541,7 +541,7 @@ def complete_annotation_task(request, annotation_id, annotation_data):
                 f"User {user.username} trying to complete annotation id {annotation_id} that doesn't belong to them")
 
         if annotation:
-            annotation.complete_annotation(annotation_data)
+            annotation.complete_annotation(annotation_data, elapsed_time)
 
 
 @rpc_method_auth

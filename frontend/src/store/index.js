@@ -383,10 +383,10 @@ export default new Vuex.Store({
             }
 
         },
-        async completeUserAnnotationTask({dispatch, commit}, {annotationID, data}) {
+        async completeUserAnnotationTask({dispatch, commit}, {annotationID, data, annotationTime}) {
 
             try{
-                await rpc.call("complete_annotation_task", annotationID, data)
+                await rpc.call("complete_annotation_task", annotationID, data, annotationTime)
             }catch(e){
                 console.error(e)
                 throw e
