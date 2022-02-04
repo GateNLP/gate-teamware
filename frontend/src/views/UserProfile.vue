@@ -16,7 +16,8 @@
     <b-row class="mt-3">
       <b-col>
         <b>Email: </b> {{ user.email }}
-        <b-icon icon="pencil-square" @click="editEmail = !editEmail" variant="primary"></b-icon>
+        <a @click.prevent="editEmail = !editEmail"><b-icon icon="pencil-square" variant="primary"></b-icon></a>
+
       </b-col>
     </b-row>
 
@@ -25,7 +26,7 @@
         <b-form href="" method="post">
 
           <b-form-group label="Change Email">
-            <b-form-input type="text" v-model="form.email"/>
+            <b-form-input name="email_change" type="text" v-model="form.email"/>
 
             <b-button variant="primary" @click="EmailSubmitHandler" :class="{'disabled': error!=''}">Submit</b-button>
           </b-form-group>
@@ -45,16 +46,18 @@
       <b-col>
         <div v-if="!editPassword">
           <b>Password:</b>*****
-          <b-icon icon="pencil-square" @click="editPassword = !editPassword" variant="primary"></b-icon>
+          <a @click.prevent="editPassword = !editPassword">
+            <b-icon icon="pencil-square"  variant="primary"></b-icon>
+          </a>
         </div>
         <b-form href="" method="post" v-else>
 
           <b-form-group label="New Password">
-            <b-form-input type="password" v-model="form.password" placeholder="Enter new password"/>
+            <b-form-input name="password" type="password" v-model="form.password" placeholder="Enter new password"/>
           </b-form-group>
 
           <b-form-group label="Confirm Password">
-            <b-form-input type="password" v-model="form.confirmpassword"
+            <b-form-input name="password_confirm" type="password" v-model="form.confirmpassword"
                           placeholder="Type password again to confirm"/>
           </b-form-group>
 
