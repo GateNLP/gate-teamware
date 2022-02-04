@@ -216,10 +216,8 @@ describe('Site serve test', () => {
         //Check can annotate
         cy.contains(annotatePageStr).click()
         cy.contains("New project name")
-        cy.contains("Document 1")
         cy.contains("Negative").click()
         cy.contains("Submit").click()
-        cy.contains("Document 2")
 
         //Check annotation exists in documents list
         cy.contains(projectsPageStr).click()
