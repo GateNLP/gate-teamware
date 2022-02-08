@@ -543,7 +543,7 @@ def get_annotation_task(request):
 
 
 @rpc_method_auth
-def complete_annotation_task(request, annotation_id, annotation_data, elapsed_time):
+def complete_annotation_task(request, annotation_id, annotation_data, elapsed_time=None):
     """ Complete the annotator's current task, with option to get the next task """
 
     with transaction.atomic():
