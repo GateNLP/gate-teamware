@@ -43,7 +43,7 @@ services:
   pgbackups:
     image: prodrigestivill/postgres-backup-local
     restart: always
-    user: postgres:postgres
+    user: 1002:1155
     volumes:
       - ${BACKUPS_VOLUME}:/backups
     depends_on:
