@@ -489,6 +489,7 @@ class Document(models.Model):
                         annotation_dict[a_key] = ",".join(a_value)
                     else:
                         annotation_dict[a_key] = a_value
+                annotation_dict["duration_seconds"] = annotation.time_to_complete
                 annotation_sets[annotation.user.username] = annotation_dict
 
             doc_dict["annotations"] = annotation_sets
@@ -506,6 +507,7 @@ class Document(models.Model):
                             "start": 0,
                             "end": 0,
                             "id": 0,
+                            "duration_seconds": annotation.time_to_complete,
                             "features": {
                                 "label": a_data
                             }
