@@ -95,7 +95,7 @@ export default {
         await this.completeUserAnnotationTask({
           annotationID: this.annotationTask.annotation_id,
           data: value,
-          completeUserAnnotationTask: time,
+          annotationTime: time,
         })
 
       } catch (e) {

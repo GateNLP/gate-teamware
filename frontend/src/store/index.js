@@ -372,6 +372,15 @@ export default new Vuex.Store({
                 throw e
             }
         },
+        async getAnnotationTimings({dispatch, commit}, projectID){
+            try{
+                let response = await rpc.call("get_annotation_timings", projectID);
+                return response
+            }catch(e){
+                console.error(e)
+                throw e
+            }
+        },
 
         async getUserAnnotationTask({dispatch, commit}) {
             try{
@@ -386,6 +395,7 @@ export default new Vuex.Store({
         async completeUserAnnotationTask({dispatch, commit}, {annotationID, data, annotationTime}) {
 
             try{
+                console.log(annotationTime)
                 await rpc.call("complete_annotation_task", annotationID, data, annotationTime)
             }catch(e){
                 console.error(e)
