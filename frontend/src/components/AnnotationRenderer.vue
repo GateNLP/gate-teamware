@@ -168,6 +168,7 @@ export default {
       if (validationPassed) {
         this.$emit('submit', this.annotationOutput, elapsedTime)
         this.clearForm()
+        this.startTimer();
       }
     },
     clearForm() {
@@ -180,6 +181,7 @@ export default {
     },
     rejectHandler(e){
       this.$emit('reject')
+      this.startTimer();
     }
 
   },
