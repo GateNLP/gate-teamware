@@ -395,7 +395,6 @@ export default new Vuex.Store({
         async completeUserAnnotationTask({dispatch, commit}, {annotationID, data, annotationTime}) {
 
             try{
-                console.log(annotationTime)
                 await rpc.call("complete_annotation_task", annotationID, data, annotationTime)
             }catch(e){
                 console.error(e)

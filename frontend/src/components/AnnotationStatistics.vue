@@ -2,7 +2,7 @@
     <div>
         <h2 class="mt-2 mb-2">Annotation Statistics</h2>
         <h3 class="mt-2 mb-2">Completion Times</h3>
-        <ScatterPlot :chartData="chartData" :height="100"></ScatterPlot>
+        <ScatterPlot :chartData="chartData" :options="chartOptions" :height="200"></ScatterPlot>
         <span><b># Timed Annotations: </b>{{numTimedAnnotations}}</span><br>
         <span><b>Mean Annotation Time: </b>{{meanAnnotationTime.toFixed(2)}} seconds</span><br>
         <span><b>Median Annotation Time: </b>{{medianAnnotationTime.toFixed(2)}} seconds</span><br>
@@ -18,10 +18,27 @@ export default {
     components:{ScatterPlot},
     data(){
         return {
+            jitterOn: true,
             chartData: {},
             meanAnnotationTime: 0,
             numTimedAnnotations: 0,
             medianAnnotationTime: 0,
+            chartOptions: {
+                scales:{
+                    xAxes: [{
+                        scaleLabel:{
+                            labelString: 'Time to complete annotation (seconds)',
+                            display: true,
+                            fontSize: 20,
+                        },
+                    }],
+                    yAxes: [{
+                        display: false,
+                    }],
+                },
+                responsive: true,
+                maintainAspectRatio: false,
+            },
         }
     },
     props: {
@@ -35,14 +52,18 @@ export default {
         async getChartData() {
             let data = await this.getAnnotationTimings(this.projectId);
 
+            if (this.jitterOn == true){
+                data = this.jitter(data);
+            }
+
             this.chartData =  {
                 datasets: [{
                     label: "Annotation Completion Times",
                     data: data,
                     backgroundColor: "#005cbf",
-                    pointRadius: 8,
+                    pointRadius: 5,
                     pointHoverRadius: 10,
-                    pointHitRadius: 15, 
+                    pointHitRadius: 8, 
                     tooltips: {
                         enabled: false,
                     }
@@ -69,7 +90,6 @@ export default {
             // calculate the median
             arr = Float64Array.from(arr);
             arr.sort();
-            console.log(arr)
             if (arr.length % 2 === 0) {
                 this.medianAnnotationTime = (arr[arr.length / 2 - 1] + arr[arr.length / 2]) / 2;
             }else{
@@ -77,6 +97,16 @@ export default {
             }
             
 
+        },
+        jitter(data) {
+            return data.map(function(e) {
+            var yJitter = Math.random() * (-1 - 1) + 1;
+            
+            return {
+                x: e.x,
+                y: e.y + yJitter,
+                }
+            });
         },
     },
     async mounted(){

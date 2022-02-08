@@ -12,12 +12,12 @@ export default {
         default: null
       },
       options: {
-        legend: {
-          display: false,
+        type: Object,
+        default: {
+          responsive: true,
+          maintainAspectRatio: false,
         },
-        responsive: true,
-        maintainAspectRatio: false,
-      },
+      }
   },
   async mounted() {
     this.renderChart(this.chartData, this.options);
