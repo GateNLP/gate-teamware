@@ -6,6 +6,7 @@
 
 
     <AccountActivationGenerator></AccountActivationGenerator>
+
   </div>
 </template>
 

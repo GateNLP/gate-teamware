@@ -23,3 +23,48 @@
 //
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
+
+import 'cypress-file-upload'
+
+// Send an rpc request to frontend
+
+Cypress.Commands.add("rpcRequest", (method, params, doFailOnStatusCode=true) => {
+
+    cy.request("get", "/").then(() => {
+        cy.getCookies().then((cookies) => {
+            let csrf = null
+            for (let c of cookies) {
+                if (c.name === "csrftoken") {
+                    csrf = c.value
+                }
+            }
+
+            let requestBody = {
+                "jsonrpc": "2.0",
+                "method": method,
+                "params": params,
+                "id": 1
+            }
+
+            return cy.request({
+                failOnStatusCode: doFailOnStatusCode,
+                method: "post",
+                url: "/rpc/",
+                body: requestBody,
+                headers: {
+                    "X-CSRFToken": csrf,
+                }
+            })
+        })
+    })
+})
+
+// Login to frontend though RPC request
+Cypress.Commands.add("login", (username, password, doFailOnStatusCode=true) => {
+    return cy.rpcRequest("login", [{username: username, password: password}], doFailOnStatusCode)
+})
+
+// Logout using RPC
+Cypress.Commands.add("logout", () => {
+    return cy.rpcRequest("logout")
+})

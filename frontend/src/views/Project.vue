@@ -106,7 +106,7 @@
           </b-form-group>
           <b-form-group label="Document ID field"
                         description="The field in your uploaded documents that is used as a unique identifier. GATE's json format uses the name field. You can use a dot limited key path to access subfields e.g. enter features.name to get the id from the object {'features':{'name':'nameValue'}}">
-            <b-form-input v-model="local_project.document_id_field"></b-form-input>
+            <b-form-input v-model="local_project.document_id_field" name="project_document_id_field"></b-form-input>
           </b-form-group>
           <b-form-row>
             <b-col>
@@ -119,7 +119,7 @@
                            href="https://gatenlp.github.io/gate-teamware/userguide/projectconfig.html">documentation
                   page on configuring project annotation</a>
                 for more details.</p>
-              <JsonEditor v-model="local_project.configuration"></JsonEditor>
+              <JsonEditor v-model="local_project.configuration" data-cy="editor"></JsonEditor>
             </b-col>
             <b-col>
               <h4>Annotation preview</h4>

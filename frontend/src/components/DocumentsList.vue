@@ -2,7 +2,9 @@
   <div>
     <Search class="mt-4" @input="searchDocs"></Search>
     <Pagination class="mt-4" :items="filteredDocuments" v-slot:default="{ pageItems }">
-      <BCard v-for="doc in pageItems" :key="`${doc.project_id}-${doc.id}`" :class="{ 'mb-2': true, 'selectedDoc': isDocSelected(doc)}">
+      <BCard v-for="doc in pageItems" :key="`${doc.project_id}-${doc.id}`"
+             :class="{ 'mb-2': true, 'selectedDoc': isDocSelected(doc)}"
+             data-role="document-display-container">
         <BMedia>
           <div class="d-flex justify-content-between">
             <div>
@@ -68,7 +70,8 @@
 
 
           <BCard v-for="anno in doc.annotations" :key="anno.id"
-                 :class="{ 'mt-4': true, 'selectedAnnotation': isAnnotationSelected(anno)}">
+                 :class="{ 'mt-4': true, 'selectedAnnotation': isAnnotationSelected(anno)}"
+                 data-role="annotation-display-container">
 
             <BMedia>
               <div class="mb-2">

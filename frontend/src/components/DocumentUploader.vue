@@ -5,8 +5,8 @@
                    multiple placeholder="Choose a file or drop it here..."
                    class="mr-2"
                    accept=".json,.jsonl,.csv,.zip"
+                   data-cy="file-input"
       ></b-form-file>
-
     </b-input-group>
 
     <div v-if="selectedFilesStats.length > 0" class="mt-2">
