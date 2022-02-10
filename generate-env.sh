@@ -53,4 +53,19 @@ IMAGE_REGISTRY=
 MAIN_IMAGE=$MAIN_IMAGE
 STATIC_IMAGE=$STATIC_IMAGE
 IMAGE_TAG=latest
+#
+# Email sending configuration
+#
+# For SMTP backend: django.core.mail.backends.smtp.EmailBackend
+# For Gmail API backend:  gmailapi_backend.mail.GmailBackend
+DJANGO_EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+# Settings for SMTP email
+DJANGO_EMAIL_HOST=localhost
+DJANGO_EMAIL_PORT=22
+DJANGO_EMAIL_HOST_USER=username
+DJANGO_EMAIL_HOST_PASSWORD=password
+# Settings for Gmail API
+DJANGO_GMAIL_API_CLIENT_ID=google_assigned_id
+DJANGO_GMAIL_API_CLIENT_SECRET=google_assigned_secret
+DJANGO_GMAIL_API_REFRESH_TOKEN=google_assigned_token
 EOF

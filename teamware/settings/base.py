@@ -177,3 +177,37 @@ PASSWORD_RESET_URL_PATH = "/passwordreset"
 PASSWORD_RESET_TIMEOUT_HOURS = 10
 PASSWORD_RESET_TOKEN_LENGTH = 128
 
+"""
+# Email Configuration - Specify e-mail backend here
+# https://docs.djangoproject.com/en/3.2/topics/email/
+# django-gmailapi-backend (https://github.com/dolfim/django-gmailapi-backend) is used for sending
+# emails though Google's API. See documentation for more details.
+"""
+
+"""
+Select the email backend to use
+Emails are sent to local memory by default: django.core.mail.backends.locmem.EmailBackend
+For SMTP: django.core.mail.backends.smtp.EmailBackend
+For Gmail tokens: gmailapi_backend.mail.GmailBackend
+
+"""
+EMAIL_BACKEND = os.getenv('DJANGO_EMAIL_BACKEND', 'django.core.mail.backends.locmem.EmailBackend')
+
+"""
+Send e-mail through standard SMTP server. See [https://github.com/dolfim/django-gmailapi-backend](https://github.com/dolfim/django-gmailapi-backend)
+for full list of configuration parameters.
+"""
+EMAIL_HOST = os.getenv('DJANGO_EMAIL_HOST', 'localhost')
+EMAIL_PORT = os.getenv('DJANGO_EMAIL_PORT', 22)
+EMAIL_HOST_USER = os.getenv('DJANGO_EMAIL_HOST_USER', 'username')
+EMAIL_HOST_PASSWORD = os.getenv('DJANGO_EMAIL_HOST_PASSWORD', 'password')
+
+"""
+If sending e-mail through Gmail using Google's API, the following parameters must be set:
+"""
+GMAIL_API_CLIENT_ID = os.getenv('DJANGO_GMAIL_API_CLIENT_ID', 'google_assigned_id')
+GMAIL_API_CLIENT_SECRET = os.getenv('DJANGO_GMAIL_API_CLIENT_SECRET', 'google_assigned_secret')
+GMAIL_API_REFRESH_TOKEN = os.getenv('DJANGO_GMAIL_API_REFRESH_TOKEN', 'google_assigned_token')
+
+
+
