@@ -11,10 +11,10 @@ docker-compose up -d db
 docker-compose run --rm -e DJANGO_SETTINGS_MODULE=$DJANGO_SETTINGS_MODULE -e DB_USERNAME=postgres -e "DB_PASSWORD=$PG_SUPERUSER_PASSWORD" -T --entrypoint "python" backend manage.py dbshell -- -c 'DROP SCHEMA public CASCADE;'
 
 # Run the backup restore
-zcat "$1" | docker-compose run --rm -e DJANGO_SETTINGS_MODULE=$DJANGO_SETTINGS_MODULE -e DB_USERNAME=postgres -e DB_PASSWORD=$PG_SUPERUSER_PASSWORD -T --entrypoint "python" backend manage.py dbshell --
+zcat "$1" | docker-compose run --rm -e DJANGO_SETTINGS_MODULE=$DJANGO_SETTINGS_MODULE -e DB_USERNAME=postgres -e "DB_PASSWORD=$PG_SUPERUSER_PASSWORD" -T --entrypoint "python" backend manage.py dbshell --
 
 # Reinstate the correct user permissions
-docker-compose run --rm -e DJANGO_SETTINGS_MODULE=$DJANGO_SETTINGS_MODULE -e DB_USERNAME=postgres -e DB_PASSWORD=$PG_SUPERUSER_PASSWORD -T --entrypoint "python" backend manage.py dbshell -- -c "\
+docker-compose run --rm -e DJANGO_SETTINGS_MODULE=$DJANGO_SETTINGS_MODULE -e DB_USERNAME=postgres -e "DB_PASSWORD=$PG_SUPERUSER_PASSWORD" -T --entrypoint "python" backend manage.py dbshell -- -c "\
 GRANT ALL ON SCHEMA public TO \"$DB_USERNAME\";
 GRANT ALL ON SCHEMA public TO public;
 GRANT CONNECT ON DATABASE \"$DJANGO_DB_NAME\" TO \"$DB_BACKUP_USER\";
