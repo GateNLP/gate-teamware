@@ -1,11 +1,9 @@
 <script>
-import { Scatter, mixins } from "vue-chartjs";
-const {reactiveProp} = mixins;
+import { Scatter } from "vue-chartjs";
 
 export default {
   extends: Scatter,
   name: "ScatterPlot",
-  mixins: [reactiveProp],
   props:{
       chartData: {
         type: Object,
@@ -13,17 +11,11 @@ export default {
       },
       options: {
         type: Object,
-        default: {
-          responsive: true,
-          maintainAspectRatio: false,
-        },
+        default: null,
       }
   },
-  async mounted() {
+  mounted() {
     this.renderChart(this.chartData, this.options);
   },
 };
 </script>
-
-<style scoped>
-</style>

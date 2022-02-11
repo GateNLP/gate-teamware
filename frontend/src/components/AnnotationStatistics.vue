@@ -2,7 +2,7 @@
     <div>
         <h2 class="mt-2 mb-2">Annotation Statistics</h2>
         <h3 class="mt-2 mb-2">Completion Times</h3>
-        <ScatterPlot :chartData="chartData" :options="chartOptions" :height="200"></ScatterPlot>
+        <ScatterPlot v-if="chartDataLoaded" :chartData="chartData" :options="chartOptions" :styles="myStyles"></ScatterPlot>
         <span><b># Timed Annotations: </b>{{numTimedAnnotations}}</span><br>
         <span><b>Mean Annotation Time: </b>{{meanAnnotationTime.toFixed(2)}} seconds</span><br>
         <span><b>Median Annotation Time: </b>{{medianAnnotationTime.toFixed(2)}} seconds</span><br>
@@ -20,6 +20,8 @@ export default {
         return {
             jitterOn: true,
             chartData: {},
+            chartDataLoaded: false,
+            height: 200,
             meanAnnotationTime: 0,
             numTimedAnnotations: 0,
             medianAnnotationTime: 0,
@@ -50,6 +52,7 @@ export default {
     methods: {
         ...mapActions(["getAnnotationTimings"]),
         async getChartData() {
+            this.chartDataLoaded = false;
             let data = await this.getAnnotationTimings(this.projectId);
 
             if (this.jitterOn == true){
@@ -69,6 +72,8 @@ export default {
                     }
                 }],
             }
+
+            this.chartDataLoaded = true;
 
             this.calculateStatistics();
 
@@ -108,6 +113,14 @@ export default {
                 }
             });
         },
+    },
+    computed: {
+        myStyles () {
+        return {
+            height: `${this.height}px`,
+            position: 'relative'
+        }
+        }
     },
     async mounted(){
         this.getChartData();
