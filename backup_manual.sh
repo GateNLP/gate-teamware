@@ -2,4 +2,4 @@
 
 set -e
 
-docker-compose run --rm -e --entrypoint="/bin/bash" pgbackups ./backup.sh
+docker-compose run --rm --entrypoint="/bin/bash" pgbackups ./backup.sh
