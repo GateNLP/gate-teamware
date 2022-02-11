@@ -50,6 +50,10 @@ services:
       - db
     environment:
       - POSTGRES_HOST=db
+      - PGHOST=db
+      - PGPORT=5432
+      - PGPASSWORD=${PG_SUPERUSER_PASSWORD}
+      - PGUSER=postgres
       - POSTGRES_DB=${DJANGO_DB_NAME}
       - POSTGRES_USER=${DB_USERNAME}
       - POSTGRES_PASSWORD=${DB_PASSWORD}

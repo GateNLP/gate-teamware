@@ -40,11 +40,12 @@ PG_SUPERUSER_PASSWORD=$(openssl rand -base64 16)
 DJANGO_DB_NAME=annotations_db
 DB_USERNAME=gate
 DB_PASSWORD=$(openssl rand -base64 16)
+DJANGO_SETTINGS_MODULE=teamware.settings.deployment
 DJANGO_SECRET_KEY=$(openssl rand -base64 42)
 DB_BACKUP_USER=backup
 DB_BACKUP_PASSWORD=$(openssl rand -base64 16)
 # alter BACKUPS_VOLUME to filesystem location for db backups
-BACKUPS_VOLUME=/var/backups/annotations-backup-$DEPLOY_ENV
+BACKUPS_VOLUME=/export/raid/gate/annotations-backup-$DEPLOY_ENV
 # alter BACKUPS_USER_GROUP to user id and group with permissions to write to BACKUPS_VOLUME
 BACKUPS_USER_GROUP=1002:1155
 DEPLOY_ENV=$DEPLOY_ENV
