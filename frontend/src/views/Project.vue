@@ -12,7 +12,6 @@
       </p>
       <ProjectStatusBadges :project="local_project"></ProjectStatusBadges>
 
-
       <div v-if="!local_project.is_configured" class="alert alert-warning mt-2" >
         <b-icon-exclamation-triangle></b-icon-exclamation-triangle>
         Improperly configured project:
@@ -30,41 +29,15 @@
       <b-tab title="Configuration">
         <ProjectConfiguration :project="local_project" @updated="fetchProject()"></ProjectConfiguration>
       </b-tab>
-
       <b-tab title="Documents & Annotations">
-        <ProjectDocuments :project="local_project"></ProjectDocuments>
+        <ProjectDocuments :project="local_project" @updated="fetchProject()"></ProjectDocuments>
       </b-tab>
-
       <b-tab title="Annotators" :disabled="!local_project.is_configured">
-        <h2 class="mt-2 mb-2">Annotators Management
-          <b-icon-question-circle id="project-annotators-help" scale="0.5"
-                                  style="cursor:pointer;"></b-icon-question-circle>
-        </h2>
-        <b-popover target="project-annotators-help" triggers="hover" placement="bottom">
-          Add annotators to the project by clicking on the list of names in the <strong>right column</strong>. Current
-          annotators can be removed
-          by clicking on the names in the <strong>left column</strong>. Removing annotators does not delete their
-          completed annotations
-          but will stop their current pending annotation task.
-
-        </b-popover>
-        <b-button-toolbar class="mt-2 mb-2">
-          <b-button-group>
-            <b-button :variant="loadingVariant" :disabled="loading" @click="refreshAnnotatorsHandler" title="Refresh annotator list.">
-              <b-icon-arrow-clockwise :animation="loadingIconAnimation"></b-icon-arrow-clockwise>
-              Refesh
-            </b-button>
-          </b-button-group>
-        </b-button-toolbar>
-        <Annotators :projectID="projectId" ref="annotators"></Annotators>
+        <Annotators :projectID="projectId" @updated="fetchProject()"></Annotators>
       </b-tab>
-
     </b-tabs>
-
-
   </div>
 </template>
-
 <script>
 import _ from "lodash"
 import {mapActions, mapState} from "vuex";
@@ -91,11 +64,9 @@ export default {
   components: {
     ProjectDocuments,
     ProjectConfiguration,
-    DocumentExporter,
-    DocumentUploader,
     ProjectStatusBadges,
     ProjectIcon,
-    MarkdownEditor, DocumentsList, JsonEditor, AnnotationRenderer, VTable, VJsoneditor, Annotators},
+    Annotators},
   data() {
     return {
       activeTab: 0,
@@ -114,14 +85,6 @@ export default {
         is_completed: false,
         document_id_field: "",
       },
-      configurationStr: "",
-      documents: [],
-      selectedDocuments: [],
-      selectedAnnotations: [],
-      showDeleteConfirmModal: false,
-      showDocumentUploadModal: false,
-      showDocumentExportModal: false,
-      deleteLocked: true,
       loading: false,
     }
   },
@@ -135,9 +98,6 @@ export default {
     ...mapState(["projects"]),
     projectConfigValid() {
       return this.local_project && this.local_project.configuration && this.local_project.configuration.length > 0
-    },
-    projectReadyForAnnotation() {
-      return this.projectConfigValid()
     },
     loadingVariant() {
       if (this.loading) {
@@ -153,18 +113,6 @@ export default {
 
       return null
     },
-    numDocs() {
-      return this.documents.length
-    },
-    numAnnotations() {
-      let numAnnotations = 0
-      for (let doc of this.documents) {
-        numAnnotations += doc.annotations.length
-      }
-
-      return numAnnotations
-    }
-
   },
   methods: {
     ...mapActions(["getProject",]),
@@ -191,9 +139,7 @@ export default {
     },
 
 
-    async refreshAnnotatorsHandler(){
-      this.$refs.annotators.updateAnnotators()
-    }
+
 
   },
   watch: {

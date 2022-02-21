@@ -118,7 +118,7 @@ describe('Site serve test', () => {
             })
         })
 
-        it("Test changign email", ()=>{
+        it("Test changing email", ()=>{
             let changedEmail = "changed@test.com"
             cy.contains("Email").parent().within(() => {
                 cy.get("a").click()
@@ -164,7 +164,7 @@ describe('Site serve test', () => {
      * Tests the entire annotation cycle including logging in, creating a project, configuring a project, upload
      * documents, add self as annotator and annotating something.
      */
-    it.only('Test app annotation cycle', () => {
+    it('Test app annotation cycle', () => {
         // Login through JSON request
         cy.login("admin", "testpassword")
 

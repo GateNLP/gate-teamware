@@ -15,22 +15,22 @@
       <b-button-group>
         <b-button @click="saveProjectHandler" :variant="loadingVariant" :disabled="loading"
                   title="Save project configuration.">
-          <b-icon-box-arrow-in-down :animation="loadingIconAnimation"></b-icon-box-arrow-in-down>
+          <b-icon-box-arrow-in-down ></b-icon-box-arrow-in-down>
           Save
         </b-button>
         <b-button @click="$refs.projectConfigImportInput.click()" :variant="loadingVariant" :disabled="loading"
                   title="Import JSON project configuration file.">
-          <b-icon-cloud-upload :animation="loadingIconAnimation"></b-icon-cloud-upload>
+          <b-icon-cloud-upload ></b-icon-cloud-upload>
           Import
         </b-button>
         <b-button @click="exportProjectConfigHandler" :variant="loadingVariant" :disabled="loading"
                   title="Export project configuration as a JSON file.">
-          <b-icon-cloud-download :animation="loadingIconAnimation"></b-icon-cloud-download>
+          <b-icon-cloud-download ></b-icon-cloud-download>
           Export
         </b-button>
         <b-button @click="cloneProjectConfigHandler" :variant="loadingVariant" :disabled="loading"
                   title="Create a new project using this project's configuration. Does not copy documents, annotations or annotator list.">
-          <b-icon-clipboard :animation="loadingIconAnimation"></b-icon-clipboard>
+          <b-icon-clipboard ></b-icon-clipboard>
           Clone this project
         </b-button>
 
@@ -191,27 +191,22 @@ export default {
         return "primary"
       }
     },
-    loadingIconAnimation() {
-      if (this.loading) {
-        return "throb"
-      }
-
-      return null
-    },
   },
   methods: {
     ...mapActions(["getProject",
       "updateProject", "importProjectConfiguration", "exportProjectConfiguration", "cloneProject"]),
     async saveProjectHandler() {
-      this.$emit("isLoading")
+      this.setLoading(true)
       try {
         await this.updateProject(this.local_project);
         this.$emit("updated")
+        console.log("Updated")
         toastSuccess(this, "Save project configuration", "Save successful")
       } catch (e) {
+        console.log("Not updated")
         toastError(this, "Could not save project configuration", e)
       }
-      this.$emit(("finishedLoading"))
+      this.setLoading(false)
     },
     async importProjectConfigHandler(e) {
       this.setLoading(true)
@@ -221,8 +216,8 @@ export default {
           let file = fileList[0]
           const configStr = await readFileAsync(file)
           const config = JSON.parse(configStr)
-          await this.importProjectConfiguration({id: this.projectId, config_dict: config})
-          await this.fetchProject()
+          await this.importProjectConfiguration({id: this.local_project.id, config_dict: config})
+          this.$emit("updated")
           toastSuccess(this, "Project configuration imported")
 
         } catch (e) {
@@ -240,13 +235,13 @@ export default {
     },
     async exportProjectConfigHandler() {
       try {
-        let response = await this.exportProjectConfiguration(this.projectId)
+        let response = await this.exportProjectConfiguration(this.local_project.id)
         let fileURL = window.URL.createObjectURL(new Blob([JSON.stringify(response)]));
         let fileLink = document.createElement('a');
 
 
         fileLink.href = fileURL;
-        fileLink.setAttribute('download', `project${this.projectId}-${this.local_project.name}.json`);
+        fileLink.setAttribute('download', `project${this.local_project.id}-${this.local_project.name}.json`);
         document.body.appendChild(fileLink);
 
         fileLink.click();
@@ -259,7 +254,7 @@ export default {
     },
     async cloneProjectConfigHandler() {
       try {
-        let clonedProjObj = await this.cloneProject(this.projectId)
+        let clonedProjObj = await this.cloneProject(this.local_project.id)
         this.$router.push("/project/" + clonedProjObj.id)
 
       } catch (e) {

@@ -51,7 +51,7 @@
           Delete
         </b-button>
         <b-button :variant="loadingVariant" :disabled="loading" @click="refreshDocumentsHandler">
-          <b-icon-arrow-clockwise :animation="loadingIconAnimation"></b-icon-arrow-clockwise>
+          <b-icon-arrow-clockwise ></b-icon-arrow-clockwise>
           Refresh
         </b-button>
         <b-button variant="primary" @click="showDocumentUploadModal = true" title="Upload documents">
@@ -164,27 +164,36 @@ export default {
         return "primary"
       }
     },
-    loadingIconAnimation() {
-      if (this.loading) {
-        return "throb"
+    numDocs() {
+      return this.documents.length
+    },
+    numAnnotations() {
+      let numAnnotations = 0
+      for (let doc of this.documents) {
+        numAnnotations += doc.annotations.length
       }
 
-      return null
-    },
+      return numAnnotations
+    }
+
   },
   methods: {
     ...mapActions(["getProjectDocuments", "addProjectDocument",
       "deleteDocumentsAndAnnotations",]),
+    isEverythingSelected() {
+      return this.selectedDocuments.length >= this.numDocs &&
+          this.selectedAnnotations.length >= this.numAnnotations
+    },
     async updateProjectDocuments() {
       if (this.project && this.project.id) {
         this.documents = await this.getProjectDocuments(this.project.id)
       }
-
     },
     async refreshDocumentsHandler() {
       this.setLoading(true)
       try {
         this.documents = await this.getProjectDocuments(this.project.id)
+        this.$emit("updated")
       } catch (e) {
         toastError(this, "Could not reload document", e)
       }
@@ -194,17 +203,14 @@ export default {
       this.setLoading(true)
     },
     async documentUploadHandler(e) {
-      await this.fetchProject()
+      this.$emit("updated")
       this.setLoading(false)
     },
     docAnnoSelectionChanged(value) {
       this.selectedDocuments = value.documents
       this.selectedAnnotations = value.annotations
     },
-    isEverythingSelected() {
-      return this.selectedDocuments.length >= this.numDocs &&
-          this.selectedAnnotations.length >= this.numAnnotations
-    },
+
     async deleteDocumentsAndAnnotationHandler(e) {
       try {
         await this.deleteDocumentsAndAnnotations({
