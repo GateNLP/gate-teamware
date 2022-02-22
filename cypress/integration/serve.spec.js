@@ -233,7 +233,7 @@ describe('Site serve test', () => {
         cy.get("[data-role='annotation-display-container']").first().contains(adminUsername)
     })
 
-    it.only('Test deleting project', () => {
+    it('Test deleting project', () => {
         // Login through JSON request
         cy.login("admin", "testpassword")
 
