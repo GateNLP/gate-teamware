@@ -158,7 +158,7 @@ export default {
         this.user = await this.getUser();
         this.editEmail = false
       }catch (e){
-        toastError(this, "Could not change e-mail", e)
+        toastError("Could not change e-mail", e, this)
       }
 
     },
@@ -170,7 +170,7 @@ export default {
         await this.changePassword(this.form)
         this.editPassword = false
       } catch (e) {
-        toastError(this, "Could not change password", e)
+        toastError("Could not change password", e, this)
       }
 
     },
@@ -178,7 +178,7 @@ export default {
       try{
         await this.setUserReceiveMailNotification(this.user.receive_mail_notifications)
       }catch (e){
-        toastError(this, "Could not change user mail notification preference", e)
+        toastError("Could not change user mail notification preference", e, this)
       }
     },
   },

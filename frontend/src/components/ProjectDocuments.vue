@@ -195,7 +195,7 @@ export default {
         this.documents = await this.getProjectDocuments(this.project.id)
         this.$emit("updated")
       } catch (e) {
-        toastError(this, "Could not reload document", e)
+        toastError("Could not reload document", e, this)
       }
       this.setLoading(false)
     },
@@ -217,12 +217,12 @@ export default {
           documentIds: this.selectedDocuments,
           annotationIds: this.selectedAnnotations
         })
-        toastSuccess(this, "Documents and annotations deleted", this.selectedDocuments.length + "documents and " + this.selectedAnnotations.length + "deleted.")
+        toastSuccess("Documents and annotations deleted", this.selectedDocuments.length + "documents and " + this.selectedAnnotations.length + "deleted.", this)
 
         await this.refreshDocumentsHandler()
 
       } catch (e) {
-        toastError(this, "Could not delete documents or annotations", e)
+        toastError("Could not delete documents or annotations", e, this)
 
       }
 

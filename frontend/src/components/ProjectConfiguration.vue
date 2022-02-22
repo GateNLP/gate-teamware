@@ -18,6 +18,11 @@
           <b-icon-box-arrow-in-down ></b-icon-box-arrow-in-down>
           Save
         </b-button>
+        <b-button @click="showDeleteProjectModal=true" variant="danger" :disabled="loading"
+                  title="Delete project.">
+          <b-icon-x></b-icon-x>
+          Delete
+        </b-button>
         <b-button @click="$refs.projectConfigImportInput.click()" :variant="loadingVariant" :disabled="loading"
                   title="Import JSON project configuration file.">
           <b-icon-cloud-upload ></b-icon-cloud-upload>
@@ -128,6 +133,31 @@
       </b-form-row>
 
     </b-form>
+
+
+    <b-modal v-model="showDeleteProjectModal"
+             ok-variant="danger"
+             ok-title="Delete"
+             :ok-disabled="deleteProjectLocked"
+             @ok="deleteProjectHandler"
+             @hidden="deleteProjectLocked = true"
+             :title="'Delete project #' + project.id + ' ' + project.name +  '?'">
+
+      <p class="badge badge-danger">Warning, this action is permanent!</p>
+      <p class="badge badge-danger">Deleting the project will also delete all associated documents and annotations.</p>
+
+      <div>
+        <b-button @click="deleteProjectLocked = !deleteProjectLocked"
+                  :class="{'btn-danger': deleteProjectLocked, 'btn-success': !deleteProjectLocked}"
+        >
+          <b-icon-lock-fill v-if="deleteProjectLocked"></b-icon-lock-fill>
+          <b-icon-unlock-fill v-else></b-icon-unlock-fill>
+          <span v-if="deleteProjectLocked">Unlock delete</span>
+          <span v-else>Lock delete</span>
+        </b-button>
+
+      </div>
+    </b-modal>
   </div>
 
 </template>
@@ -167,6 +197,8 @@ export default {
       },
       annotationOutput: {},
       configurationStr: "",
+      showDeleteProjectModal: false,
+      deleteProjectLocked: true,
       loading: false,
     }
   },
@@ -193,7 +225,7 @@ export default {
     },
   },
   methods: {
-    ...mapActions(["getProject",
+    ...mapActions(["getProject", "deleteProject",
       "updateProject", "importProjectConfiguration", "exportProjectConfiguration", "cloneProject"]),
     async saveProjectHandler() {
       this.setLoading(true)
@@ -201,12 +233,21 @@ export default {
         await this.updateProject(this.local_project);
         this.$emit("updated")
         console.log("Updated")
-        toastSuccess(this, "Save project configuration", "Save successful")
+        toastSuccess("Save project configuration", "Save successful", this)
       } catch (e) {
         console.log("Not updated")
-        toastError(this, "Could not save project configuration", e)
+        toastError("Could not save project configuration", e, this)
       }
       this.setLoading(false)
+    },
+    async deleteProjectHandler(){
+      try{
+        await this.deleteProject(this.local_project.id)
+        toastSuccess("Project deleted", "The project has been deleted", null)
+        this.$router.push("/projects")
+      }catch(e){
+        toastError("Could not delete project", e, null)
+      }
     },
     async importProjectConfigHandler(e) {
       this.setLoading(true)
@@ -218,16 +259,16 @@ export default {
           const config = JSON.parse(configStr)
           await this.importProjectConfiguration({id: this.local_project.id, config_dict: config})
           this.$emit("updated")
-          toastSuccess(this, "Project configuration imported")
+          toastSuccess("Project configuration imported", undefined, this)
 
         } catch (e) {
           console.error("Could not parse uploaded file")
           console.error(e)
-          toastError(this, "Could not parse uploaded file " + file, e)
+          toastError("Could not parse uploaded file " + file, e, this)
         }
 
       } catch (e) {
-        toastError(this, "Could not upload configuration file", e)
+        toastError("Could not upload configuration file", e, this)
       }
 
       this.setLoading(false)
@@ -247,7 +288,7 @@ export default {
         fileLink.click();
 
       } catch (e) {
-        toastError(this, "Could export project configuration", e)
+        toastError("Could export project configuration", e, this)
       }
 
 
@@ -258,7 +299,7 @@ export default {
         this.$router.push("/project/" + clonedProjObj.id)
 
       } catch (e) {
-        toastError(this, "Could export project configuration", e)
+        toastError("Could export project configuration", e, this)
       }
 
     },

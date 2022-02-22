@@ -155,10 +155,10 @@ export default {
         let response = await this.adminUpdateUser(this.form);
         this.form = response;
         this.users = await this.getAllUsers() // Refresh the user selection
-        toastSuccess(this, "Save user details", "User details saved.")
+        toastSuccess("Save user details", "User details saved.", this)
 
       } catch (e) {
-        toastError(this, "Could not save user details", e)
+        toastError("Could not save user details", e, this)
       }
 
     },
@@ -172,28 +172,28 @@ export default {
           username: this.form.username,
           password: this.newPassword
         })
-        toastSuccess(this, "Change user password", "User password changed")
+        toastSuccess("Change user password", "User password changed", this)
 
       }catch (e) {
-        toastError(this, "Could not change user's password", e)
+        toastError("Could not change user's password", e, this)
       }
 
     },
     async passwordResetHandler() {
       try {
         await this.generatePasswordReset(this.form.username)
-        toastSuccess(this, "Password reset", "Password reset email generated.")
+        toastSuccess("Password reset", "Password reset email generated.", this)
       } catch (e) {
-        toastError(this, "Could not trigger password reset for " + this.form.username, e)
+        toastError("Could not trigger password reset for " + this.form.username, e, this)
       }
     },
     async generateActivationHandler() {
       try {
         await this.generateUserActivation(this.form.username)
-        toastSuccess(this, "Activation generation", "Account activation email generated")
+        toastSuccess("Activation generation", "Account activation email generated", this)
 
       } catch (e) {
-        toastError(this, "Could not save user details", e)
+        toastError("Could not save user details", e, this)
       }
 
     },

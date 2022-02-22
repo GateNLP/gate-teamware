@@ -124,7 +124,7 @@ export default {
         }
 
       } catch (e) {
-        toastError(this, "Could not fetch project information from server")
+        toastError("Could not fetch project information from server", undefined, this)
       }
 
     },

@@ -98,7 +98,7 @@ export default {
         })
 
       } catch (e) {
-        toastError(this, "Could not get annotation task", e)
+        toastError("Could not get annotation task", e, this)
       }
 
       await this.getAnnotationTask()
@@ -108,7 +108,7 @@ export default {
       try {
         await this.rejectUserAnnotationTask(this.annotationTask.annotation_id)
       } catch (e) {
-        toastError(this, "Could not get annotation task", e)
+        toastError("Could not get annotation task", e, this)
       }
 
       await this.getAnnotationTask()
@@ -119,7 +119,7 @@ export default {
         this.annotationTask = await this.getUserAnnotationTask()
 
       } catch (e) {
-        toastError(this, "Could not get annotation task", e)
+        toastError("Could not get annotation task", e, this)
       }
     }
   },

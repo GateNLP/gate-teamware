@@ -76,7 +76,7 @@ export default {
         }
 
       } catch (e) {
-        toastError(this, "Could not upload document", e)
+        toastError("Could not upload document", e, this)
 
       }finally {
         this.$emit("completed")
@@ -133,7 +133,7 @@ export default {
       } catch (e) {
         console.error("Could not parse uploaded file")
         console.error(e)
-        toastError(this, "Could not parse uploaded file " + fileStat.name, e)
+        toastError("Could not parse uploaded file " + fileStat.name, e, this)
       }
     },
     async uploadJSONLFile(fileStat) {
@@ -162,7 +162,7 @@ export default {
       } catch (e) {
         console.error("Could not parse uploaded file")
         console.error(e)
-        toastError(this, "Could not parse uploaded file " + fileStat.name, e)
+        toastError("Could not parse uploaded file " + fileStat.name, e, this)
       }
     },
     async uploadCSVFile(fileStat) {
@@ -192,7 +192,7 @@ export default {
       } catch (e) {
         console.error("Could not parse uploaded file")
         console.error(e)
-        toastError(this, "Could not parse uploaded file " + fileStat.name, e)
+        toastError("Could not parse uploaded file " + fileStat.name, e, this)
       }
 
     },
@@ -225,7 +225,7 @@ export default {
       } catch (e) {
         console.error("Could not parse uploaded file")
         console.error(e)
-        toastError(this, "Could not parse uploaded file " + fileStat.name, e)
+        toastError("Could not parse uploaded file " + fileStat.name, e, this)
       }
 
     }

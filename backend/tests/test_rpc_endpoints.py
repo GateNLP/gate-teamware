@@ -15,7 +15,7 @@ from backend.rpc import create_project, update_project, add_project_document, ad
     get_annotation_task, complete_annotation_task, reject_annotation_task, register, activate_account, \
     generate_password_reset, reset_password, generate_user_activation, change_password, change_email, \
     set_user_receive_mail_notifications, delete_documents_and_annotations, import_project_config, export_project_config, \
-    clone_project
+    clone_project, delete_project
 from backend.rpcserver import rpc_method
 
 
@@ -228,6 +228,38 @@ class TestProject(TestEndpoint):
 
         saved_proj = Project.objects.get(pk=proj_obj['id'])
         self.assertEqual(saved_proj.owner.pk, self.get_default_user().pk)  # Owner is project creator
+
+    def test_delete_project(self):
+        """
+        Test to make sure that a deleted project will remove associated documents and annotations. It should
+        also remove annotators from the project.
+        """
+
+        self.assertEqual(Project.objects.all().count(), 0, "A project already exists")
+        self.assertEqual(Document.objects.all().count(), 0, "Documents already exist")
+        self.assertEqual(Annotation.objects.all().count(), 0, "Annotation already exists")
+
+        proj = Project.objects.create()
+        for i in range(10):
+            doc = Document.objects.create(project=proj)
+            for i in range(10):
+                annotation = Annotation.objects.create(document=doc,)
+
+        self.assertEqual(Project.objects.all().count(), 1, "Must have 1 project")
+        self.assertEqual(Document.objects.all().count(), 10, "Must have 10 documents")
+        self.assertEqual(Annotation.objects.all().count(), 100, "Must have 100 total annotations")
+
+        annotators = [get_user_model().objects.create(username=f"annotator_{i}",annotates=proj) for i in range(10)]
+
+        delete_project(self.get_loggedin_request(), project_id=proj.pk)
+
+        self.assertEqual(Project.objects.all().count(), 0, "Must have no project")
+        self.assertEqual(Document.objects.all().count(), 0, "All documents should have been deleted")
+        self.assertEqual(Annotation.objects.all().count(), 0, "All annotations should have been deleted")
+        for annotator in annotators:
+            annotator.refresh_from_db()
+            self.assertEqual(annotator.annotates, None, "Annotator should have been removed from the deleted project")
+
 
     def test_update_project(self):
         project = Project.objects.create()
