@@ -175,3 +175,7 @@ cython_debug/
 webpack-stats\.json
 
 *secret.py
+
+# database backups
+*.sql
+*.sql.gz

@@ -116,6 +116,39 @@ Deployment is via [docker-compose](https://docs.docker.com/compose/), using [NGI
 
 To bring the stack down, run `docker-compose down`, using the `-v` flag to destroy the database volume (be careful with this).
 
+
+## Backups
+
+In a docker-compose based deployment, backups of the database are managed by the service `pgbackups` which uses the [`prodrigestivill/postgres-backup-local:12`](https://hub.docker.com/r/prodrigestivill/postgres-backup-local) image.
+By default, backups are taken of the database daily, and the `docker-compose.yml` contains settings for the number of backups kept under the options for the `pgbackups` service.
+Backups are stored as a gzipped SQL dump from the database.
+
+#### Taking a manual backup
+
+A shell script is provided for manually triggering a backup snapshot.
+From the main project directory run
+
+```sh
+$ ./backup_manual.sh
+```
+
+This uses the `pgbackups` service and all settings and envrionment variables it is configured with in `docker-compose.yml`, so backups will be taken to the same location as configured for the main backup schedule.
+
+#### Restoring from a backup
+1. Locate the backup file (`*.sql.gz`) on your system that you would like to restore from.
+2. Make sure that the stack is down, from the main project directory run `docker-commpose down`.
+3. Run the backup restore shell script, passing in the path to your backup file as the only argument:
+
+```sh
+$ ./backup_restore.sh path/to/my/backup.sql.gz
+```
+
+This will first launch the database container, then via Django's `dbshell` command, running in the `backend` service, execute a number of SQL commands before and after running all the SQL from the backup file.
+
+4. Redeploy the stack, via `./deploy.sh staging` or `./deploy.sh production`, whichever is the case.
+5. The database *should* be restored.
+
+
 ## Configuration
 
 ### Django settings files
