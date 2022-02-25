@@ -23,7 +23,42 @@
         <b-icon-check-square></b-icon-check-square> All annotation tasks in this project are completed.
       </div>
 
+      <b-button-toolbar class="mt-4">
+        <b-button-group>
+          <b-button @click="showDeleteProjectModal=true" variant="danger" :disabled="loading"
+                  title="Delete project." size="sm">
+          <b-icon-x></b-icon-x>
+          Delete project
+        </b-button>
+
+        </b-button-group>
+      </b-button-toolbar>
+
     </b-card>
+
+    <b-modal v-model="showDeleteProjectModal"
+             ok-variant="danger"
+             ok-title="Delete"
+             :ok-disabled="deleteProjectLocked"
+             @ok="deleteProjectHandler"
+             @hidden="deleteProjectLocked = true"
+             :title="'Delete project #' + local_project.id + ' ' + local_project.name +  '?'">
+
+      <p class="badge badge-danger">Warning, this action is permanent!</p>
+      <p class="badge badge-danger">Deleting the project will also delete all associated documents and annotations.</p>
+
+      <div>
+        <b-button @click="deleteProjectLocked = !deleteProjectLocked"
+                  :class="{'btn-danger': deleteProjectLocked, 'btn-success': !deleteProjectLocked}"
+        >
+          <b-icon-lock-fill v-if="deleteProjectLocked"></b-icon-lock-fill>
+          <b-icon-unlock-fill v-else></b-icon-unlock-fill>
+          <span v-if="deleteProjectLocked">Unlock delete</span>
+          <span v-else>Lock delete</span>
+        </b-button>
+
+      </div>
+    </b-modal>
 
     <b-tabs v-model="activeTab">
       <b-tab title="Configuration">
@@ -85,6 +120,8 @@ export default {
         is_completed: false,
         document_id_field: "",
       },
+      showDeleteProjectModal: false,
+      deleteProjectLocked: true,
       loading: false,
     }
   },
@@ -115,7 +152,7 @@ export default {
     },
   },
   methods: {
-    ...mapActions(["getProject",]),
+    ...mapActions(["getProject","deleteProject"]),
     async fetchProject() {
       try {
         if (this.projectId) {
@@ -136,6 +173,15 @@ export default {
     goToAnnotatePage(e) {
       this.$router.push(`/annotate/${this.projectId}/${this.documents[0].id}`)
 
+    },
+    async deleteProjectHandler(){
+      try{
+        await this.deleteProject(this.local_project.id)
+        toastSuccess("Project deleted", "The project has been deleted", null)
+        this.$router.push("/projects")
+      }catch(e){
+        toastError("Could not delete project", e, null)
+      }
     },
 
 

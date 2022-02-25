@@ -33,12 +33,6 @@
           <b-icon-clipboard ></b-icon-clipboard>
           Clone project
         </b-button>
-        <b-button @click="showDeleteProjectModal=true" variant="danger" :disabled="loading"
-                  title="Delete project.">
-          <b-icon-x></b-icon-x>
-          Delete project
-        </b-button>
-
 
       </b-button-group>
     </b-button-toolbar>
@@ -133,31 +127,6 @@
       </b-form-row>
 
     </b-form>
-
-
-    <b-modal v-model="showDeleteProjectModal"
-             ok-variant="danger"
-             ok-title="Delete"
-             :ok-disabled="deleteProjectLocked"
-             @ok="deleteProjectHandler"
-             @hidden="deleteProjectLocked = true"
-             :title="'Delete project #' + project.id + ' ' + project.name +  '?'">
-
-      <p class="badge badge-danger">Warning, this action is permanent!</p>
-      <p class="badge badge-danger">Deleting the project will also delete all associated documents and annotations.</p>
-
-      <div>
-        <b-button @click="deleteProjectLocked = !deleteProjectLocked"
-                  :class="{'btn-danger': deleteProjectLocked, 'btn-success': !deleteProjectLocked}"
-        >
-          <b-icon-lock-fill v-if="deleteProjectLocked"></b-icon-lock-fill>
-          <b-icon-unlock-fill v-else></b-icon-unlock-fill>
-          <span v-if="deleteProjectLocked">Unlock delete</span>
-          <span v-else>Lock delete</span>
-        </b-button>
-
-      </div>
-    </b-modal>
   </div>
 
 </template>
@@ -197,8 +166,7 @@ export default {
       },
       annotationOutput: {},
       configurationStr: "",
-      showDeleteProjectModal: false,
-      deleteProjectLocked: true,
+
       loading: false,
     }
   },
@@ -225,7 +193,7 @@ export default {
     },
   },
   methods: {
-    ...mapActions(["getProject", "deleteProject",
+    ...mapActions(["getProject", 
       "updateProject", "importProjectConfiguration", "exportProjectConfiguration", "cloneProject"]),
     async saveProjectHandler() {
       this.setLoading(true)
@@ -240,15 +208,7 @@ export default {
       }
       this.setLoading(false)
     },
-    async deleteProjectHandler(){
-      try{
-        await this.deleteProject(this.local_project.id)
-        toastSuccess("Project deleted", "The project has been deleted", null)
-        this.$router.push("/projects")
-      }catch(e){
-        toastError("Could not delete project", e, null)
-      }
-    },
+
     async importProjectConfigHandler(e) {
       this.setLoading(true)
       try {
