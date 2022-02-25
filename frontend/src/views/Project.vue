@@ -292,6 +292,10 @@
         <Annotators :projectID="projectId"></Annotators>
       </b-tab>
 
+      <b-tab title="Statistics">
+        <AnnotationStatistics :projectId="projectId"></AnnotationStatistics>
+      </b-tab>
+
     </b-tabs>
 
 
@@ -313,6 +317,7 @@ import ProjectIcon from "@/components/ProjectIcon";
 import ProjectStatusBadges from "@/components/ProjectStatusBadges";
 import DocumentUploader from "@/components/DocumentUploader";
 import DocumentExporter from "@/components/DocumentExporter";
+import AnnotationStatistics from "@/components/AnnotationStatistics";
 
 export default {
   name: "Project",
@@ -324,7 +329,7 @@ export default {
     DocumentUploader,
     ProjectStatusBadges,
     ProjectIcon,
-    MarkdownEditor, DocumentsList, JsonEditor, AnnotationRenderer, VTable, VJsoneditor, Annotators},
+    MarkdownEditor, DocumentsList, JsonEditor, AnnotationRenderer, VTable, VJsoneditor, Annotators, AnnotationStatistics},
   data() {
     return {
       activeTab: 0,

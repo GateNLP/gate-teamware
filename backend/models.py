@@ -489,6 +489,7 @@ class Document(models.Model):
                         annotation_dict[a_key] = ",".join(a_value)
                     else:
                         annotation_dict[a_key] = a_value
+                annotation_dict["duration_seconds"] = annotation.time_to_complete
                 annotation_sets[annotation.user.username] = annotation_dict
 
             doc_dict["annotations"] = annotation_sets
@@ -506,6 +507,7 @@ class Document(models.Model):
                             "start": 0,
                             "end": 0,
                             "id": 0,
+                            "duration_seconds": annotation.time_to_complete,
                             "features": {
                                 "label": a_data
                             }
@@ -544,7 +546,7 @@ class Annotation(models.Model):
     created = models.DateTimeField(default=timezone.now)
     status = models.IntegerField(choices=ANNOTATION_STATUS, default=PENDING)
     status_time = models.DateTimeField(default=None, null=True)
-
+    time_to_complete = models.FloatField(default=None, null=True)
 
 
     def _set_new_status(self, status, time=timezone.now()):
@@ -553,9 +555,10 @@ class Annotation(models.Model):
         self.status_time = time
 
 
-    def complete_annotation(self, data, time=timezone.now()):
+    def complete_annotation(self, data, elapsed_time=None, time=timezone.now()):
         self.data = data
         self._set_new_status(Annotation.COMPLETED, time)
+        self.time_to_complete = elapsed_time
         self.save()
 
         # Also check whether the project has been completed
