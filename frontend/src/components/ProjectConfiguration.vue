@@ -18,11 +18,6 @@
           <b-icon-box-arrow-in-down ></b-icon-box-arrow-in-down>
           Save
         </b-button>
-        <b-button @click="showDeleteProjectModal=true" variant="danger" :disabled="loading"
-                  title="Delete project.">
-          <b-icon-x></b-icon-x>
-          Delete
-        </b-button>
         <b-button @click="$refs.projectConfigImportInput.click()" :variant="loadingVariant" :disabled="loading"
                   title="Import JSON project configuration file.">
           <b-icon-cloud-upload ></b-icon-cloud-upload>
@@ -36,7 +31,12 @@
         <b-button @click="cloneProjectConfigHandler" :variant="loadingVariant" :disabled="loading"
                   title="Create a new project using this project's configuration. Does not copy documents, annotations or annotator list.">
           <b-icon-clipboard ></b-icon-clipboard>
-          Clone this project
+          Clone project
+        </b-button>
+        <b-button @click="showDeleteProjectModal=true" variant="danger" :disabled="loading"
+                  title="Delete project.">
+          <b-icon-x></b-icon-x>
+          Delete project
         </b-button>
 
 
