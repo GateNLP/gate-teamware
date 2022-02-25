@@ -31,10 +31,10 @@ export default {
     async generateActivationCodeBtnHandler() {
       try {
         await this.generateUserActivation(this.username)
-        toastSuccess(this, "Generate activation code", "Account activation code has been sent to your e-mail.")
+        toastSuccess("Generate activation code", "Account activation code has been sent to your e-mail.", this)
 
       } catch (e) {
-        toastError(this, "Could not generate activation code", e)
+        toastError("Could not generate activation code", e, this)
       }
 
     },

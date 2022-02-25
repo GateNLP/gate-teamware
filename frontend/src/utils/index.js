@@ -16,8 +16,32 @@ export async function readFileAsync(file){
 
 }
 
-export async function showToast(vueOrComponentInstance, title, message, variant, delay = 2000){
-    vueOrComponentInstance.$bvToast.toast(message, {
+const toastDelay = 2000  //ms of delay
+let defaultVueOrComponentInstance = null
+
+/**
+ * Set a a vue or component instance as a root for displaying toasts
+ * @param vueOrComponentInstance
+ */
+export function initToast(vueOrComponentInstance){
+    defaultVueOrComponentInstance = vueOrComponentInstance
+}
+
+/**
+ * Shows a notification
+ * @param title Title message
+ * @param message Message body
+ * @param variant The colour variant of the toast
+ * @param delay ms delay until notification is hidden
+ * @param vueOrComponentInstance The component that's used to display the toast, if null then the
+ * component provided in initToast will be used instead
+ * @returns {Promise<void>}
+ */
+export async function showToast(title, message, variant, delay = 2000, vueOrComponentInstance=null){
+    let toastRoot = defaultVueOrComponentInstance
+    if(vueOrComponentInstance)
+        toastRoot = defaultVueOrComponentInstance
+    toastRoot.$bvToast.toast(message, {
         title: title,
         toaster: 'b-toaster-top-right',
         variant: variant,
@@ -25,19 +49,43 @@ export async function showToast(vueOrComponentInstance, title, message, variant,
         })
 }
 
-export async function toastSuccess(vueOrComponentInstance, title, message){
-    await showToast(vueOrComponentInstance, title, message, "success")
+/**
+ * Shows a success notification
+ * @param title Title message
+ * @param message Message body
+ * @param vueOrComponentInstance The component that's used to display the toast, if null then the
+ * component provided in initToast will be used instead
+ * @returns {Promise<void>}
+ */
+export async function toastSuccess(title, message, vueOrComponentInstance = null){
+    await showToast(title, message, "success", toastDelay, vueOrComponentInstance)
 }
 
-export async function toastError(vueOrComponentInstance, title, errorObj){
+/**
+ * Shows a failed notification
+ * @param title Title message
+ * @param errorObj Error object as body
+ * @param vueOrComponentInstance The component that's used to display the toast, if null then the
+ * component provided in initToast will be used instead
+ * @returns {Promise<void>}
+ */
+export async function toastError(title, errorObj, vueOrComponentInstance = null){
     if(errorObj.code === JSRPCClient.AUTHENTICATION_ERROR){
         // Diverts to login page if it's an authentication error
         vueOrComponentInstance.$router.push("/login")
     }else{
-        await showToast(vueOrComponentInstance, title, errorObj.message, "danger")
+        await showToast(title, errorObj.message, "danger", toastDelay, vueOrComponentInstance)
     }
 }
 
-export async function toastInfo(vueOrComponentInstance, title, message){
-    await showToast(vueOrComponentInstance, title, message, "info")
+/**
+ * Shows an information notification
+ * @param title Title message
+ * @param message Message body
+ * @param vueOrComponentInstance The component that's used to display the toast, if null then the
+ * component provided in initToast will be used instead
+ * @returns {Promise<void>}
+ */
+export async function toastInfo(title, message, vueOrComponentInstance = null){
+    await showToast(title, message, "info", toastDelay, vueOrComponentInstance)
 }

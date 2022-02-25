@@ -328,13 +328,18 @@ def create_project(request):
 
         return serializer.serialize(proj)
 
+@rpc_method_manager
+def delete_project(request, project_id):
+    with transaction.atomic():
+        proj = Project.objects.get(pk=project_id)
+        proj.delete()
+        return True
 
 @rpc_method_manager
 def update_project(request, project_dict):
     with transaction.atomic():
         project = serializer.deserialize(Project, project_dict)
         return True
-
 
 @rpc_method_manager
 def get_project(request, project_id):

@@ -10,10 +10,9 @@
 
     <Pagination class="mt-4" :items="filteredProjects" v-slot:default="{ pageItems }">
       <b-list-group class="mb-4">
-        <b-list-group-item v-for="project in pageItems" :key="project.id">
+        <b-list-group-item v-for="project in pageItems" :key="project.id" data-role="project_container">
           <div class="d-flex justify-content-between">
             <div>
-
               <b-link :to="'/project/'+project.id">
                 <ProjectIcon :project-id="project.id" scale="1" shift-v="0"></ProjectIcon>
                 {{ project.name }}
@@ -70,7 +69,7 @@ export default {
       try{
         this.projects = await this.getProjects();
       }catch (e){
-        toastError(this, "Could not fetch project list", e)
+        toastError("Could not fetch project list", e, this)
       }
 
     },

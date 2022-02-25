@@ -260,6 +260,16 @@ export default new Vuex.Store({
                 throw e
             }
         },
+        async deleteProject({dispatch, commit}, projectId){
+            try{
+                console.log("Creating a project")
+                let result = await rpc.call("delete_project", projectId)
+                return result
+            }catch(e){
+                console.log(e)
+                throw e
+            }
+        },
         async updateProject({dispatch, commit}, payload){
             try{
                 let project = await rpc.call("update_project", payload)

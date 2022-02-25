@@ -118,7 +118,7 @@ describe('Site serve test', () => {
             })
         })
 
-        it("Test changign email", ()=>{
+        it("Test changing email", ()=>{
             let changedEmail = "changed@test.com"
             cy.contains("Email").parent().within(() => {
                 cy.get("a").click()
@@ -164,7 +164,7 @@ describe('Site serve test', () => {
      * Tests the entire annotation cycle including logging in, creating a project, configuring a project, upload
      * documents, add self as annotator and annotating something.
      */
-    it.only('Test app annotation cycle', () => {
+    it('Test app annotation cycle', () => {
         // Login through JSON request
         cy.login("admin", "testpassword")
 
@@ -231,6 +231,39 @@ describe('Site serve test', () => {
         cy.contains("Profile").click()
         cy.contains(newProjectName)
         cy.get("[data-role='annotation-display-container']").first().contains(adminUsername)
+    })
+
+    it('Test deleting project', () => {
+        // Login through JSON request
+        cy.login("admin", "testpassword")
+
+         cy.visit("/")
+
+        // Goes to project page
+        cy.contains(projectsPageStr).click()
+        cy.get("h1").should("contain", projectsPageStr)
+
+        // Create a project
+        cy.contains("Create project").click()
+        cy.get("h1").should("contain", "New project")
+
+        // Checks the main project page
+        cy.get("a").contains("Projects").click()
+        cy.get("div[data-role='project_container']").should("exist")
+        cy.get("a").contains("New project").click()
+
+        // Delete the project
+        cy.contains("Delete").click()
+        cy.contains("Unlock delete").click()
+        cy.get(".modal-dialog").within(()=>{
+            cy.get("button").contains("Delete").click()
+        })
+        cy.contains("Project deleted").should("be.visible")
+
+        cy.get("h1").should("contain", projectsPageStr)
+        cy.get("div[data-role='project_container']").should("not.exist")
+
+
     })
 
     describe("Test admin user management", () => {

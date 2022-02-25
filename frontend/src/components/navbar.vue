@@ -51,7 +51,7 @@ export default {
       ...mapActions(["logout"]),
       logoutHandler(){
         this.logout();
-        this.$router.push({ name: 'Home' });
+        this.$router.push({ name: 'Home' }).catch(()=>{});
       },
     },
 }
