@@ -70,6 +70,11 @@
       <b-tab title="Annotators" :disabled="!local_project.is_configured">
         <Annotators :projectID="projectId" @updated="fetchProject()"></Annotators>
       </b-tab>
+
+      <b-tab title="Statistics">
+        <AnnotationStatistics :projectId="projectId"></AnnotationStatistics>
+      </b-tab>
+
     </b-tabs>
   </div>
 </template>
@@ -88,6 +93,7 @@ import ProjectIcon from "@/components/ProjectIcon";
 import ProjectStatusBadges from "@/components/ProjectStatusBadges";
 import DocumentUploader from "@/components/DocumentUploader";
 import DocumentExporter from "@/components/DocumentExporter";
+import AnnotationStatistics from "@/components/AnnotationStatistics";
 import ProjectConfiguration from "@/components/ProjectConfiguration";
 import ProjectDocuments from "@/components/ProjectDocuments";
 
@@ -101,7 +107,7 @@ export default {
     ProjectConfiguration,
     ProjectStatusBadges,
     ProjectIcon,
-    Annotators},
+    Annotators, AnnotationStatistics},
   data() {
     return {
       activeTab: 0,

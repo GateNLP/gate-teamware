@@ -57,6 +57,7 @@ export default {
         html: 'HtmlDisplay',
       },
       ignoreValidateTypes: ['html'],
+      startTime: null
     }
   },
   props: {
@@ -75,6 +76,13 @@ export default {
     }
   },
   methods: {
+    startTimer(){
+      this.startTime = new Date();
+    },
+    getTimeElapsed(){
+      let endTime = new Date();
+      return (endTime - this.startTime)/1E3;
+    },
     inputEventHandler(e) {
       this.$emit('input', this.annotationOutput)
     },
@@ -153,12 +161,14 @@ export default {
         return false
     },
     submitHandler(e) {
+      let elapsedTime = this.getTimeElapsed();
       let validationPassed = this.validateAnnotation()
       this.$forceUpdate()
 
       if (validationPassed) {
-        this.$emit('submit', this.annotationOutput)
+        this.$emit('submit', this.annotationOutput, elapsedTime)
         this.clearForm()
+        this.startTimer();
       }
     },
     clearForm() {
@@ -171,6 +181,7 @@ export default {
     },
     rejectHandler(e){
       this.$emit('reject')
+      this.startTimer();
     }
 
   },
@@ -181,6 +192,9 @@ export default {
         this.generateValidationTracker(newConfig)
       }
     }
+  },
+  mounted(){
+    this.startTimer();
   }
 
 }

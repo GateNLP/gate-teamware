@@ -90,11 +90,12 @@ export default {
   computed: {},
   methods: {
     ...mapActions(["getUserAnnotationTask", "completeUserAnnotationTask", "rejectUserAnnotationTask"]),
-    async submitHandler(value) {
+    async submitHandler(value, time) {
       try {
         await this.completeUserAnnotationTask({
           annotationID: this.annotationTask.annotation_id,
-          data: value
+          data: value,
+          annotationTime: time,
         })
 
       } catch (e) {

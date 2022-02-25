@@ -11,7 +11,7 @@ RUN npm run build
 FROM python:3.9-slim-buster AS backend
 ENV PYTHONUNBUFFERED 1
 RUN apt-get --allow-releaseinfo-change update && \
-    apt-get -y install gcc libpq-dev libmagic1 && \
+    apt-get -y install gcc libpq-dev libmagic1 postgresql-client && \
     rm -rf /var/lib/apt/lists/*
 ADD https://github.com/krallin/tini/releases/download/v0.19.0/tini /sbin/tini
 RUN addgroup --gid 1001 "gate" && \

@@ -504,6 +504,22 @@ def remove_project_annotator(request, proj_id, username):
         return True
 
 
+@rpc_method_manager
+def get_annotation_timings(request, proj_id):
+    project = Project.objects.get(pk=proj_id)
+
+    annotation_timings = []
+
+    documents = project.documents.select_related("project").all()
+
+    for document in documents:
+        for annotation in document.annotations.all():
+            if annotation.time_to_complete:
+                data_point = {'x': annotation.time_to_complete, 'y': 0}
+                annotation_timings.append(data_point)
+
+    return annotation_timings
+
 ###############################
 ### Annotator methods       ###
 ###############################
@@ -532,7 +548,7 @@ def get_annotation_task(request):
 
 
 @rpc_method_auth
-def complete_annotation_task(request, annotation_id, annotation_data):
+def complete_annotation_task(request, annotation_id, annotation_data, elapsed_time=None):
     """ Complete the annotator's current task, with option to get the next task """
 
     with transaction.atomic():
@@ -546,7 +562,7 @@ def complete_annotation_task(request, annotation_id, annotation_data):
                 f"User {user.username} trying to complete annotation id {annotation_id} that doesn't belong to them")
 
         if annotation:
-            annotation.complete_annotation(annotation_data)
+            annotation.complete_annotation(annotation_data, elapsed_time)
 
 
 @rpc_method_auth

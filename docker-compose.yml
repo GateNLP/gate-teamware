@@ -41,15 +41,19 @@ services:
       - ./create-django-db.sh:/docker-entrypoint-initdb.d/001-create-django-db.sh
 
   pgbackups:
-    image: prodrigestivill/postgres-backup-local
+    image: prodrigestivill/postgres-backup-local:12
     restart: always
-    user: 1002:1155
+    user: ${BACKUPS_USER_GROUP}
     volumes:
       - ${BACKUPS_VOLUME}:/backups
     depends_on:
       - db
     environment:
       - POSTGRES_HOST=db
+      - PGHOST=db
+      - PGPORT=5432
+      - PGPASSWORD=${PG_SUPERUSER_PASSWORD}
+      - PGUSER=postgres
       - POSTGRES_DB=${DJANGO_DB_NAME}
       - POSTGRES_USER=${DB_USERNAME}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
