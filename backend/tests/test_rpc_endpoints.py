@@ -15,7 +15,7 @@ from backend.rpc import create_project, update_project, add_project_document, ad
     get_annotation_task, complete_annotation_task, reject_annotation_task, register, activate_account, \
     generate_password_reset, reset_password, generate_user_activation, change_password, change_email, \
     set_user_receive_mail_notifications, delete_documents_and_annotations, import_project_config, export_project_config, \
-    clone_project, delete_project
+    clone_project, delete_project, get_projects
 from backend.rpcserver import rpc_method
 
 
@@ -424,6 +424,12 @@ class TestProject(TestEndpoint):
                 self.assertEqual(getattr(project, field_name), getattr(cloned_project, field_name))
 
 
+    def test_get_projects(self):
+        num_projects = 10
+        for i in range(num_projects):
+            Project.objects.create(name=f"Project {i}")
+
+        result = get_projects(self.get_loggedin_request(), 0, )
 
 
 

@@ -1,7 +1,7 @@
 <template>
   <div>
     <Search class="mt-4" @input="searchDocs"></Search>
-    <Pagination class="mt-4" :items="filteredDocuments" v-slot:default="{ pageItems }">
+    <PaginationAsync class="mt-4" :fetch-function="fetchFunction" :filters="searchStr" :options="options" v-slot:default="{ pageItems }">
       <BCard v-for="doc in pageItems" :key="`${doc.project_id}-${doc.id}`"
              :class="{ 'mb-2': true, 'selectedDoc': isDocSelected(doc)}"
              data-role="document-display-container">
@@ -141,7 +141,7 @@
 
       </BCard>
 
-    </Pagination>
+    </PaginationAsync>
   </div>
 
 
@@ -152,13 +152,13 @@ import {mapActions} from "vuex";
 import VueJsonPretty from 'vue-json-pretty';
 import 'vue-json-pretty/lib/styles.css';
 import AsyncJsonDisplay from "@/components/AsyncJsonDisplay";
-import Pagination from "@/components/Pagination";
+import PaginationAsync from "@/components/PaginationAsync";
 import Search from "@/components/Search";
 import _ from "lodash"
 
 export default {
   name: "DocumentsList",
-  components: {Search, Pagination, AsyncJsonDisplay},
+  components: {Search, PaginationAsync, AsyncJsonDisplay},
   data() {
     return {
       searchStr: "",
@@ -167,31 +167,14 @@ export default {
     }
   },
   props: {
-    documents: {
-      type: Array,
-      default() {
-        return []
-      }
+    fetchFunction: {
+      type: Function,
+      default: null,
     },
-  },
-  computed: {
-    filteredDocuments() {
-
-      //Returns all if no or empty search string
-      if (!this.searchStr || this.searchStr.trim().length < 1)
-        return this.documents
-
-      let searchStr = this.searchStr
-
-      // Currently searching for project names only
-      let result = _.filter(
-          this.documents,
-          function (o) {
-            return _.includes(_.lowerCase(o.doc_id), _.lowerCase(searchStr))
-          }
-      )
-      return result
-
+    options: {
+      default(){
+        return {}
+      }
     }
   },
   methods: {

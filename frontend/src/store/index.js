@@ -231,19 +231,19 @@ export default new Vuex.Store({
                 throw e
             }
         },
-        async getProjects({dispatch,commit}){
+        async getProjects({dispatch,commit}, options){
             try {
-                let projects = await rpc.call("get_projects");
+                let projects = await rpc.call("get_projects", options);
                 return projects
             } catch (e){
                 console.log(e)
                 throw e
             }
         },
-        async getProjectDocuments({dispatch,commit},payload){
+        async getProjectDocuments({dispatch,commit}, options){
 
             try {
-                let documents = await rpc.call("get_project_documents",payload);
+                let documents = await rpc.call("get_project_documents", options);
                 return documents
             } catch (e){
                 console.log(e)
