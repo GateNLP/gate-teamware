@@ -12,8 +12,9 @@
                      :items="projects"
                      :num-items="numTotalProjects"
                      :items-per-page="itemsPerPage"
+                     :is-loading="loading"
                      v-model="currentPage"
-                     @itemPerPageChange="handleItemPerPageChange"
+                     @page-size-change="handleItemPerPageChange"
                      v-slot:default="{ pageItems }">
       <b-list-group class="mb-4">
         <b-list-group-item v-for="project in pageItems" :key="project.id" data-role="project_container">
@@ -43,9 +44,6 @@
         </b-list-group-item>
       </b-list-group>
     </PaginationAsync>
-
-
-
   </div>
 </template>
 
@@ -70,20 +68,31 @@ export default {
       itemsPerPage: 10,
       numTotalProjects: 0,
       projects: [],
+      loading: false,
     }
   },
   props: {},
   methods: {
     ...mapActions(["getProjects", "createProject"]),
     async fetchProjectItems(){
-      const result = await this.getProjects({
-          current_page: this.currentPage-1,
+
+      try{
+        this.setLoading(true)
+        const result = await this.getProjects({
+          current_page: this.currentPage,
           page_size: this.itemsPerPage,
           filters: this.searchStr,
         })
 
         this.projects = result.items
         this.numTotalProjects = result.total_count
+
+      }catch(e){
+        toastError("Could not fetch projects list", e)
+      }finally {
+        this.setLoading(false)
+      }
+
     },
     searchProject(searchStr){
       this.searchStr = searchStr
@@ -99,6 +108,9 @@ export default {
         this.$router.push("/project/" + projectObj.id)
       }
     },
+    async setLoading(isLoading){
+      this.loading = isLoading
+    }
   },
   computed: {
     ...mapState(["user"]),

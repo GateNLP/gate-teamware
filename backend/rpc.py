@@ -287,30 +287,58 @@ def get_user_details(request):
     data["user_role"] = user_role
 
     return data
-
-
 @rpc_method_auth
-def get_user_annotations(request):
+def get_user_annotated_projects(request):
     user = request.user
 
     projects_list = []
 
     for project in Project.objects.filter(documents__annotations__user_id=user.pk).distinct().order_by("-id"):
-
-        user_annotated_docs = project.documents.filter(annotations__user_id=user.pk).distinct()
-        documents_out = []
-
-        for document in user_annotated_docs:
-            annotations_list = [annotation.get_listing() for annotation in document.annotations.filter(user=user)]
-            documents_out.append(document.get_listing(annotations_list))
-
         projects_list.append({
             "id": project.pk,
             "name": project.name,
-            "documents": documents_out
         })
 
     return projects_list
+
+
+@rpc_method_auth
+def get_user_annotations_in_project(request, options: dict):
+    user = request.user
+
+    project_id = options.get("project_id", None)
+    current_page = options.get("current_page", 1)
+    page_size = options.get("page_size", 10)
+
+    if project_id is None:
+        raise Exception("Must have project_id")
+
+    if current_page < 1:
+        raise Exception("Page must start from 1")
+    current_page = current_page - 1  # Change to zero index
+
+
+    project = Project.objects.get(pk=project_id)
+    user_annotated_docs = project.documents.filter(annotations__user_id=user.pk).distinct()
+    total_count = user_annotated_docs.count()
+
+    if user_annotated_docs.count() < 1:
+        raise Exception(f"No annotations in this project {project.pk}:{project.name}")
+
+
+
+    start_index = current_page * page_size
+    end_index = (current_page+1)*page_size
+
+    paginated_docs = user_annotated_docs[start_index:end_index]
+
+    documents_out = []
+    for document in paginated_docs:
+        annotations_list = [annotation.get_listing() for annotation in document.annotations.filter(user=user)]
+        documents_out.append(document.get_listing(annotations_list))
+
+
+    return {"items": documents_out, "total_count": total_count}
 
 
 ##################################
@@ -389,13 +417,17 @@ def get_projects(request, options: dict):
     Gets the list of projects. Query result can be limited by using current_page and page_size and sorted
     by using filters
 
-    current_page A 0-indexed page
+    current_page A 1-indexed page
     page_size The maximum number of items to return per query
     filters Filter option used to search project, currently only string is used to search for project title
     """
     current_page = options.get("current_page", None)
     page_size = options.get("page_size", None)
     filters = options.get("filters", None)
+
+    if current_page < 1:
+        raise Exception("Page index starts from 1")
+    current_page = current_page - 1  # Change to 0 index for query
 
     projects_query = None
     total_count = 0
@@ -427,10 +459,7 @@ def get_projects(request, options: dict):
         }
         output_projects.append(out_proj)
 
-    return {
-        "items": output_projects,
-        "total_count": total_count
-    }
+    return {"items": output_projects, "total_count": total_count}
 
 
 @rpc_method_manager
@@ -440,7 +469,7 @@ def get_project_documents(request, options: dict):
     and sorted by using filters
 
     project_id The id of the project that the documents belong to, is a required variable
-    current_page A 0-indexed page
+    current_page A 1-indexed page
     page_size The maximum number of items to return per query
     filters Filter option used to search project, currently only string is used to search for project title
     """
@@ -449,6 +478,15 @@ def get_project_documents(request, options: dict):
     current_page = options.get("current_page", None)
     page_size = options.get("page_size", None)
     filters = options.get("filters", None)
+
+    if project_id is None:
+        raise Exception("project_id must be provided in the options")
+
+    if current_page < 1:
+        raise Exception("Page index starts from 1")
+    current_page = current_page - 1  # Change to 0 index for query
+
+
 
     project = Project.objects.get(pk=project_id)
 
@@ -461,7 +499,7 @@ def get_project_documents(request, options: dict):
         documents_query = project.documents.filter(pk=filters.strip())
         total_count = documents_query.count()
     else:
-        documents_query = Document.objects.all()
+        documents_query = project.documents.all()
         total_count = documents_query.count()
 
     # Paginate
@@ -478,7 +516,7 @@ def get_project_documents(request, options: dict):
         annotations_list = [a.get_listing() for a in document.annotations.all()]
         documents_out.append(document.get_listing(annotations_list))
 
-    return { "items": documents_out, "total_count": total_count}
+    return {"items": documents_out, "total_count": total_count}
 
 @rpc_method_manager
 def add_project_document(request, project_id, document_data):

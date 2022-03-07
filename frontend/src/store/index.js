@@ -213,11 +213,19 @@ export default new Vuex.Store({
                 console.log(e)
             }
         },
-
-        async getUserAnnotations({dispatch,commit}){
+        async getUserAnnotatedProjects({dispatch,commit}){
             try {
-                let annotations = await rpc.call("get_user_annotations");
-                return annotations
+                let projects = await rpc.call("get_user_annotated_projects");
+                return projects
+            } catch (e){
+                console.log(e)
+            }
+
+        },
+        async getUserAnnotationsInProject({dispatch,commit}, options){
+            try {
+                let annotatedDocs = await rpc.call("get_user_annotations_in_project", options);
+                return annotatedDocs
             } catch (e){
                 console.log(e)
             }
