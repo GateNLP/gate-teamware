@@ -289,6 +289,9 @@ def get_user_details(request):
     return data
 @rpc_method_auth
 def get_user_annotated_projects(request):
+    """
+    Gets ta list of projects that the user's annotated in
+    """
     user = request.user
 
     projects_list = []
@@ -303,12 +306,15 @@ def get_user_annotated_projects(request):
 
 
 @rpc_method_auth
-def get_user_annotations_in_project(request, options: dict):
+def get_user_annotations_in_project(request, project_id, current_page=1, page_size=None):
+    """
+    Gets a list of documents in a project where the user has performed annotations in.
+    :param project_id: The id of the project to query
+    :param current_page: A 1-indexed page count
+    :param page_size: The maximum number of items to return per query
+    :returns: Dictionary of items and total count after filter is applied {"items": [], "total_count": int}
+    """
     user = request.user
-
-    project_id = options.get("project_id", None)
-    current_page = options.get("current_page", 1)
-    page_size = options.get("page_size", 10)
 
     if project_id is None:
         raise Exception("Must have project_id")
@@ -325,12 +331,13 @@ def get_user_annotations_in_project(request, options: dict):
     if user_annotated_docs.count() < 1:
         raise Exception(f"No annotations in this project {project.pk}:{project.name}")
 
+    if page_size is not None:
+        start_index = current_page * page_size
+        end_index = (current_page + 1) * page_size
+        paginated_docs = user_annotated_docs[start_index:end_index]
+    else:
+        paginated_docs = user_annotated_docs
 
-
-    start_index = current_page * page_size
-    end_index = (current_page+1)*page_size
-
-    paginated_docs = user_annotated_docs[start_index:end_index]
 
     documents_out = []
     for document in paginated_docs:
@@ -412,18 +419,17 @@ def export_project_config(request, pk):
     return serializer.serialize(proj, Project.project_config_fields)
 
 @rpc_method_manager
-def get_projects(request, options: dict):
+def get_projects(request, current_page=1, page_size=None, filters=None):
     """
     Gets the list of projects. Query result can be limited by using current_page and page_size and sorted
-    by using filters
+    by using filters.
 
-    current_page A 1-indexed page
-    page_size The maximum number of items to return per query
-    filters Filter option used to search project, currently only string is used to search for project title
+    :param current_page: A 1-indexed page count
+    :param page_size: The maximum number of items to return per query
+    :param filters: Filter option used to search project, currently only string is used to search
+    for project title
+    :returns: Dictionary of items and total count after filter is applied {"items": [], "total_count": int}
     """
-    current_page = options.get("current_page", None)
-    page_size = options.get("page_size", None)
-    filters = options.get("filters", None)
 
     if current_page < 1:
         raise Exception("Page index starts from 1")
@@ -463,21 +469,18 @@ def get_projects(request, options: dict):
 
 
 @rpc_method_manager
-def get_project_documents(request, options: dict):
+def get_project_documents(request, project_id, current_page=1, page_size=None, filters=None):
     """
     Gets the list of documents and its annotations. Query result can be limited by using current_page and page_size
     and sorted by using filters
 
-    project_id The id of the project that the documents belong to, is a required variable
-    current_page A 1-indexed page
-    page_size The maximum number of items to return per query
-    filters Filter option used to search project, currently only string is used to search for project title
+    :param project_id: The id of the project that the documents belong to, is a required variable
+    :param current_page: A 1-indexed page count
+    :param page_size: The maximum number of items to return per query
+    :param filters: Filter currently only searches for ID of documents
+    for project title
+    :returns: Dictionary of items and total count after filter is applied {"items": [], "total_count": int}
     """
-
-    project_id = options.get("project_id", None)
-    current_page = options.get("current_page", None)
-    page_size = options.get("page_size", None)
-    filters = options.get("filters", None)
 
     if project_id is None:
         raise Exception("project_id must be provided in the options")

@@ -222,9 +222,9 @@ export default new Vuex.Store({
             }
 
         },
-        async getUserAnnotationsInProject({dispatch,commit}, options){
+        async getUserAnnotationsInProject({dispatch,commit}, {project_id, current_page, page_size}){
             try {
-                let annotatedDocs = await rpc.call("get_user_annotations_in_project", options);
+                let annotatedDocs = await rpc.call("get_user_annotations_in_project", project_id, current_page, page_size);
                 return annotatedDocs
             } catch (e){
                 console.log(e)
@@ -239,19 +239,23 @@ export default new Vuex.Store({
                 throw e
             }
         },
-        async getProjects({dispatch,commit}, options){
+        async getProjects({dispatch,commit}, {current_page, page_size, filters=null}){
             try {
-                let projects = await rpc.call("get_projects", options);
+                let projects = await rpc.call("get_projects", current_page, page_size, filters);
                 return projects
             } catch (e){
                 console.log(e)
                 throw e
             }
         },
-        async getProjectDocuments({dispatch,commit}, options){
+        async getProjectDocuments({dispatch,commit}, {project_id, current_page, page_size, filters=null}){
 
             try {
-                let documents = await rpc.call("get_project_documents", options);
+                let documents = await rpc.call("get_project_documents",
+                    project_id,
+                    current_page,
+                    page_size,
+                    filters);
                 return documents
             } catch (e){
                 console.log(e)
