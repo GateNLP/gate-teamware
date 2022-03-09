@@ -368,13 +368,15 @@ class Project(models.Model):
         }
 
 
-class Document(models.Model):
+class BaseDocument(models.Model):
     """
-    Model to represent a document.
+    Abstract class for annotation, training and testing document objects.
     """
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="documents")
     data = models.JSONField(default=dict)
     created = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        abstract = True
 
     @property
     def num_completed_annotations(self):
@@ -519,6 +521,26 @@ class Document(models.Model):
             doc_dict["annotation_sets"] = annotation_sets
 
         return doc_dict
+
+class Document(BaseDocument):
+    """
+    Model to represent a document.
+    """
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="documents")
+
+class TrainingDocument(BaseDocument):
+    """
+    Model to represent a document used in training annotators.
+    """
+
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="training_documents")
+
+class TestDocument(BaseDocument):
+    """
+    Model to represent a document used in testing annotators.
+    """
+
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="test_documents")
 
 class Annotation(models.Model):
     """
