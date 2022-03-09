@@ -59,7 +59,7 @@ def is_authenticated(request):
 
         if request.user.is_staff:
             context["isAdmin"] = True
-    
+
     return context
 
 
@@ -290,7 +290,7 @@ def get_user_details(request):
 @rpc_method_auth
 def get_user_annotated_projects(request):
     """
-    Gets ta list of projects that the user's annotated in
+    Gets a list of projects that the user has annotated
     """
     user = request.user
 
