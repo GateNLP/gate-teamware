@@ -1,7 +1,78 @@
 <template>
-  <div>
-    <Search class="mt-4" @input="searchDocs"></Search>
-    <Pagination class="mt-4" :items="filteredDocuments" v-slot:default="{ pageItems }">
+  <b-overlay :show="isLoading">
+    <b-button-toolbar v-if="showMenuBar" class="mt-2 mb-2" >
+      <b-button-group>
+        <b-button v-if="isPageSelected()"
+                  :title="'Clear selection. (' + selectedDocs.size + ' documents and ' + selectedAnnotations.size + ' annotations selected)'"
+                  @click="clearDocumentSelection()">
+          <b-icon-check-square></b-icon-check-square>
+          <span style="width: 30px">&nbsp;</span>
+          {{ selectedDocs.size }}
+          <b-icon-file-earmark-text></b-icon-file-earmark-text>
+          {{ selectedAnnotations.size }}
+          <b-icon-pencil-square></b-icon-pencil-square>
+        </b-button>
+        <b-button v-else
+                  :title="'Select all (' + selectedDocs.size + ' documents and ' + selectedAnnotations.size + ' annotations selected)'"
+                  @click="selectAllDocuments()">
+          <b-icon-square></b-icon-square>
+          <span style="width: 30px">&nbsp;</span>
+          <span style="width: 3em">&nbsp;</span>
+          {{ selectedDocs.size }}
+          <b-icon-file-earmark-text></b-icon-file-earmark-text>
+          {{ selectedAnnotations.size }}
+          <b-icon-pencil-square></b-icon-pencil-square>
+        </b-button>
+        <b-dropdown>
+          <b-dropdown-item @click="selectAllAnnotations()">
+            Select all annotations
+          </b-dropdown-item>
+          <b-dropdown-item @click="clearAnnotationSelection()">
+            Clear all annotations
+          </b-dropdown-item>
+        </b-dropdown>
+        <b-button variant="danger" @click="showDeleteConfirmModal = !showDeleteConfirmModal"
+                  :disabled="selectedDocs.size < 1 && selectedAnnotations.size < 1"
+                  :title="'Delete ' + selectedDocs.size + ' documents and ' + selectedAnnotations.size + ' annotations.'">
+          <b-icon-trash-fill scale="1"></b-icon-trash-fill>
+          Delete
+        </b-button>
+        <b-button :variant="loadingVariant" :disabled="isLoading" @click="fetchDocuments">
+          <b-icon-arrow-clockwise ></b-icon-arrow-clockwise>
+          Refresh
+        </b-button>
+        <b-button variant="primary" @click="uploadHandler" title="Upload documents">
+          <b-icon-upload></b-icon-upload>
+          Upload
+        </b-button>
+        <b-button @click="exportHandler" variant="primary">
+          <b-icon-download></b-icon-download>
+          Export
+        </b-button>
+      </b-button-group>
+    </b-button-toolbar>
+
+    <DeleteModal
+        v-model="showDeleteConfirmModal"
+        :title="'Delete ' + selectedDocs.size + ' documents and ' + selectedAnnotations.size + ' annotations'"
+        @delete="deleteHandler">
+      <p class="badge badge-danger">Warning, this action is permanent!</p>
+      <p class="badge badge-danger">Deleting a document will also delete their associated annotations.</p>
+      <p>Are you sure you want to delete {{ selectedDocs.size }} documents and
+        {{ selectedAnnotations.size }} annotations?</p>
+    </DeleteModal>
+
+    <Search v-if="showFilters" class="mt-4" @input="searchDocs"></Search>
+
+
+    <PaginationAsync class="mt-4"
+                     v-model="currentPage"
+                     :items="documents"
+                     :num-items="numTotalDocuments"
+                     :items-per-page="itemsPerPage"
+                     :is-loading="false"
+                     @page-size-change="pageSizeChangeHandler"
+                     v-slot:default="{ pageItems }">
       <BCard v-for="doc in pageItems" :key="`${doc.project_id}-${doc.id}`"
              :class="{ 'mb-2': true, 'selectedDoc': isDocSelected(doc)}"
              data-role="document-display-container">
@@ -19,7 +90,7 @@
 
                 </span>
 
-                <strong >
+                <strong>
                   <span v-if="doc.doc_id" title="ID of the document. ID is obtained from the field specified in the project's configuration.">{{ doc.doc_id }}</span>
                   <b-badge v-else variant="warning" :title="`Specified field does not exist in document.`">
                     <b-icon-exclamation-triangle></b-icon-exclamation-triangle>
@@ -141,8 +212,8 @@
 
       </BCard>
 
-    </Pagination>
-  </div>
+    </PaginationAsync>
+  </b-overlay>
 
 
 </template>
@@ -152,65 +223,120 @@ import {mapActions} from "vuex";
 import VueJsonPretty from 'vue-json-pretty';
 import 'vue-json-pretty/lib/styles.css';
 import AsyncJsonDisplay from "@/components/AsyncJsonDisplay";
-import Pagination from "@/components/Pagination";
+import PaginationAsync from "@/components/PaginationAsync";
 import Search from "@/components/Search";
+import DeleteModal from "@/components/DeleteModal";
 import _ from "lodash"
+import {toastError, toastSuccess} from "@/utils";
 
+/**
+ * Displays a list of documents, with builtin pagination.
+ *
+ * It's the responsibility of the parent component to respond to the `fetch` event to retrieve new
+ * data when the page selection changes.
+ *
+ * Events
+ * fetch(currentPage, pageSize) - The component emits a `fetch` event when page selection changes or refresh
+ * button is used.
+ * delete({documentIds, annotationIds})
+ * upload
+ * export({documentIds, annotationIds})
+ * selection-changed({documentIds, annotationIds})
+ */
 export default {
   name: "DocumentsList",
-  components: {Search, Pagination, AsyncJsonDisplay},
+  components: {Search, PaginationAsync, AsyncJsonDisplay, DeleteModal},
   data() {
     return {
       searchStr: "",
+      currentPage: 1,
+      itemsPerPage: 10,
       selectedDocs: new Set(),
       selectedAnnotations: new Set(),
+      showDeleteConfirmModal: false,
+      deleteLocked: true,
     }
   },
   props: {
+    /**
+     * Documents shown in this page
+     */
     documents: {
-      type: Array,
       default() {
         return []
       }
     },
+    /**
+     * Total number of documents available
+     */
+    numTotalDocuments: {
+      default: 0,
+    },
+    /**
+     * Displays a loading overlay if true
+     */
+    isLoading: {
+      default: false,
+    },
+    showMenuBar: {
+      default: true
+    },
+    showFilters: {
+      default: true
+    }
   },
   computed: {
-    filteredDocuments() {
+    loadingVariant() {
+      if (this.isLoading) {
+        return "secondary"
+      } else {
+        return "primary"
+      }
+    },
 
-      //Returns all if no or empty search string
-      if (!this.searchStr || this.searchStr.trim().length < 1)
-        return this.documents
-
-      let searchStr = this.searchStr
-
-      // Currently searching for project names only
-      let result = _.filter(
-          this.documents,
-          function (o) {
-            return _.includes(_.lowerCase(o.doc_id), _.lowerCase(searchStr))
-          }
-      )
-      return result
-
-    }
   },
   methods: {
     ...mapActions(["getDocumentContent", "getAnnotationContent"]),
+    pageSizeChangeHandler(newSize){
+      this.itemsPerPage = newSize
+      this.fetchDocuments()
+    },
+    fetchDocuments(){
+      this.$emit("fetch", this.currentPage, this.itemsPerPage)
+    },
+    deleteHandler(){
+      this.$emit("delete", this.getSelectionList())
+    },
+    uploadHandler(){
+      this.$emit("upload")
+    },
+    exportHandler(){
+      this.$emit("export", this.getSelectionList())
+    },
+    getSelectionList(){
+      return {
+            documentIds: [...this.selectedDocs],
+            annotationIds: [...this.selectedAnnotations],
+          }
+    },
+    isPageSelected(){
+      for(const doc of this.documents){
+        if(!this.selectedDocs.has(doc.id)){
+          return false
+        }
+      }
+      return true
+
+    },
     searchDocs(searchStr) {
       this.searchStr = searchStr
     },
     emitSelectionList(){
-
       // Forces vue to track the set change
       this.selectedDocs = new Set(this.selectedDocs)
       this.selectedAnnotations = new Set(this.selectedAnnotations)
 
-      this.$emit("selection-changed",
-          {
-            documents: [...this.selectedDocs],
-            annotations: [...this.selectedAnnotations],
-          })
-
+      this.$emit("selection-changed", this.getSelectionList())
     },
     selectDocument(doc, doSelect, emitEvent=true){
       if(doSelect){
@@ -232,7 +358,6 @@ export default {
     },
     toggleDocument(doc) {
       this.selectDocument(doc, !this.selectedDocs.has(doc.id))
-
     },
     isDocSelected(doc) {
       return this.selectedDocs.has(doc.id)
@@ -291,21 +416,22 @@ export default {
           this.selectAnnotation(anno, true, doc, false)
         }
       }
-
       if(doEmitEvent)
         this.emitSelectionList()
-
     },
-  },
-  watch:{
-    documents(val){
-      //Clear all selections when documents prop are set
-      this.selectedDocs = new Set()
-      this.selectedAnnotations = new Set()
-      this.emitSelectionList()
 
+  },
+  watch: {
+    currentPage:{
+      handler() {
+        this.fetchDocuments()
+      }
     }
   },
+  mounted() {
+    this.fetchDocuments()
+
+  }
 }
 </script>
 

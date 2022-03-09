@@ -36,29 +36,13 @@
 
     </b-card>
 
-    <b-modal v-model="showDeleteProjectModal"
-             ok-variant="danger"
-             ok-title="Delete"
-             :ok-disabled="deleteProjectLocked"
-             @ok="deleteProjectHandler"
-             @hidden="deleteProjectLocked = true"
-             :title="'Delete project #' + local_project.id + ' ' + local_project.name +  '?'">
-
+    <DeleteModal v-model="showDeleteProjectModal"
+                 :title="'Delete project #' + local_project.id + ' ' + local_project.name +  '?'"
+                 @delete="deleteProjectHandler"
+    >
       <p class="badge badge-danger">Warning, this action is permanent!</p>
-      <p class="badge badge-danger">Deleting the project will also delete all associated documents and annotations.</p>
-
-      <div>
-        <b-button @click="deleteProjectLocked = !deleteProjectLocked"
-                  :class="{'btn-danger': deleteProjectLocked, 'btn-success': !deleteProjectLocked}"
-        >
-          <b-icon-lock-fill v-if="deleteProjectLocked"></b-icon-lock-fill>
-          <b-icon-unlock-fill v-else></b-icon-unlock-fill>
-          <span v-if="deleteProjectLocked">Unlock delete</span>
-          <span v-else>Lock delete</span>
-        </b-button>
-
-      </div>
-    </b-modal>
+      <p class="badge badge-danger">Deleting a project will also delete all associated documents and annotations.</p>
+    </DeleteModal>
 
     <b-tabs v-model="activeTab">
       <b-tab title="Configuration">
@@ -96,13 +80,15 @@ import DocumentExporter from "@/components/DocumentExporter";
 import AnnotationStatistics from "@/components/AnnotationStatistics";
 import ProjectConfiguration from "@/components/ProjectConfiguration";
 import ProjectDocuments from "@/components/ProjectDocuments";
+import DeleteModal from "@/components/DeleteModal";
 
 export default {
   name: "Project",
   title() {
-    return `Project - ${this.local_project.name}`
+    return `Project`
   },
   components: {
+    DeleteModal,
     ProjectDocuments,
     ProjectConfiguration,
     ProjectStatusBadges,

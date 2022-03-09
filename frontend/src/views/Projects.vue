@@ -8,7 +8,14 @@
 
     <Search @input="searchProject"></Search>
 
-    <Pagination class="mt-4" :items="filteredProjects" v-slot:default="{ pageItems }">
+    <PaginationAsync class="mt-4"
+                     :items="projects"
+                     :num-items="numTotalProjects"
+                     :items-per-page="itemsPerPage"
+                     :is-loading="loading"
+                     v-model="currentPage"
+                     @page-size-change="handleItemPerPageChange"
+                     v-slot:default="{ pageItems }">
       <b-list-group class="mb-4">
         <b-list-group-item v-for="project in pageItems" :key="project.id" data-role="project_container">
           <div class="d-flex justify-content-between">
@@ -36,16 +43,14 @@
 
         </b-list-group-item>
       </b-list-group>
-    </Pagination>
-
-
-
+    </PaginationAsync>
   </div>
 </template>
 
 <script>
 import {mapActions, mapState} from 'vuex'
 import Pagination from "@/components/Pagination";
+import PaginationAsync from "@/components/PaginationAsync";
 import Search from "@/components/Search";
 import _ from "lodash"
 import {toastError} from "@/utils";
@@ -55,23 +60,47 @@ import ProjectStatusBadges from "@/components/ProjectStatusBadges";
 export default {
   name: 'Projects',
   title: "Projects",
-  components: {ProjectStatusBadges, ProjectIcon, Search, Pagination},
+  components: {ProjectStatusBadges, ProjectIcon, Search, Pagination, PaginationAsync},
   data(){
     return {
       searchStr: null,
+      currentPage: 1,
+      itemsPerPage: 10,
+      numTotalProjects: 0,
       projects: [],
+      loading: false,
     }
   },
   props: {},
   methods: {
     ...mapActions(["getProjects", "createProject"]),
-    async updateProjectList(){
+    async fetchProjectItems(){
+
       try{
-        this.projects = await this.getProjects();
-      }catch (e){
-        toastError("Could not fetch project list", e, this)
+        this.setLoading(true)
+        const result = await this.getProjects({
+          current_page: this.currentPage,
+          page_size: this.itemsPerPage,
+          filters: this.searchStr,
+        })
+
+        this.projects = result.items
+        this.numTotalProjects = result.total_count
+
+      }catch(e){
+        toastError("Could not fetch projects list", e)
+      }finally {
+        this.setLoading(false)
       }
 
+    },
+    searchProject(searchStr){
+      this.searchStr = searchStr
+      this.fetchProjectItems()
+    },
+    handleItemPerPageChange(newValue){
+      this.itemsPerPage = newValue
+      this.fetchProjectItems()
     },
     async handleCreateProject() {
       if (this.user && this.user.isAuthenticated) {
@@ -79,29 +108,22 @@ export default {
         this.$router.push("/project/" + projectObj.id)
       }
     },
-    searchProject(searchStr){
-      this.searchStr = searchStr
+    async setLoading(isLoading){
+      this.loading = isLoading
     }
   },
   computed: {
     ...mapState(["user"]),
-    filteredProjects(){
-      if(!this.searchStr || this.searchStr.trim().length < 1)
-        return this.projects
-
-      let searchStr = this.searchStr
-
-      // Currently searching for project names only
-      let result = _.filter(
-          this.projects,
-          function (o){ return _.includes(_.lowerCase(o.name), _.lowerCase(searchStr)) }
-          )
-      return result
-
+  },
+  watch:{
+    currentPage: {
+      handler(){
+        this.fetchProjectItems()
+      }
     }
   },
   mounted() {
-    this.updateProjectList()
+    this.fetchProjectItems()
   }
 }
 </script>

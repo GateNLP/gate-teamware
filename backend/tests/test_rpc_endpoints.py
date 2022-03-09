@@ -15,7 +15,8 @@ from backend.rpc import create_project, update_project, add_project_document, ad
     get_annotation_task, complete_annotation_task, reject_annotation_task, register, activate_account, \
     generate_password_reset, reset_password, generate_user_activation, change_password, change_email, \
     set_user_receive_mail_notifications, delete_documents_and_annotations, import_project_config, export_project_config, \
-    clone_project, delete_project
+    clone_project, delete_project, get_projects, get_project_documents, get_user_annotated_projects, \
+    get_user_annotations_in_project
 from backend.rpcserver import rpc_method
 
 
@@ -424,6 +425,38 @@ class TestProject(TestEndpoint):
                 self.assertEqual(getattr(project, field_name), getattr(cloned_project, field_name))
 
 
+    def test_get_projects(self):
+
+
+        num_projects = 10
+        for i in range(num_projects):
+            Project.objects.create(name=f"Project {i}", owner=self.get_default_user())
+
+        result = get_projects(self.get_loggedin_request())
+        self.assertEqual(len(result["items"]), num_projects)
+        self.assertEqual(result["total_count"], num_projects)
+
+        page_size = 5
+
+        # Get page 1
+        result = get_projects(self.get_loggedin_request(), 1, page_size)
+        self.assertEqual(len(result["items"]), page_size)
+        self.assertEqual(result["total_count"], num_projects)
+
+        # Get page 2
+        result = get_projects(self.get_loggedin_request(), 2, page_size)
+        self.assertEqual(len(result["items"]), page_size)
+        self.assertEqual(result["total_count"], num_projects)
+
+        # Get with filtering
+        result = get_projects(self.get_loggedin_request(), 1, page_size, "8")  # Get project with no. 8 in title
+        self.assertEqual(len(result["items"]), 1)
+        self.assertEqual(result["total_count"], 1)
+
+
+
+
+
 
 
 
@@ -440,6 +473,34 @@ class TestDocument(TestEndpoint):
         doc = Document.objects.get(pk=doc_id)
         self.assertEqual(doc.project.pk, proj.pk)
         self.assertEqual(doc.data["text"], "Test text")  # Data check
+
+    def test_get_project_documents(self):
+        num_projects = 10
+        num_docs_per_project = 20
+        num_annotations_per_doc = 5
+        for i in range(num_projects):
+            project = Project.objects.create(name=f"Project {i}", owner=self.get_default_user())
+            for j in range(num_docs_per_project):
+                doc = Document.objects.create(project=project)
+                for k in range(num_annotations_per_doc):
+                    annotation = Annotation.objects.create(document=doc, user=self.get_default_user())
+
+        # Gets all docs in a project
+        result = get_project_documents(self.get_loggedin_request(), 1)
+        self.assertEqual(len(result["items"]), num_docs_per_project)
+        self.assertEqual(result["total_count"], num_docs_per_project)
+
+        # Paginate docs
+        page_size = 5
+        num_pages = 4
+        for i in range(num_pages):
+            result = get_project_documents(self.get_loggedin_request(), 1, i+1, page_size)
+            self.assertEqual(len(result["items"]), page_size)
+            self.assertEqual(result["total_count"], num_docs_per_project)
+
+
+
+
 
 
 class TestAnnotation(TestEndpoint):
@@ -537,6 +598,50 @@ class TestUsers(TestEndpoint):
         self.assertEqual(len(possible_annotators), 3, "Remove 1 user from project, should list 3 users")
         project_annotators = get_project_annotators(self.get_loggedin_request(), proj_id=proj.pk)
         self.assertEqual(len(project_annotators), 1)
+
+class TestUserAnnotationList(TestEndpoint):
+    def test_get_user_annotated_projects(self):
+        user = self.get_default_user()
+
+        # Create a project with user annotation
+        project = Project.objects.create(name="Test project", owner=user)
+        num_docs = 30
+        num_annotations = 10
+        current_num_annotation = 0
+        for i in range(num_docs):
+            doc = Document.objects.create(project=project)
+            if current_num_annotation < num_annotations:
+                annotation = Annotation.objects.create(document=doc, user=user)
+                current_num_annotation += 1
+
+        # Create projects without annotations
+        for i in range(10):
+            Project.objects.create(name=f"No annotation {i}", owner=user)
+
+        # Only a single project has the user's annotation
+        projects_list = get_user_annotated_projects(self.get_loggedin_request())
+        self.assertEqual(len(projects_list), 1)
+
+
+        # Gets all docs with annotation
+        result = get_user_annotations_in_project(self.get_loggedin_request(), projects_list[0]["id"], 1)
+        self.assertEqual(len(result["items"]), num_annotations)
+        self.assertEqual(result["total_count"], num_annotations)
+
+        # Gets paginated results
+        page_size = 5
+        result = get_user_annotations_in_project(self.get_loggedin_request(), projects_list[0]["id"], 1, page_size)
+        self.assertEqual(len(result["items"]), page_size)
+        self.assertEqual(result["total_count"], num_annotations)
+
+        result = get_user_annotations_in_project(self.get_loggedin_request(), projects_list[0]["id"], 2, page_size)
+        self.assertEqual(len(result["items"]), page_size)
+        self.assertEqual(result["total_count"], num_annotations)
+
+
+
+
+
 
 
 class TestUserManagement(TestEndpoint):

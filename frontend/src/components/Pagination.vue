@@ -18,6 +18,16 @@
 </template>
 
 <script>
+/**
+ * Top and bottom pagination component with page size selector.
+ *
+ * Component has a single default slot with variable pageItems e.g.
+ * <Pagination v-slot:default="{pageItems}">
+ *   <div v-for="item in pageItems" :key="item.key">
+ *     ....
+ *   </div>
+ * </Pagination>
+ */
 export default {
   name: "Pagination",
   data() {
@@ -33,6 +43,9 @@ export default {
     }
   },
   props: {
+    /**
+     * Full list of items to be displayed
+     */
     items: {
       type: Array,
       default() {

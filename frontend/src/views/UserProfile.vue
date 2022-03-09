@@ -95,15 +95,9 @@
         <h3>My Annotations</h3>
 
         <div v-if="annotation_projects">
-          <b-card v-for="project in annotation_projects"  class="mb-4">
-            <h3>
-              <ProjectIcon :project-id="project.id"></ProjectIcon>{{project.name}}
-            </h3>
-
-            <DocumentsList :documents="project.documents"></DocumentsList>
-
-          </b-card>
-
+          <div v-for="project in annotation_projects">
+            <UserAnnotatedProject :project="project"></UserAnnotatedProject>
+          </div>
         </div>
         <div v-else>
           No annotations yet
@@ -116,14 +110,15 @@
 </template>
 <script>
 import {mapState, mapActions, mapGetters} from "vuex";
-import DocumentsList from "@/components/DocumentsList";
+
 import AccountActivationGenerator from "@/components/AccountActivationGenerator";
 import ProjectIcon from "@/components/ProjectIcon";
+import UserAnnotatedProject from "@/UserAnnotatedProject";
 
 export default {
   name: "UserProfile",
   title: "User Profile",
-  components: {ProjectIcon, AccountActivationGenerator, DocumentsList},
+  components: {UserAnnotatedProject, ProjectIcon, AccountActivationGenerator},
   data() {
     return {
       error: "",
@@ -151,7 +146,7 @@ export default {
   },
   methods: {
     ...mapActions(["getUser", "changeEmail", "changePassword",
-      "setUserReceiveMailNotification", "getUserAnnotations", "generateUserActivation", "testMakeToast"]),
+      "setUserReceiveMailNotification", "getUserAnnotatedProjects", "generateUserActivation", "testMakeToast"]),
     async EmailSubmitHandler() {
       try{
         await this.changeEmail(this.form);
@@ -184,7 +179,7 @@ export default {
   },
   async mounted() {
     this.user = await this.getUser();
-    this.annotation_projects = await this.getUserAnnotations();
+    this.annotation_projects = await this.getUserAnnotatedProjects();
   },
   watch: {
     form: {
