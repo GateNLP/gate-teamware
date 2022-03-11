@@ -19,7 +19,6 @@ class ServiceUser(AbstractUser):
     """
     Custom user class.
     """
-    annotates = models.ForeignKey("Project", on_delete=models.SET_NULL, related_name="annotators", null=True, blank=True)
     is_manager = models.BooleanField(default=False)
     created = models.DateTimeField(default=timezone.now)
     is_account_activated = models.BooleanField(default=False)
@@ -81,6 +80,12 @@ class Project(models.Model):
     annotation_timeout = models.IntegerField(default=60)
     document_input_preview = models.JSONField(default=default_document_input_preview)
     document_id_field = models.TextField(default="name")
+    annotator_max_train_score = models.FloatField(null=True) # unsure what the intention is with this field?
+    annotator_max_test_score = models.FloatField(null=True) # unsure what the intention is with this field?
+    has_training_stage = models.BooleanField(default=False)
+    has_test_stage = models.BooleanField(default=False)
+    can_annotate_after_passing_test = models.BooleanField(default=True)
+    min_test_pass_threshold = models.FloatField(default=1.0, null=True)
 
     project_config_fields = {
         "name",
@@ -367,6 +372,23 @@ class Project(models.Model):
             "num_annotators": self.num_annotators,
         }
 
+class AnnotatorProject(models.Model):
+    """
+    Intermediate class for holding annotator-project data
+    """
+
+    annotator = models.ManyToManyField(ServiceUser, related_name="annotators")
+    project = models.ManyToManyField(Project, related_name="projects")
+    training_score = models.FloatField(null=True)
+    test_score = models.FloatField(null=True)
+    training_completed = models.DateTimeField(null=True)
+    test_completed = models.DateTimeField(null=True)
+    annotations_completed = models.DateTimeField(null=True)
+    
+    @property
+    def num_annotations(self):
+        # Is this better as a prop method or as a normal property?
+        pass
 
 class BaseDocument(models.Model):
     """
