@@ -6,6 +6,7 @@ import django
 from datetime import timedelta
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.utils import timezone
 from django.db.models import Q, F, Count
@@ -19,7 +20,7 @@ class ServiceUser(AbstractUser):
     """
     Custom user class.
     """
-    annotates = models.ForeignKey("Project", on_delete=models.SET_NULL, related_name="annotators", null=True, blank=True)
+    
     is_manager = models.BooleanField(default=False)
     created = models.DateTimeField(default=timezone.now)
     is_account_activated = models.BooleanField(default=False)
@@ -44,14 +45,24 @@ class ServiceUser(AbstractUser):
     def is_activated(self, value):
         self.is_account_activated = value
 
-
     def is_associated_with_document(self, document):
 
         if self.is_manager or self.is_staff or self.is_superuser:
             return True
+    
+        if self.annotations.filter(document_id=document.pk).count() > 0:
+            return True
 
-        return self.annotations.filter(document_id=document.pk).count() > 0 or \
-               (self.annotates and self.annotates.documents.filter(pk=document.pk).count() > 0)
+        if self.annotates:
+            if not self.annotates.filter(pk=document.project.pk).first():
+                return False
+
+            if self.annotates.filter(pk=document.project.pk).first().documents.count() > 0:
+                return True
+        
+        else:
+            # If user is no longer active on a project, but has annotations from that project, this should have been caught above
+            return False
 
 
     def is_associated_with_annotation(self, annotation):
@@ -81,6 +92,13 @@ class Project(models.Model):
     annotation_timeout = models.IntegerField(default=60)
     document_input_preview = models.JSONField(default=default_document_input_preview)
     document_id_field = models.TextField(default="name")
+    annotators = models.ManyToManyField(get_user_model(), through='AnnotatorProject', related_name="annotates")
+    # annotator_max_train_score = models.FloatField(null=True)
+    # annotator_max_test_score = models.FloatField(null=True)
+    has_training_stage = models.BooleanField(default=False)
+    has_test_stage = models.BooleanField(default=False)
+    can_annotate_after_passing_test = models.BooleanField(default=True)
+    min_test_pass_threshold = models.FloatField(default=1.0, null=True)
 
     project_config_fields = {
         "name",
@@ -176,12 +194,21 @@ class Project(models.Model):
         return errors
 
     def add_annotator(self, user):
-        self.annotators.add(user)
-        self.save()
+        try:
+            annotator_project = AnnotatorProject.objects.get(project=self, annotator=user)
+        except ObjectDoesNotExist:
+            annotator_project = AnnotatorProject(annotator=user, project=self)
+            annotator_project.save()
+
+        annotator_project.set_status(AnnotatorProject.ACTIVE)
+
 
     def remove_annotator(self, user):
-        self.annotators.remove(user)
-        self.save()
+        try:
+            annotator_project = AnnotatorProject.objects.get(project=self, annotator=user)
+            annotator_project.set_status(AnnotatorProject.COMPLETED) 
+        except ObjectDoesNotExist:
+            pass
 
         Annotation.clear_all_pending_user_annotations(user)
 
@@ -348,8 +375,8 @@ class Project(models.Model):
     def check_project_complete(self):
         """ Checks that all annotations have been completed, release all annotators from project. """
         if self.is_completed:
-            for annotator in self.annotators.all():
-                self.remove_annotator(annotator)
+            for ann_proj in self.annotators.all():
+                self.remove_annotator(ann_proj.annotator)
 
     def get_project_stats(self):
         return {
@@ -367,6 +394,35 @@ class Project(models.Model):
             "num_annotators": self.num_annotators,
         }
 
+class AnnotatorProject(models.Model):
+    """
+    Intermediate class to represent annotator-project relationship
+    """
+    ACTIVE = 0
+    COMPLETED = 1
+
+    STATUS = (
+        (ACTIVE, 'Active'),
+        (COMPLETED, 'Completed')
+    )
+
+    annotator = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True)
+    project = models.ForeignKey(Project, on_delete=models.SET_NULL, null=True, blank=True)
+    training_score = models.FloatField(null=True)
+    test_score = models.FloatField(null=True)
+    training_completed = models.DateTimeField(null=True)
+    test_completed = models.DateTimeField(null=True)
+    annotations_completed = models.DateTimeField(null=True)
+    status = models.IntegerField(choices=STATUS, default=ACTIVE)
+    
+    @property
+    def num_annotations(self):
+        # Is this better as a prop method or as a normal property?
+        pass
+
+    def set_status(self, status):
+        self.status = status
+        self.save()
 
 class Document(models.Model):
     """

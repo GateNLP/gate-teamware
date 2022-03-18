@@ -18,7 +18,6 @@ class ModelTestCase(TestCase):
         for field_name, field_type in field_name_types_dict.items():
             self.check_model_field(model_class, field_name, field_type)
 
-
 class TestUserModel(TestCase):
 
     def test_document_association_check(self):
@@ -28,8 +27,7 @@ class TestUserModel(TestCase):
         project = Project.objects.create()
         doc = Document.objects.create(project=project)
         doc2 = Document.objects.create(project=project)
-        user.annotates = project
-        user.save()
+        project.add_annotator(user=user)
 
         project2 = Project.objects.create()
         doc3 = Document.objects.create(project=project2)
