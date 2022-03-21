@@ -9,7 +9,7 @@ from django.test import TestCase, Client
 from django.utils import timezone
 import json
 
-from backend.models import Annotation, Document, Project
+from backend.models import Annotation, Document, Project, AnnotatorProject
 from backend.rpc import create_project, update_project, add_project_document, add_document_annotation, \
     get_possible_annotators, add_project_annotator, remove_project_annotator, get_project_annotators, \
     get_annotation_task, complete_annotation_task, reject_annotation_task, register, activate_account, \
@@ -814,7 +814,7 @@ class TestAnnotationTaskManager(TestEndpoint):
 
             if task_context is None:
                 ann1.refresh_from_db()
-                self.assertTrue(ann1.annotates is None)
+                self.assertTrue(ann1.annotates.filter(annotatorproject__status=AnnotatorProject.ACTIVE).distinct().first() is None)
                 return
             else:
                 reject_annotation_task(ann1_request, task_context["annotation_id"])
@@ -943,5 +943,5 @@ class TestAnnotationTaskManager(TestEndpoint):
                 break
 
         self.assertTrue(proj.is_completed)
-        self.assertEqual(0, proj.annotators.count())
+        self.assertEqual(0, proj.annotators.filter(annotatorproject__status=AnnotatorProject.ACTIVE).count())
 

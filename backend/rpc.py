@@ -24,7 +24,7 @@ from gatenlp import annotation_set
 
 from backend.errors import AuthError
 from backend.rpcserver import rpc_method, rpc_method_auth, rpc_method_manager, rpc_method_admin
-from backend.models import Project, Document, Annotation
+from backend.models import Project, Document, Annotation, AnnotatorProject
 from backend.utils.misc import get_value_from_key_path, insert_value_to_key_path
 from backend.utils.serialize import ModelSerializer
 
@@ -645,7 +645,7 @@ def get_annotation_task(request):
 
         # Gets project the user's associated with
         user = request.user
-        project = user.annotates
+        project = user.annotates.filter(annotatorproject__status=AnnotatorProject.ACTIVE).distinct().first()
 
         # No project to annotate
         if not project:

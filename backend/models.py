@@ -375,8 +375,8 @@ class Project(models.Model):
     def check_project_complete(self):
         """ Checks that all annotations have been completed, release all annotators from project. """
         if self.is_completed:
-            for ann_proj in self.annotators.all():
-                self.remove_annotator(ann_proj.annotator)
+            for annotator in self.annotators.all():
+                self.remove_annotator(annotator)
 
     def get_project_stats(self):
         return {
