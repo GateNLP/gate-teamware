@@ -949,5 +949,5 @@ class TestAnnotationTaskManager(TestEndpoint):
                 break
 
         self.assertTrue(proj.is_completed)
-        self.assertEqual(0, proj.annotators.filter(annotatorproject__status=AnnotatorProject.ACTIVE).count())
+        self.assertEqual(0, proj.num_annotators)
 

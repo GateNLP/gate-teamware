@@ -174,7 +174,7 @@ class Project(models.Model):
 
     @property
     def num_annotators(self):
-        return self.annotators.all().count()
+        return self.annotators.filter(annotatorproject__status=AnnotatorProject.ACTIVE).count()
 
     @property
     def is_project_configured(self):
