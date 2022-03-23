@@ -502,10 +502,10 @@ def get_project_documents(request, project_id, current_page=1, page_size=None, f
     # Filter
     if isinstance(filters, str):
         # Search for id
-        documents_query = project.documents.filter(pk=filters.strip())
+        documents_query = project.documents.filter(pk=filters.strip(), doc_type=Document.ANNOTATION)
         total_count = documents_query.count()
     else:
-        documents_query = project.documents.all()
+        documents_query = project.documents.filter(doc_type=Document.ANNOTATION).all()
         total_count = documents_query.count()
 
     # Paginate

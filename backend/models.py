@@ -93,8 +93,6 @@ class Project(models.Model):
     document_input_preview = models.JSONField(default=default_document_input_preview)
     document_id_field = models.TextField(default="name")
     annotators = models.ManyToManyField(get_user_model(), through='AnnotatorProject', related_name="annotates")
-    # annotator_max_train_score = models.FloatField(null=True)
-    # annotator_max_test_score = models.FloatField(null=True)
     has_training_stage = models.BooleanField(default=False)
     has_test_stage = models.BooleanField(default=False)
     can_annotate_after_passing_test = models.BooleanField(default=True)
@@ -117,7 +115,15 @@ class Project(models.Model):
 
     @property
     def num_documents(self):
-        return self.documents.count()
+        return self.documents.filter(doc_type=Document.ANNOTATION).count()
+
+    @property
+    def annotator_max_test_score(self):
+        return self.documents.filter(doc_type=Document.TRAINING).count()
+
+    @property
+    def annotator_max_train_score(self):
+        return self.documents.filter(doc_type=Document.TRAINING).count()
 
     @property
     def num_annotation_tasks_total(self):
