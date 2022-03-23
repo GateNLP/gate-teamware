@@ -250,7 +250,13 @@ class TestProject(TestEndpoint):
         self.assertEqual(Document.objects.all().count(), 10, "Must have 10 documents")
         self.assertEqual(Annotation.objects.all().count(), 100, "Must have 100 total annotations")
 
-        annotators = [get_user_model().objects.create(username=f"annotator_{i}",annotates=proj) for i in range(10)]
+        def create_user_and_add_to_project(i, proj):
+            user = get_user_model().objects.create(username=f"annotator_{i}")
+            user.annotates.add(proj)
+            user.save()
+            return user
+
+        annotators = [create_user_and_add_to_project(i, proj) for i in range(10)]
 
         delete_project(self.get_loggedin_request(), project_id=proj.pk)
 
@@ -259,7 +265,7 @@ class TestProject(TestEndpoint):
         self.assertEqual(Annotation.objects.all().count(), 0, "All annotations should have been deleted")
         for annotator in annotators:
             annotator.refresh_from_db()
-            self.assertEqual(annotator.annotates, None, "Annotator should have been removed from the deleted project")
+            self.assertEqual(annotator.annotates.filter(annotatorproject__status=AnnotatorProject.ACTIVE).first(), None, "Annotator should have been removed from the deleted project")
 
 
     def test_update_project(self):
