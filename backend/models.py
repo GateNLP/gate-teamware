@@ -414,6 +414,7 @@ class AnnotatorProject(models.Model):
     test_completed = models.DateTimeField(null=True)
     annotations_completed = models.DateTimeField(null=True)
     status = models.IntegerField(choices=STATUS, default=ACTIVE)
+    rejected = models.BooleanField(default=False)
     
     @property
     def num_annotations(self):
