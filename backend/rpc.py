@@ -361,7 +361,7 @@ def create_project(request):
         proj.owner = request.user
         proj.save()
 
-        return serializer.serialize(proj)
+        return serializer.serialize(proj, exclude_fields=set(["annotatorproject"]))
 
 @rpc_method_manager
 def delete_project(request, project_id):

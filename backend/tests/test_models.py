@@ -382,7 +382,7 @@ class TestProjectModel(ModelTestCase):
         proj.refresh_from_db()
 
         serializer = ModelSerializer()
-        serialized_proj = serializer.serialize(proj)
+        serialized_proj = serializer.serialize(proj, exclude_fields=set(["annotatorproject"]))
 
         self.assertEqual(serialized_proj["name"], proj.name)
         self.assertEqual(serialized_proj["configuration"], proj.configuration)
