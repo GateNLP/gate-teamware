@@ -400,7 +400,7 @@ def clone_project(request, project_id):
                 setattr(new_project, field_name, getattr(current_project, field_name))
         new_project.save()
 
-        return serializer.serialize(new_project)
+        return serializer.serialize(new_project, exclude_fields=set(["annotatorproject"]))
 
 
 
