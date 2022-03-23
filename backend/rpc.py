@@ -582,12 +582,11 @@ def delete_documents_and_annotations(request, doc_id_ary, anno_id_ary):
 
 @rpc_method_manager
 def get_possible_annotators(request):
-    annotators = [] 
-    for annotator in User.objects.all():
-    # If annotator isn't active on any projects, they are available to be added to a new one
-        if annotator.annotatorproject_set.filter(status=AnnotatorProject.ACTIVE).count() == 0:
-            annotators.append(annotator)
-    output = [serializer.serialize(annotator, {"id", "username", "email"}) for annotator in annotators]
+    # get a list of IDs of annotators that is currently active in any project
+    active_annotators = User.objects.filter(annotatorproject__status=AnnotatorProject.ACTIVE).values_list('id', flat=True)
+    # Do an exclude filter to remove annotator with the those ids
+    valid_annotators = User.objects.exclude(id__in=active_annotators)
+    output = [serializer.serialize(annotator, {"id", "username", "email"}) for annotator in valid_annotators]
     return output
 
 
