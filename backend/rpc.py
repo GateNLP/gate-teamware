@@ -360,8 +360,9 @@ def create_project(request):
         proj = Project.objects.create()
         proj.owner = request.user
         proj.save()
-
-        return serializer.serialize(proj, exclude_fields=set(["annotatorproject"]))
+        serialized_project = serializer.serialize(proj, exclude_fields=set(["annotators","annotatorproject"]))
+        serialized_project["annotators"] = get_project_annotators(request, proj.id)
+        return serialized_project
 
 @rpc_method_manager
 def delete_project(request, project_id):
@@ -373,14 +374,15 @@ def delete_project(request, project_id):
 @rpc_method_manager
 def update_project(request, project_dict):
     with transaction.atomic():
-        project = serializer.deserialize(Project, project_dict)
+        project = serializer.deserialize(Project, project_dict, exclude_fields=set(["annotators"]))
         return True
 
 @rpc_method_manager
 def get_project(request, project_id):
     proj = Project.objects.get(pk=project_id)
     out_proj = {
-        **serializer.serialize(proj),
+        **serializer.serialize(proj, exclude_fields=set(["annotators","annotatorproject"])),
+        **proj.get_annotators_dict(),
         **proj.get_project_stats()
     }
     return out_proj
@@ -461,6 +463,7 @@ def get_projects(request, current_page=1, page_size=None, filters=None):
     for proj in projects:
         out_proj = {
             **serializer.serialize(proj, {"id", "name", "created"}),
+            **proj.get_annotators_dict(),
             **proj.get_project_stats()
         }
         output_projects.append(out_proj)

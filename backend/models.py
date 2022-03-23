@@ -378,6 +378,11 @@ class Project(models.Model):
             for annotator in self.annotators.all():
                 self.remove_annotator(annotator)
 
+    def get_annotators_dict(self):
+        return {
+            "annotators": [{"id":ann.id, "username":ann.username, "email":ann.email} for ann in self.annotators.filter(annotatorproject__status=AnnotatorProject.ACTIVE).all()]
+        }
+
     def get_project_stats(self):
         return {
             "owned_by": self.owner.username,
