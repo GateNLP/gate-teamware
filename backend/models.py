@@ -434,9 +434,21 @@ class Document(models.Model):
     """
     Model to represent a document.
     """
+
+    ANNOTATION = 0
+    TRAINING = 1
+    TEST = 2
+
+    DOCUMENT_TYPE = (
+        (ANNOTATION, 'Annotation'),
+        (TRAINING, 'Training'),
+        (TEST, 'Test')
+    )
+
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="documents")
     data = models.JSONField(default=dict)
     created = models.DateTimeField(default=timezone.now)
+    doc_type = models.IntegerField(choices=DOCUMENT_TYPE, default=ANNOTATION)
 
     @property
     def num_completed_annotations(self):
