@@ -156,6 +156,14 @@ This will first launch the database container, then via Django's `dbshell` comma
 Django settings are located in `teamware/settings` folder. The app will use `base.py` setting by default
 and this must be overridden depending on use.
 
+### Configuration using environment variables (.env file)
+
+To allow the app to be easily configured between instances especially inside containers, many of the app's configuration can be done through environment variables.
+
+Run `./generate-env.sh` to generate a `.env` file with all configurable environment parameters.
+
+
+
 ### Database
 A SQLite3 database is used during development and during integration testing.
 
@@ -163,19 +171,18 @@ For staging and production, postgreSQL is used, running from a `postgres-12` doc
 
 
 ### Sending E-mail 
-It's recommended to specify e-mail configurations inside the `secret.py` settings file. As these settings will
-include username and passwords that should not be tracked by version control.
+It's recommended to specify e-mail configurations through environment variables (`.env`). As these settings will include username and passwords that should not be tracked by version control.
 
 #### E-mail using SMTP
 SMTP is supported as standard in Django, add the following configurations with your own details
 to the corresponding settings file:
 
-```python
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'myserver.com'
-EMAIL_PORT = 22
-EMAIL_HOST_USER = 'username'
-EMAIL_HOST_PASSWORD = 'password'
+```bash
+DJANGO_EMAIL_BACKEND='django.core.mail.backends.smtp.EmailBackend'
+DJANGO_EMAIL_HOST='myserver.com'
+DJANGO_EMAIL_PORT=22
+DJANGO_EMAIL_HOST_USER='username'
+DJANGO_EMAIL_HOST_PASSWORD='password'
 ```
 
 #### E-mail using Google API
@@ -200,10 +207,10 @@ This package includes the script linked in the documentation above, which simpli
     --client_secret="<client_secret>" \
     --scope="https://www.googleapis.com/auth/gmail.send"
   ```
-5. Add the created credentials and tokens to the `secret.py` as shown below:
-  ```python
-  EMAIL_BACKEND = 'gmailapi_backend.mail.GmailBackend'
-  GMAIL_API_CLIENT_ID = 'google_assigned_id'
-  GMAIL_API_CLIENT_SECRET = 'google_assigned_secret'
-  GMAIL_API_REFRESH_TOKEN = 'google_assigned_token'
+5. Add the created credentials and tokens to the environment variable as shown below:
+  ```bash
+  DJANGO_EMAIL_BACKEND='gmailapi_backend.mail.GmailBackend'
+  DJANGO_GMAIL_API_CLIENT_ID='google_assigned_id'
+  DJANGO_GMAIL_API_CLIENT_SECRET='google_assigned_secret'
+  DJANGO_GMAIL_API_REFRESH_TOKEN='google_assigned_token'
   ```
