@@ -175,7 +175,7 @@ It's recommended to specify e-mail configurations through environment variables 
 
 #### E-mail using SMTP
 SMTP is supported as standard in Django, add the following configurations with your own details
-to the corresponding settings file:
+to the list of environment variables:
 
 ```bash
 DJANGO_EMAIL_BACKEND='django.core.mail.backends.smtp.EmailBackend'
