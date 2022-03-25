@@ -471,8 +471,7 @@ def get_projects(request, current_page=1, page_size=None, filters=None):
     return {"items": output_projects, "total_count": total_count}
 
 
-@rpc_method_manager
-def get_project_documents(request, project_id, current_page=1, page_size=None, filters=None):
+def _get_project_documents(project_id, current_page=1, page_size=None, filters=None, doc_type=Document.ANNOTATION):
     """
     Gets the list of documents and its annotations. Query result can be limited by using current_page and page_size
     and sorted by using filters
@@ -480,8 +479,8 @@ def get_project_documents(request, project_id, current_page=1, page_size=None, f
     :param project_id: The id of the project that the documents belong to, is a required variable
     :param current_page: A 1-indexed page count
     :param page_size: The maximum number of items to return per query
-    :param filters: Filter currently only searches for ID of documents
-    for project title
+    :param filters: Filter currently only searches for ID of documents for project title
+    :param doc_type: Integer enum representation of document type Document.[ANNOTATION, TRAINING, TEST]
     :returns: Dictionary of items and total count after filter is applied {"items": [], "total_count": int}
     """
 
@@ -502,10 +501,10 @@ def get_project_documents(request, project_id, current_page=1, page_size=None, f
     # Filter
     if isinstance(filters, str):
         # Search for id
-        documents_query = project.documents.filter(pk=filters.strip(), doc_type=Document.ANNOTATION)
+        documents_query = project.documents.filter(pk=filters.strip(), doc_type=doc_type)
         total_count = documents_query.count()
     else:
-        documents_query = project.documents.filter(doc_type=Document.ANNOTATION).all()
+        documents_query = project.documents.filter(doc_type=doc_type).all()
         total_count = documents_query.count()
 
     # Paginate
@@ -525,16 +524,75 @@ def get_project_documents(request, project_id, current_page=1, page_size=None, f
     return {"items": documents_out, "total_count": total_count}
 
 @rpc_method_manager
+def get_project_documents(request, project_id, current_page=1, page_size=None, filters=None):
+    """
+    Gets the list of documents and its annotations. Query result can be limited by using current_page and page_size
+    and sorted by using filters
+
+    :param project_id: The id of the project that the documents belong to, is a required variable
+    :param current_page: A 1-indexed page count
+    :param page_size: The maximum number of items to return per query
+    :param filters: Filter currently only searches for ID of documents
+    for project title
+    :returns: Dictionary of items and total count after filter is applied {"items": [], "total_count": int}
+    """
+
+    return _get_project_documents(project_id, current_page, page_size, filters, Document.ANNOTATION)
+
+@rpc_method_manager
+def get_project_test_documents(request, project_id, current_page=1, page_size=None, filters=None):
+    """
+    Gets the list of documents and its annotations. Query result can be limited by using current_page and page_size
+    and sorted by using filters
+
+    :param project_id: The id of the project that the documents belong to, is a required variable
+    :param current_page: A 1-indexed page count
+    :param page_size: The maximum number of items to return per query
+    :param filters: Filter currently only searches for ID of documents
+    for project title
+    :returns: Dictionary of items and total count after filter is applied {"items": [], "total_count": int}
+    """
+
+    return _get_project_documents(project_id, current_page, page_size, filters, Document.TEST)
+
+@rpc_method_manager
+def get_project_training_documents(request, project_id, current_page=1, page_size=None, filters=None):
+    """
+    Gets the list of documents and its annotations. Query result can be limited by using current_page and page_size
+    and sorted by using filters
+
+    :param project_id: The id of the project that the documents belong to, is a required variable
+    :param current_page: A 1-indexed page count
+    :param page_size: The maximum number of items to return per query
+    :param filters: Filter currently only searches for ID of documents
+    for project title
+    :returns: Dictionary of items and total count after filter is applied {"items": [], "total_count": int}
+    """
+
+    return _get_project_documents(project_id, current_page, page_size, filters, Document.TRAINING)
+
+def _add_project_document(project_id, document_data, doc_type=Document.ANNOTATION):
+    project = Project.objects.get(pk=project_id)
+    document = Document.objects.create(project=project, doc_type=doc_type)
+    document.data = document_data
+    document.save()
+    return document.pk
+
+
+@rpc_method_manager
 def add_project_document(request, project_id, document_data):
-
     with transaction.atomic():
-        project = Project.objects.get(pk=project_id)
-        document = Document.objects.create(project=project)
-        document.data = document_data
-        document.save()
+        return _add_project_document(project_id, document_data=document_data, doc_type=Document.ANNOTATION)
 
-        return document.pk
+@rpc_method_manager
+def add_project_test_document(request, project_id, document_data):
+    with transaction.atomic():
+        return _add_project_document(project_id, document_data=document_data, doc_type=Document.TEST)
 
+@rpc_method_manager
+def add_project_training_document(request, project_id, document_data):
+    with transaction.atomic():
+        return _add_project_document(project_id, document_data=document_data, doc_type=Document.TRAINING)
 
 @rpc_method_manager
 def add_document_annotation(request, doc_id, annotation):

@@ -16,7 +16,8 @@ from backend.rpc import create_project, update_project, add_project_document, ad
     generate_password_reset, reset_password, generate_user_activation, change_password, change_email, \
     set_user_receive_mail_notifications, delete_documents_and_annotations, import_project_config, export_project_config, \
     clone_project, delete_project, get_projects, get_project_documents, get_user_annotated_projects, \
-    get_user_annotations_in_project
+    get_user_annotations_in_project, add_project_test_document, add_project_training_document, \
+    get_project_training_documents, get_project_test_documents
 from backend.rpcserver import rpc_method
 
 
@@ -469,25 +470,82 @@ class TestProject(TestEndpoint):
 class TestDocument(TestEndpoint):
 
     def test_create_document(self):
+
         proj = Project.objects.create(owner=self.get_default_user())
-        test_doc = {
-            "text": "Test text"
+        doc_obj = {
+            "text": "Document text"
         }
-        doc_id = add_project_document(self.get_loggedin_request(), proj.pk, test_doc)
+        test_doc_obj = {
+            "text": "Test document text"
+        }
+        train_doc_obj = {
+            "text": "Train document text"
+        }
+
+        # Check docs count
+        proj.refresh_from_db()
+        self.assertEqual(0, proj.num_documents)
+        self.assertEqual(0, proj.num_test_documents)
+        self.assertEqual(0, proj.num_training_documents)
+
+        # Adding annotation doc, check for content
+        doc_id = add_project_document(self.get_loggedin_request(), proj.pk, doc_obj)
         self.assertTrue(doc_id > 0)
 
         doc = Document.objects.get(pk=doc_id)
         self.assertEqual(doc.project.pk, proj.pk)
-        self.assertEqual(doc.data["text"], "Test text")  # Data check
+        self.assertEqual(doc.data["text"], doc_obj["text"])  # Data check
+
+        # Adding 2 test doc, check first doc for content
+        test_doc_id = add_project_test_document(self.get_loggedin_request(), proj.pk, test_doc_obj)
+        add_project_test_document(self.get_loggedin_request(), proj.pk, test_doc_obj)
+        self.assertTrue(test_doc_id > 0)
+
+        test_doc = Document.objects.get(pk=test_doc_id)
+        self.assertEqual(test_doc.project.pk, proj.pk)
+        self.assertEqual(test_doc.data["text"], test_doc_obj["text"])  # Data check
+
+        # Adding 3 train doc, check first one for content
+        train_doc_id = add_project_training_document(self.get_loggedin_request(), proj.pk, train_doc_obj)
+        add_project_training_document(self.get_loggedin_request(), proj.pk, train_doc_obj)
+        add_project_training_document(self.get_loggedin_request(), proj.pk, train_doc_obj)
+        self.assertTrue(train_doc_id > 0)
+
+        train_doc = Document.objects.get(pk=train_doc_id)
+        self.assertEqual(train_doc.project.pk, proj.pk)
+        self.assertEqual(train_doc.data["text"], train_doc_obj["text"])  # Data check
+
+        # Check docs count
+        proj.refresh_from_db()
+        self.assertEqual(1, proj.num_documents)
+        self.assertEqual(2, proj.num_test_documents)
+        self.assertEqual(3, proj.num_training_documents)
+
+
 
     def test_get_project_documents(self):
         num_projects = 10
         num_docs_per_project = 20
+        num_train_docs_per_project = 10
+        num_test_docs_per_project = 15
         num_annotations_per_doc = 5
         for i in range(num_projects):
             project = Project.objects.create(name=f"Project {i}", owner=self.get_default_user())
+
+            # Annotation docs
             for j in range(num_docs_per_project):
-                doc = Document.objects.create(project=project)
+                doc = Document.objects.create(project=project, doc_type=Document.ANNOTATION)
+                for k in range(num_annotations_per_doc):
+                    annotation = Annotation.objects.create(document=doc, user=self.get_default_user())
+            # Training docs
+            for j in range(num_train_docs_per_project):
+                doc = Document.objects.create(project=project, doc_type=Document.TRAINING)
+                for k in range(num_annotations_per_doc):
+                    annotation = Annotation.objects.create(document=doc, user=self.get_default_user())
+
+            # Test docs
+            for j in range(num_test_docs_per_project):
+                doc = Document.objects.create(project=project, doc_type=Document.TEST)
                 for k in range(num_annotations_per_doc):
                     annotation = Annotation.objects.create(document=doc, user=self.get_default_user())
 
@@ -503,6 +561,32 @@ class TestDocument(TestEndpoint):
             result = get_project_documents(self.get_loggedin_request(), 1, i+1, page_size)
             self.assertEqual(len(result["items"]), page_size)
             self.assertEqual(result["total_count"], num_docs_per_project)
+
+        # Gets all training docs in a project
+        result = get_project_training_documents(self.get_loggedin_request(), 1)
+        self.assertEqual(len(result["items"]), num_train_docs_per_project)
+        self.assertEqual(result["total_count"], num_train_docs_per_project)
+
+        # Paginate training docs
+        page_size = 5
+        num_pages = 2
+        for i in range(num_pages):
+            result = get_project_training_documents(self.get_loggedin_request(), 1, i + 1, page_size)
+            self.assertEqual(len(result["items"]), page_size)
+            self.assertEqual(result["total_count"], num_train_docs_per_project)
+
+        # Gets all test docs in a project
+        result = get_project_test_documents(self.get_loggedin_request(), 1)
+        self.assertEqual(len(result["items"]), num_test_docs_per_project)
+        self.assertEqual(result["total_count"], num_test_docs_per_project)
+
+        # Paginate test docs
+        page_size = 5
+        num_pages = 3
+        for i in range(num_pages):
+            result = get_project_test_documents(self.get_loggedin_request(), 1, i + 1, page_size)
+            self.assertEqual(len(result["items"]), page_size)
+            self.assertEqual(result["total_count"], num_test_docs_per_project)
 
 
 

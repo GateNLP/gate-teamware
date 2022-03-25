@@ -113,7 +113,7 @@ import {mapState, mapActions, mapGetters} from "vuex";
 
 import AccountActivationGenerator from "@/components/AccountActivationGenerator";
 import ProjectIcon from "@/components/ProjectIcon";
-import UserAnnotatedProject from "@/UserAnnotatedProject";
+import UserAnnotatedProject from "@/components/UserAnnotatedProject";
 
 export default {
   name: "UserProfile",

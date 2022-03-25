@@ -97,6 +97,7 @@ class Project(models.Model):
     has_test_stage = models.BooleanField(default=False)
     can_annotate_after_passing_test = models.BooleanField(default=True)
     min_test_pass_threshold = models.FloatField(default=1.0, null=True)
+    document_gold_standard_field = models.TextField(default="gold")
 
     project_config_fields = {
         "name",
@@ -118,11 +119,11 @@ class Project(models.Model):
         return self.documents.filter(doc_type=Document.ANNOTATION).count()
 
     @property
-    def annotator_max_test_score(self):
-        return self.documents.filter(doc_type=Document.TRAINING).count()
+    def num_test_documents(self):
+        return self.documents.filter(doc_type=Document.TEST).count()
 
     @property
-    def annotator_max_train_score(self):
+    def num_training_documents(self):
         return self.documents.filter(doc_type=Document.TRAINING).count()
 
     @property

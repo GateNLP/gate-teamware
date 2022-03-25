@@ -74,6 +74,44 @@
           Allow annotators to reject documents?
         </b-form-checkbox>
       </b-form-group>
+      <b-form-group label="Training stage"
+                    description="">
+        <b-form-checkbox
+            id="project-has-training-stage"
+            v-model="local_project.has_training_stage"
+            name="has-training-checkbox"
+            switch
+        >
+          Training stage <span v-if="local_project.has_training_stage">enabled</span><span v-else>disabled</span>
+        </b-form-checkbox>
+         <b-input-group prepend="Gold standard field">
+          <b-form-input v-model="local_project.document_gold_standard_field"></b-form-input>
+        </b-input-group>
+      </b-form-group>
+      <b-form-group label="Training stage"
+                    description="">
+        <b-form-checkbox
+            id="project-has-testing-stage"
+            v-model="local_project.has_test_stage"
+            name="has-testing-checkbox"
+            switch
+        >
+          Testing stage <span v-if="local_project.has_test_stage">enabled</span><span v-else>disabled</span>
+
+        </b-form-checkbox>
+
+        <b-form-checkbox
+            id="project-can-annotate-after-passing"
+            v-model="local_project.can_annotate_after_passing_test"
+            name="can-annotate-after-passing-checkbox"
+            switch
+        >
+          <span v-if="local_project.can_annotate_after_passing_test">Can</span><span v-else>Cannot</span> annotate after passing
+        </b-form-checkbox>
+        <b-input-group prepend="Test pass proportion">
+          <b-form-input v-model="local_project.min_test_pass_threshold"></b-form-input>
+        </b-input-group>
+      </b-form-group>
       <b-form-group label="Document ID field"
                     description="The field in your uploaded documents that is used as a unique identifier. GATE's json format uses the name field. You can use a dot limited key path to access subfields e.g. enter features.name to get the id from the object {'features':{'name':'nameValue'}}">
         <b-form-input v-model="local_project.document_id_field" name="project_document_id_field"></b-form-input>
@@ -162,6 +200,10 @@ export default {
         document_input_preview: {},
         is_configured: false,
         is_completed: false,
+        has_training_stage: false,
+        has_test_stage: false,
+        can_annotate_after_passing_test: false,
+        min_test_pass_threshold: 0.8,
         document_id_field: "",
       },
       annotationOutput: {},
