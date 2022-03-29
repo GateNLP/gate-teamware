@@ -1,5 +1,14 @@
 <template>
   <b-modal title="Export documents and annotations" v-model="showModal">
+    <b-form-group label="Document type">
+      <b-form-radio-group v-model="documentType">
+        <b-form-radio value="all">All</b-form-radio>
+        <b-form-radio value="training">Training</b-form-radio>
+        <b-form-radio value="test">Test</b-form-radio>
+        <b-form-radio value="annotation">Annotate</b-form-radio>
+
+      </b-form-radio-group>
+    </b-form-group>
     <b-form-group label="Export type">
       <b-form-radio-group v-model="exportType">
         <b-form-radio value="json">JSON</b-form-radio>
@@ -32,6 +41,7 @@ export default {
   name: "DocumentExporter",
   data(){
     return {
+      documentType: "all",
       exportType: "json",
       jsonExportFormat: "raw",
       rawJsonExportDescription: "Export as JSON in the same format that's uploaded. Additional field named 'annotation_sets' is added for storing annotations. If you've originally uploaded in GATE format then choose this option.",
@@ -44,6 +54,9 @@ export default {
       default: false
     },
     projectId: {
+    },
+    defaultDocType: {
+      default: "all"
     }
   },
   computed: {
@@ -87,9 +100,17 @@ export default {
   methods: {
     async exportDocumentsHandler() {
       if(this.isExportConfigValid){
-        window.location.href = `/download_annotations/${this.projectId}/${this.exportType}/${this.jsonExportFormat}/500/`
+        window.location.href = `/download_annotations/${this.projectId}/${this.documentType}/${this.exportType}/${this.jsonExportFormat}/500/`
       }
     },
+  },
+  watch: {
+    defaultDocType: {
+      immediate: true,
+      handler(newValue){
+        this.documentType = newValue
+      }
+    }
   }
 }
 </script>

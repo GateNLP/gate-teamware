@@ -110,7 +110,11 @@ class Project(models.Model):
         "annotation_timeout",
         "document_input_preview",
         "document_id_field",
-        "allow_document_reject",
+        "has_training_stage",
+        "has_test_stage",
+        "can_annotate_after_passing_test",
+        "min_test_pass_threshold",
+        "document_gold_standard_field",
     }
 
 

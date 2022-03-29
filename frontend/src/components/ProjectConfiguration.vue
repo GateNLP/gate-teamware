@@ -15,22 +15,22 @@
       <b-button-group>
         <b-button @click="saveProjectHandler" :variant="loadingVariant" :disabled="loading"
                   title="Save project configuration.">
-          <b-icon-box-arrow-in-down ></b-icon-box-arrow-in-down>
+          <b-icon-box-arrow-in-down></b-icon-box-arrow-in-down>
           Save
         </b-button>
         <b-button @click="$refs.projectConfigImportInput.click()" :variant="loadingVariant" :disabled="loading"
                   title="Import JSON project configuration file.">
-          <b-icon-cloud-upload ></b-icon-cloud-upload>
+          <b-icon-cloud-upload></b-icon-cloud-upload>
           Import
         </b-button>
         <b-button @click="exportProjectConfigHandler" :variant="loadingVariant" :disabled="loading"
                   title="Export project configuration as a JSON file.">
-          <b-icon-cloud-download ></b-icon-cloud-download>
+          <b-icon-cloud-download></b-icon-cloud-download>
           Export
         </b-button>
         <b-button @click="cloneProjectConfigHandler" :variant="loadingVariant" :disabled="loading"
                   title="Create a new project using this project's configuration. Does not copy documents, annotations or annotator list.">
-          <b-icon-clipboard ></b-icon-clipboard>
+          <b-icon-clipboard></b-icon-clipboard>
           Clone project
         </b-button>
 
@@ -84,11 +84,8 @@
         >
           Training stage <span v-if="local_project.has_training_stage">enabled</span><span v-else>disabled</span>
         </b-form-checkbox>
-         <b-input-group prepend="Gold standard field">
-          <b-form-input v-model="local_project.document_gold_standard_field"></b-form-input>
-        </b-input-group>
       </b-form-group>
-      <b-form-group label="Training stage"
+      <b-form-group label="Testing stage"
                     description="">
         <b-form-checkbox
             id="project-has-testing-stage"
@@ -97,21 +94,33 @@
             switch
         >
           Testing stage <span v-if="local_project.has_test_stage">enabled</span><span v-else>disabled</span>
-
         </b-form-checkbox>
-
+      </b-form-group>
+      <b-form-group label="Allow annotation on real dataset automatically after training and/or testing is finished"
+        description="Automatically allows annotation on real dataset after the training and testing stage. A disabled stage counts as having been completed.">
         <b-form-checkbox
             id="project-can-annotate-after-passing"
             v-model="local_project.can_annotate_after_passing_test"
             name="can-annotate-after-passing-checkbox"
             switch
         >
-          <span v-if="local_project.can_annotate_after_passing_test">Can</span><span v-else>Cannot</span> annotate after passing
+          <span v-if="local_project.can_annotate_after_passing_test">Can</span><span v-else>Cannot</span> annotate after
+          passing
         </b-form-checkbox>
-        <b-input-group prepend="Test pass proportion">
-          <b-form-input v-model="local_project.min_test_pass_threshold"></b-form-input>
-        </b-input-group>
+
       </b-form-group>
+      <b-form-group label="Gold standard field"
+                    description="The field in document's JSON that contains the ideal annotation values and explanation for the annotation.">
+        <b-form-input v-model="local_project.document_gold_standard_field"></b-form-input>
+      </b-form-group>
+      <b-form-group label="Test pass proportion"
+                    description="Annotator must score at least this proportion to pass the test."
+      >
+        <b-form-input v-model="local_project.min_test_pass_threshold"></b-form-input>
+      </b-form-group>
+
+
+
       <b-form-group label="Document ID field"
                     description="The field in your uploaded documents that is used as a unique identifier. GATE's json format uses the name field. You can use a dot limited key path to access subfields e.g. enter features.name to get the id from the object {'features':{'name':'nameValue'}}">
         <b-form-input v-model="local_project.document_id_field" name="project_document_id_field"></b-form-input>
@@ -185,7 +194,8 @@ export default {
   components: {
     ProjectStatusBadges,
     ProjectIcon,
-    MarkdownEditor, JsonEditor, AnnotationRenderer, VJsoneditor},
+    MarkdownEditor, JsonEditor, AnnotationRenderer, VJsoneditor
+  },
   data() {
     return {
       local_project: {
@@ -220,7 +230,7 @@ export default {
   watch: {
     project: {
       immediate: true,
-      handler(newValue){
+      handler(newValue) {
         this.local_project = newValue
       }
     }
@@ -235,7 +245,7 @@ export default {
     },
   },
   methods: {
-    ...mapActions(["getProject", 
+    ...mapActions(["getProject",
       "updateProject", "importProjectConfiguration", "exportProjectConfiguration", "cloneProject"]),
     async saveProjectHandler() {
       this.setLoading(true)

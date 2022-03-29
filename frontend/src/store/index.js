@@ -262,6 +262,34 @@ export default new Vuex.Store({
                 throw e
             }
         },
+        async getProjectTrainingDocuments({dispatch,commit}, {project_id, current_page, page_size, filters=null}){
+
+            try {
+                let documents = await rpc.call("get_project_training_documents",
+                    project_id,
+                    current_page,
+                    page_size,
+                    filters);
+                return documents
+            } catch (e){
+                console.log(e)
+                throw e
+            }
+        },
+        async getProjectTestDocuments({dispatch,commit}, {project_id, current_page, page_size, filters=null}){
+
+            try {
+                let documents = await rpc.call("get_project_test_documents",
+                    project_id,
+                    current_page,
+                    page_size,
+                    filters);
+                return documents
+            } catch (e){
+                console.log(e)
+                throw e
+            }
+        },
         async createProject({dispatch, commit}){
             try{
                 console.log("Creating a project")
@@ -325,6 +353,22 @@ export default new Vuex.Store({
         async addProjectDocument({dispatch, commit}, { projectId, document}){
             try{
                 let docId = await rpc.call("add_project_document", projectId, document)
+            }catch (e){
+                console.error(e)
+                throw e
+            }
+        },
+        async addProjectTrainingDocument({dispatch, commit}, { projectId, document}){
+            try{
+                let docId = await rpc.call("add_project_training_document", projectId, document)
+            }catch (e){
+                console.error(e)
+                throw e
+            }
+        },
+        async addProjectTestDocument({dispatch, commit}, { projectId, document}){
+            try{
+                let docId = await rpc.call("add_project_test_document", projectId, document)
             }catch (e){
                 console.error(e)
                 throw e
