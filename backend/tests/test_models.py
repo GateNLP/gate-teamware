@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
 from django.utils import timezone
 
-from backend.models import Project, Document, Annotation
+from backend.models import Project, Document, Annotation, AnnotatorProject
 from backend.utils.serialize import ModelSerializer
 
 
@@ -71,6 +71,21 @@ class TestUserModel(TestCase):
         self.assertFalse(user.is_associated_with_annotation(annotation2))
         self.assertTrue(user2.is_associated_with_annotation(annotation2))
 
+    def test_check_user_active_project(self):
+
+        user = get_user_model().objects.create(username="test1")
+        self.assertFalse(user.has_active_project)
+
+        project = Project.objects.create()
+        project.add_annotator(user)
+        self.assertTrue(user.has_active_project)
+
+        project.remove_annotator(user)
+        self.assertFalse(user.has_active_project)
+
+
+
+
 
 class TestDocumentModel(ModelTestCase):
 
@@ -135,12 +150,59 @@ class TestProjectModel(ModelTestCase):
         self.annotations_per_doc = 3
         self.annotator_max_annotation = 0.6
         self.num_docs = 10
+        self.num_test_docs = 7
+        self.num_training_docs = 3
         self.num_annotators = 10
         self.num_total_tasks = self.num_docs * self.annotations_per_doc
 
         self.project = Project.objects.create(annotations_per_doc=self.annotations_per_doc,
                                          annotator_max_annotation=self.annotator_max_annotation)
         self.docs = [Document.objects.create(project=self.project) for i in range(self.num_docs)]
+        self.training_docs = [Document.objects.create(project=self.project, doc_type=Document.TRAINING) for i in
+                              range(self.num_training_docs)]
+        self.test_docs = [Document.objects.create(project=self.project, doc_type=Document.TEST) for i in
+                              range(self.num_test_docs)]
+
+        # Add answers to training docs
+        counter = 0
+        for doc in self.training_docs:
+            doc.data = {
+                "id": f"{counter}",
+                "text": f"Text{counter}",
+                "gold": {
+                    "label1": {
+                        "value": f"val{counter}",
+                        "explanation": f"Exp{counter}"
+                    },
+                    "label2": {
+                        "value": f"val{counter}",
+                        "explanation": f"Exp{counter}"
+                    },
+                }
+            }
+            doc.save()
+            counter += 1
+
+        # Add answers to testing docs
+        counter = 0
+        for doc in self.test_docs:
+            doc.data = {
+                "id": f"{counter}",
+                "text": f"Text{counter}",
+                "gold": {
+                    "label1": {
+                        "value": f"val{counter}",
+                    },
+                    "label2": {
+                        "value": f"val{counter}",
+                    }
+                }
+
+            }
+            doc.save()
+            counter += 1
+
+
         self.annotators = [get_user_model().objects.create(username=f"test{i}") for i in range(self.num_annotators)]
         for annotator in self.annotators:
             self.project.add_annotator(annotator)
@@ -156,10 +218,23 @@ class TestProjectModel(ModelTestCase):
             "annotator_max_annotation": models.FloatField,
             "annotation_timeout": models.IntegerField,
             "document_input_preview": models.JSONField,
+            "document_id_field": models.TextField,
+            "has_training_stage": models.BooleanField,
+            "has_test_stage": models.BooleanField,
+            "can_annotate_after_passing_test": models.BooleanField,
+            "min_test_pass_threshold": models.FloatField,
+            "document_gold_standard_field": models.TextField,
+
         })
 
     def test_num_documents(self):
         self.assertEqual(self.project.num_documents, self.num_docs)
+
+    def test_num_test_documents(self):
+        self.assertEqual(self.project.num_test_documents, self.num_test_docs)
+
+    def test_num_training_documents(self):
+        self.assertEqual(self.project.num_training_documents, self.num_training_docs)
 
     def test_num_annotation_tasks_total(self):
         self.assertEqual(self.project.num_annotation_tasks_total, self.num_docs * self.annotations_per_doc)
@@ -333,6 +408,86 @@ class TestProjectModel(ModelTestCase):
             Annotation.objects.create(user=annotator, document=self.docs[i], status=Annotation.COMPLETED)
 
         self.assertTrue(self.project.annotator_reached_quota(annotator))
+
+
+    def test_annotator_completed_training(self):
+        annotator = self.annotators[0]
+        self.project.annotator_completed_training(annotator)
+
+        annotator_proj = AnnotatorProject.objects.get(annotator=annotator, project=self.project)
+        self.assertTrue(annotator_proj.training_completed is not None)
+        self.assertTrue(annotator_proj.training_score == 0)
+
+    def test_annotator_completed_test(self):
+        annotator = self.annotators[0]
+        self.project.annotator_completed_test(annotator)
+
+        annotator_proj = AnnotatorProject.objects.get(annotator=annotator, project=self.project)
+        self.assertTrue(annotator_proj.test_completed is not None)
+        self.assertTrue(annotator_proj.test_score == 0)
+
+    def test_annotator_set_allowed_to_annotate(self):
+        annotator = self.annotators[0]
+        self.project.annotator_set_allowed_to_annotate(annotator)
+
+        annotator_proj = AnnotatorProject.objects.get(annotator=annotator, project=self.project)
+        self.assertTrue(annotator_proj.training_completed is not None)
+        self.assertTrue(annotator_proj.training_score == 0)
+        self.assertTrue(annotator_proj.test_completed is not None)
+        self.assertTrue(annotator_proj.test_score == 0)
+        self.assertTrue(annotator_proj.allowed_to_annotate is True)
+
+    def test_annotator_completed_annotation(self):
+        annotator = self.annotators[0]
+        self.project.remove_annotator(annotator)
+
+        annotator_proj = AnnotatorProject.objects.get(annotator=annotator, project=self.project)
+        self.assertTrue(annotator_proj.status == AnnotatorProject.COMPLETED)
+
+    def test_get_annotator_document_score(self):
+        annotator = self.annotators[0]
+        # No annotations == 0
+        self.assertEqual(0, self.project.get_annotator_document_score(annotator, Document.TEST))
+
+        incorrect_data = {
+            "label1": "Incorrect",
+            "label2": "Incorrect"
+        }
+
+        # All incorrect
+        for doc in self.test_docs:
+            Annotation.objects.create(user=annotator, document=doc, data=incorrect_data)
+
+        self.assertEqual(0, self.project.get_annotator_document_score(annotator, Document.TEST))
+
+        # All correct
+        annotator2 = self.annotators[1]
+        for doc in self.test_docs:
+            correct_annotation_data = {
+                "label1": doc.data["gold"]["label1"]["value"],
+                "label2": doc.data["gold"]["label2"]["value"],
+            }
+            Annotation.objects.create(user=annotator2, document=doc, data=correct_annotation_data)
+
+        self.assertEqual(self.num_test_docs, self.project.get_annotator_document_score(annotator2, Document.TEST))
+
+        # 4 correct
+        num_correct = 4
+        annotator3 = self.annotators[2]
+        counter = 0
+        for doc in self.test_docs:
+            correct_annotation_data = {
+                "label1": doc.data["gold"]["label1"]["value"],
+                "label2": doc.data["gold"]["label2"]["value"],
+            }
+            data = correct_annotation_data if counter < num_correct else incorrect_data
+            Annotation.objects.create(user=annotator3, document=doc, data=data)
+            counter += 1
+
+        self.assertEqual(num_correct, self.project.get_annotator_document_score(annotator3, Document.TEST))
+
+
+
 
 
     def test_saving_and_loading(self):

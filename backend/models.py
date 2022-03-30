@@ -31,6 +31,10 @@ class ServiceUser(AbstractUser):
     receive_mail_notifications = models.BooleanField(default=True)
 
     @property
+    def has_active_project(self):
+        return self.annotatorproject_set.filter(status=AnnotatorProject.ACTIVE).count() > 0
+
+    @property
     def is_activated(self):
         """
         Checks whether the user has activated their account, but also takes into account
@@ -205,23 +209,124 @@ class Project(models.Model):
         return errors
 
     def add_annotator(self, user):
+
         try:
             annotator_project = AnnotatorProject.objects.get(project=self, annotator=user)
         except ObjectDoesNotExist:
-            annotator_project = AnnotatorProject(annotator=user, project=self)
+            annotator_project = AnnotatorProject.objects.create(annotator=user,
+                                                                project=self,
+                                                                status=AnnotatorProject.ACTIVE)
+
+            if not self.has_training_stage:
+                annotator_project.training_completed = timezone.now()
+            if not self.has_test_stage:
+                annotator_project.test_completed = timezone.now()
+
+        return annotator_project
+
+    def annotator_completed_training(self, user, finished_time=timezone.now()):
+        try:
+            annotator_project = AnnotatorProject.objects.get(project=self, annotator=user)
+            annotator_project.training_completed = finished_time
+            annotator_project.training_score = self.get_annotator_document_score(user, Document.TRAINING)
+            annotator_project.save()
+        except ObjectDoesNotExist:
+            raise Exception(f"User {user.username} is not an annotator of the project.")
+
+    def get_annotator_document_score(self, user, doc_type):
+        test_docs = self.documents.filter(doc_type=doc_type)
+
+        score = 0
+
+        for document in test_docs:
+            # Checks answers for all test documents
+            user_annotations = document.annotations.filter(user_id=user.pk)
+            if user_annotations.count() > 1:
+                # User should not have more than 1 annotation per document
+                raise Exception(f"User {user.username} has more than 1 annotation in document")
+
+            annotation = user_annotations.first()
+
+            # Skip if there's no annotation
+            if not annotation:
+                continue
+
+            # Check that answer key exists in document
+            answers = get_value_from_key_path(document.data, self.document_gold_standard_field)
+            if answers is None:
+                raise Exception(f"No gold standard (answer) field inside test document")
+
+            if self.check_annotation_answer(annotation.data, answers):
+                score += 1
+
+        return score
+
+
+    def check_annotation_answer(self, annotation_data, answers):
+        # Compare answers to annotation
+        is_correct = True
+        for label in answers:
+            if annotation_data[label] != answers[label]["value"]:
+                is_correct = False
+
+        return is_correct
+
+
+    def annotator_completed_test(self, user, finished_time=timezone.now()):
+        try:
+            annotator_project = AnnotatorProject.objects.get(project=self, annotator=user)
+            annotator_project.test_completed = finished_time
+            annotator_project.test_score = self.get_annotator_document_score(user, Document.TEST)
+
+            annotator_test_score_proportion = annotator_project.test_score/self.num_test_documents
+            if self.can_annotate_after_passing_test and \
+                annotator_test_score_proportion > self.min_test_pass_threshold:
+                annotator_project.allowed_to_annotate = True
+
             annotator_project.save()
 
-        annotator_project.set_status(AnnotatorProject.ACTIVE)
+        except ObjectDoesNotExist:
+            raise Exception(f"User {user.username} is not an annotator of the project.")
 
-
-    def remove_annotator(self, user):
+    def annotator_set_allowed_to_annotate(self, user, finished_time=timezone.now()):
         try:
             annotator_project = AnnotatorProject.objects.get(project=self, annotator=user)
-            annotator_project.set_status(AnnotatorProject.COMPLETED) 
-        except ObjectDoesNotExist:
-            pass
 
-        Annotation.clear_all_pending_user_annotations(user)
+            # Mark training and testing as completed
+            if annotator_project.training_completed is None:
+                annotator_project.training_completed = finished_time
+            if annotator_project.test_completed is None:
+                annotator_project.test_completed = finished_time
+
+            annotator_project.allowed_to_annotate = True
+            annotator_project.save()
+
+        except ObjectDoesNotExist:
+            raise Exception(f"User {user.username} is not an annotator of the project.")
+
+
+    def reject_annotator(self, user):
+        try:
+            annotator_project = AnnotatorProject.objects.get(project=self, annotator=user)
+            annotator_project.status = AnnotatorProject.COMPLETED
+            annotator_project.rejected = True
+            annotator_project.save()
+        except ObjectDoesNotExist:
+            raise Exception(f"User {user.username} is not an annotator of the project.")
+
+
+
+    def remove_annotator(self, user, finished_time=timezone.now()):
+        try:
+            annotator_project = AnnotatorProject.objects.get(project=self, annotator=user)
+            annotator_project.annotations_completed = finished_time
+            annotator_project.status = AnnotatorProject.COMPLETED
+            annotator_project.save()
+
+            Annotation.clear_all_pending_user_annotations(user)
+
+        except ObjectDoesNotExist:
+            raise Exception(f"User {user.username} is not an annotator of the project.")
 
     def num_annotator_task_remaining(self, user):
 
@@ -424,11 +529,12 @@ class AnnotatorProject(models.Model):
 
     annotator = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True)
     project = models.ForeignKey(Project, on_delete=models.SET_NULL, null=True, blank=True)
-    training_score = models.FloatField(null=True)
-    test_score = models.FloatField(null=True)
+    training_score = models.FloatField(default=0)
+    test_score = models.FloatField(default=0)
     training_completed = models.DateTimeField(null=True)
     test_completed = models.DateTimeField(null=True)
     annotations_completed = models.DateTimeField(null=True)
+    allowed_to_annotate = models.BooleanField(default=False)
     status = models.IntegerField(choices=STATUS, default=ACTIVE)
     rejected = models.BooleanField(default=False)
     
