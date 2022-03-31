@@ -31,12 +31,65 @@
         <br>
 
         <b-list-group id="projectAnnotators">
-          <b-list-group-item href="#" v-for="annotator in projectAnnotatorsPaginated" v-bind:key="annotator.id"
-                             @click="removeAnnotator(annotator.username)"
-                             class="d-flex justify-content-between align-items-center"
-                             v-b-tooltip.hover :title="annotator.email">
-            {{ annotator.username }}
-            <b-icon icon="person-x-fill" aria-hidden="true" variant="danger"></b-icon>
+          <b-list-group-item href="#" v-for="annotator in projectAnnotatorsPaginated" v-bind:key="annotator.id">
+            <div class="d-flex justify-content-between align-items-center">
+              {{ annotator.username }} ({{annotator.email}})
+
+            </div>
+
+            <b-row class="d-flex">
+              <b-col>
+                <div>Training</div>
+                <div>
+                  <b-icon-clock></b-icon-clock>
+                  <span v-if="annotator.training_completed">{{annotator.training_completed | datetime}}</span>
+                  <span v-else>-</span>
+                </div>
+                <div>
+                  Score: {{annotator.training_score}}
+                </div>
+              </b-col>
+              <b-col>
+                <div>Test</div>
+                <div>
+                  <b-icon-clock></b-icon-clock>
+                  <span v-if="annotator.test_completed">{{annotator.test_completed | datetime}}</span>
+                  <span v-else>-</span>
+                </div>
+                <div>
+                  Score: {{annotator.training_score}}
+                </div>
+              </b-col>
+              <b-col>
+                <div>Annotation</div>
+                <div>
+                  <span v-if="annotator.annotations_completed">
+                    <b-icon-clock></b-icon-clock>
+                    {{annotator.annotations_completed | datetime}}
+                  </span>
+                  <span v-else>-</span>
+                </div>
+
+              </b-col>
+              <b-col>
+                <b-button-group vertical>
+                  <b-button size="sm" variant="primary" @click="allowAnnotation(annotator.username)">
+                  <b-icon icon="person-x-fill" aria-hidden="true"></b-icon>
+                  Make annotator
+                </b-button>
+                  <b-button size="sm" variant="danger" @click="removeAnnotator(annotator.username)">
+                  <b-icon icon="person-x-fill" aria-hidden="true"></b-icon>
+                  Remove
+                </b-button>
+                <b-button  size="sm" variant="danger" @click="rejectAnnotator(annotator.username)">
+                  <b-icon icon="person-x-fill" aria-hidden="true"></b-icon>
+                  Reject
+                </b-button>
+
+                </b-button-group>
+
+              </b-col>
+            </b-row>
           </b-list-group-item>
         </b-list-group>
 
@@ -102,29 +155,44 @@ export default {
     }
   },
   props: {
-    projectID: {
-      type: String,
+    project: {
+      type: Object,
       default: null,
     }
   },
   methods: {
-    ...mapActions(["getPossibleAnnotators", "addProjectAnnotator", "removeProjectAnnotator", "getProjectAnnotators"]),
+    ...mapActions(["getPossibleAnnotators", "addProjectAnnotator", "removeProjectAnnotator", "getProjectAnnotators",
+    "projectAnnotatorAllowAnnotation", "rejectProjectAnnotator"]),
     async updateAnnotators() {
 
-      this.possibleAnnotators = await this.getPossibleAnnotators();
-      this.projectAnnotators = await this.getProjectAnnotators(this.projectID);
+      this.possibleAnnotators = await this.getPossibleAnnotators(this.project.id);
+      this.projectAnnotators = await this.getProjectAnnotators(this.project.id);
 
     },
     async addAnnotator(username) {
       this.setLoading(true)
-      await this.addProjectAnnotator({projectID: this.projectID, username: username});
+      await this.addProjectAnnotator({projectID: this.project.id, username: username});
       await this.updateAnnotators();
       this.$emit("updated")
       this.setLoading(false)
     },
     async removeAnnotator(username) {
       this.setLoading(true)
-      await this.removeProjectAnnotator({projectID: this.projectID, username: username});
+      await this.removeProjectAnnotator({projectID: this.project.id, username: username});
+      await this.updateAnnotators();
+      this.$emit("updated")
+      this.setLoading(false)
+    },
+    async rejectAnnotator(username) {
+      this.setLoading(true)
+      await this.rejectProjectAnnotator({projectID: this.project.id, username: username});
+      await this.updateAnnotators();
+      this.$emit("updated")
+      this.setLoading(false)
+    },
+    async allowAnnotation(username){
+      this.setLoading(true)
+      await this.projectAnnotatorAllowAnnotation({projectID: this.project.id, username: username});
       await this.updateAnnotators();
       this.$emit("updated")
       this.setLoading(false)
@@ -143,9 +211,6 @@ export default {
     async setLoading(isLoading) {
       this.loading = isLoading
     },
-  },
-  mounted() {
-    this.updateAnnotators();
   },
   computed: {
     possibleAnnotatorsFiltered() {
@@ -180,6 +245,15 @@ export default {
       }
     },
 
+  },
+  watch: {
+    project: {
+      handler(newValue){
+        if(newValue){
+          this.updateAnnotators()
+        }
+      }
+    }
   }
 }
 </script>

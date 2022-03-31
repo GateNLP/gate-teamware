@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
 from django.utils import timezone
 
-from backend.models import Project, Document, Annotation, AnnotatorProject
+from backend.models import Project, Document, DocumentType, Annotation, AnnotatorProject
 from backend.utils.serialize import ModelSerializer
 
 
@@ -158,9 +158,9 @@ class TestProjectModel(ModelTestCase):
         self.project = Project.objects.create(annotations_per_doc=self.annotations_per_doc,
                                          annotator_max_annotation=self.annotator_max_annotation)
         self.docs = [Document.objects.create(project=self.project) for i in range(self.num_docs)]
-        self.training_docs = [Document.objects.create(project=self.project, doc_type=Document.TRAINING) for i in
+        self.training_docs = [Document.objects.create(project=self.project, doc_type=DocumentType.TRAINING) for i in
                               range(self.num_training_docs)]
-        self.test_docs = [Document.objects.create(project=self.project, doc_type=Document.TEST) for i in
+        self.test_docs = [Document.objects.create(project=self.project, doc_type=DocumentType.TEST) for i in
                               range(self.num_test_docs)]
 
         # Add answers to training docs
@@ -241,30 +241,44 @@ class TestProjectModel(ModelTestCase):
 
     def test_num_completed_tasks(self):
         self.annotate_docs_all_states(self.docs, self.annotators[0])
+        self.annotate_docs_all_states(self.test_docs, self.annotators[0])
+        self.annotate_docs_all_states(self.training_docs, self.annotators[0])
         self.assertEqual(self.project.num_completed_tasks, self.num_docs)
 
     def test_num_pending_tasks(self):
         self.annotate_docs_all_states(self.docs, self.annotators[0])
+        self.annotate_docs_all_states(self.test_docs, self.annotators[0])
+        self.annotate_docs_all_states(self.training_docs, self.annotators[0])
         self.assertEqual(self.project.num_pending_tasks, self.num_docs)
 
     def test_num_rejected_tasks(self):
         self.annotate_docs_all_states(self.docs, self.annotators[0])
+        self.annotate_docs_all_states(self.test_docs, self.annotators[0])
+        self.annotate_docs_all_states(self.training_docs, self.annotators[0])
         self.assertEqual(self.project.num_rejected_tasks, self.num_docs)
 
     def test_num_timed_out_tasks(self):
         self.annotate_docs_all_states(self.docs, self.annotators[0])
+        self.annotate_docs_all_states(self.test_docs, self.annotators[0])
+        self.annotate_docs_all_states(self.training_docs, self.annotators[0])
         self.assertEqual(self.project.num_timed_out_tasks, self.num_docs)
 
     def test_num_aborted_tasks(self):
         self.annotate_docs_all_states(self.docs, self.annotators[0])
+        self.annotate_docs_all_states(self.test_docs, self.annotators[0])
+        self.annotate_docs_all_states(self.training_docs, self.annotators[0])
         self.assertEqual(self.project.num_aborted_tasks, self.num_docs)
 
     def test_num_occupied_tasks(self):
         self.annotate_docs_all_states(self.docs, self.annotators[0])
+        self.annotate_docs_all_states(self.test_docs, self.annotators[0])
+        self.annotate_docs_all_states(self.training_docs, self.annotators[0])
         self.assertEqual(self.project.num_occupied_tasks, self.num_docs*2, f"Must have {self.num_docs*2} annotations (completed + pending)")
 
     def num_annotation_tasks_remaining(self):
         self.annotate_docs_all_states(self.docs, self.annotators[0])
+        self.annotate_docs_all_states(self.test_docs, self.annotators[0])
+        self.annotate_docs_all_states(self.training_docs, self.annotators[0])
         self.assertEqual(self.project.num_annotation_tasks_remaining, self.num_docs*self.annotations_per_doc - self.num_docs*2)
 
 
@@ -324,7 +338,7 @@ class TestProjectModel(ModelTestCase):
             Annotation.objects.create(user=annotator2, document=doc, status=Annotation.COMPLETED)
             Annotation.objects.create(user=annotator2, document=doc, status=Annotation.ABORTED)
 
-        for i in range(math.ceil(project.annotator_max_annotation*project.documents.all().count())):
+        for i in range(math.ceil(project.annotator_max_annotation*project.documents.filter(doc_type=DocumentType.ANNOTATION).count())):
             project.refresh_from_db()
             doc = docs[i]
             Annotation.objects.create(user=annotator, document=doc, status=Annotation.COMPLETED)
@@ -447,7 +461,7 @@ class TestProjectModel(ModelTestCase):
     def test_get_annotator_document_score(self):
         annotator = self.annotators[0]
         # No annotations == 0
-        self.assertEqual(0, self.project.get_annotator_document_score(annotator, Document.TEST))
+        self.assertEqual(0, self.project.get_annotator_document_score(annotator, DocumentType.TEST))
 
         incorrect_data = {
             "label1": "Incorrect",
@@ -458,7 +472,7 @@ class TestProjectModel(ModelTestCase):
         for doc in self.test_docs:
             Annotation.objects.create(user=annotator, document=doc, data=incorrect_data)
 
-        self.assertEqual(0, self.project.get_annotator_document_score(annotator, Document.TEST))
+        self.assertEqual(0, self.project.get_annotator_document_score(annotator, DocumentType.TEST))
 
         # All correct
         annotator2 = self.annotators[1]
@@ -469,7 +483,7 @@ class TestProjectModel(ModelTestCase):
             }
             Annotation.objects.create(user=annotator2, document=doc, data=correct_annotation_data)
 
-        self.assertEqual(self.num_test_docs, self.project.get_annotator_document_score(annotator2, Document.TEST))
+        self.assertEqual(self.num_test_docs, self.project.get_annotator_document_score(annotator2, DocumentType.TEST))
 
         # 4 correct
         num_correct = 4
@@ -484,7 +498,74 @@ class TestProjectModel(ModelTestCase):
             Annotation.objects.create(user=annotator3, document=doc, data=data)
             counter += 1
 
-        self.assertEqual(num_correct, self.project.get_annotator_document_score(annotator3, Document.TEST))
+        self.assertEqual(num_correct, self.project.get_annotator_document_score(annotator3, DocumentType.TEST))
+
+
+    def test_check_annotation_answer(self):
+
+        # Label with single string value
+        answers_str_label = {
+            "label1": {
+                "value": "answer"
+            }
+        }
+        annotation_str_label = {
+            "label1": "answer"
+        }
+
+        # Correct str answer
+        self.assertTrue(self.project.check_annotation_answer(annotation_str_label, answers_str_label))
+
+        # Incorrect str answer
+        annotation_str_label["label1"] = "Incorrect"
+        self.assertFalse(self.project.check_annotation_answer(annotation_str_label, answers_str_label))
+
+        # Label with list value (multiple choice)
+        answers_list_label = {
+            "label1": {
+                "value": ["answer1", "answer3", "answer2"]
+            }
+        }
+        annotation_list_label = {
+            "label1": ["answer2", "answer1", "answer3"]
+        }
+        self.assertTrue(self.project.check_annotation_answer(annotation_list_label, answers_list_label))
+
+        # One wrong value
+        annotation_list_label["label1"] = ["answer2", "answer1", "answer4"]
+        self.assertFalse(self.project.check_annotation_answer(annotation_list_label, answers_list_label))
+
+        # Too many values
+        annotation_list_label["label1"] = ["answer2", "answer1", "answer3", "answer4"]
+        self.assertFalse(self.project.check_annotation_answer(annotation_list_label, answers_list_label))
+
+        # Missing a value
+        annotation_list_label["label1"] = ["answer2", "answer3"]
+        self.assertFalse(self.project.check_annotation_answer(annotation_list_label, answers_list_label))
+
+        # Two labels with str and list
+        answers_list_str_label = {
+            "label1": {
+                "value": ["answer1", "answer3", "answer2"]
+            },
+            "label2": {
+                "value": "answer"
+            }
+        }
+        annotation_list_str_label = {
+            "label1": ["answer2", "answer1", "answer3"],
+            "label2": "answer",
+        }
+        self.assertTrue(self.project.check_annotation_answer(annotation_list_str_label, answers_list_str_label))
+
+        # Has additional label in annotation, is ok and won't be included in the check
+        annotation_list_str_label["label3"] = "Other answer"
+        self.assertTrue(self.project.check_annotation_answer(annotation_list_str_label, answers_list_str_label))
+
+        # Missing one label in annotation
+        annotation_list_str_label.pop("label2")
+        self.assertFalse(self.project.check_annotation_answer(annotation_list_str_label, answers_list_str_label))
+
 
 
 

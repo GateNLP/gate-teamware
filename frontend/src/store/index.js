@@ -402,9 +402,9 @@ export default new Vuex.Store({
             }
 
         },
-        async getPossibleAnnotators({dispatch, commit}){
+        async getPossibleAnnotators({dispatch, commit}, projectID){
             try{
-                let response = await rpc.call("get_possible_annotators");
+                let response = await rpc.call("get_possible_annotators", projectID);
                 return response
             }catch(e){
                 console.error(e)
@@ -429,9 +429,27 @@ export default new Vuex.Store({
                 throw e
             }
         },
+        async projectAnnotatorAllowAnnotation({dispatch, commit}, {projectID, username}){
+            try{
+                let response = await rpc.call("project_annotator_allow_annotation", projectID, username);
+                return response
+            }catch(e){
+                console.error(e)
+                throw e
+            }
+        },
         async removeProjectAnnotator({dispatch, commit}, {projectID, username}){
             try{
                 let response = await rpc.call("remove_project_annotator", projectID, username);
+                return response
+            }catch(e){
+                console.error(e)
+                throw e
+            }
+        },
+        async rejectProjectAnnotator({dispatch, commit}, {projectID, username}){
+            try{
+                let response = await rpc.call("reject_project_annotator", projectID, username);
                 return response
             }catch(e){
                 console.error(e)

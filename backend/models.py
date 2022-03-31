@@ -16,6 +16,18 @@ from backend.utils.misc import get_value_from_key_path, insert_value_to_key_path
 log = logging.getLogger(__name__)
 
 
+class DocumentType:
+    ANNOTATION = 0
+    TRAINING = 1
+    TEST = 2
+
+    DOCUMENT_TYPE = (
+        (ANNOTATION, 'Annotation'),
+        (TRAINING, 'Training'),
+        (TEST, 'Test')
+    )
+
+
 class ServiceUser(AbstractUser):
     """
     Custom user class.
@@ -124,15 +136,15 @@ class Project(models.Model):
 
     @property
     def num_documents(self):
-        return self.documents.filter(doc_type=Document.ANNOTATION).count()
+        return self.documents.filter(doc_type=DocumentType.ANNOTATION).count()
 
     @property
     def num_test_documents(self):
-        return self.documents.filter(doc_type=Document.TEST).count()
+        return self.documents.filter(doc_type=DocumentType.TEST).count()
 
     @property
     def num_training_documents(self):
-        return self.documents.filter(doc_type=Document.TRAINING).count()
+        return self.documents.filter(doc_type=DocumentType.TRAINING).count()
 
     @property
     def num_annotation_tasks_total(self):
@@ -156,9 +168,9 @@ class Project(models.Model):
 
     @property
     def num_aborted_tasks(self):
-        return Annotation.objects.filter(document__project_id=self.pk, status=Annotation.ABORTED).count()
-
-
+        return Annotation.objects.filter(document__project_id=self.pk,
+                                         status=Annotation.ABORTED,
+                                         document__doc_type=DocumentType.ANNOTATION).count()
 
     @property
     def num_occupied_tasks(self):
@@ -169,11 +181,14 @@ class Project(models.Model):
     def num_annotation_tasks_remaining(self):
         return self.num_annotation_tasks_total - self.num_occupied_tasks
 
-    def _get_project_annotations_query(self, status=None):
+    def _get_project_annotations_query(self, status=None, doc_type=DocumentType.ANNOTATION):
         if status is None:
-            return Annotation.objects.filter(document__project_id=self.pk)
+            return Annotation.objects.filter(document__project_id=self.pk,
+                                             document__doc_type=doc_type)
         else:
-            return Annotation.objects.filter(document__project_id=self.pk, status=status)
+            return Annotation.objects.filter(document__project_id=self.pk,
+                                             status=status,
+                                             document__doc_type=doc_type)
 
     @property
     def is_completed(self):
@@ -185,7 +200,7 @@ class Project(models.Model):
 
     @property
     def max_num_task_per_annotator(self):
-        return math.ceil(self.annotator_max_annotation * self.documents.all().count())
+        return math.ceil(self.annotator_max_annotation * self.documents.filter(doc_type=DocumentType.ANNOTATION).count())
 
     @property
     def num_annotators(self):
@@ -208,6 +223,7 @@ class Project(models.Model):
 
         return errors
 
+
     def add_annotator(self, user):
 
         try:
@@ -228,7 +244,7 @@ class Project(models.Model):
         try:
             annotator_project = AnnotatorProject.objects.get(project=self, annotator=user)
             annotator_project.training_completed = finished_time
-            annotator_project.training_score = self.get_annotator_document_score(user, Document.TRAINING)
+            annotator_project.training_score = self.get_annotator_document_score(user, DocumentType.TRAINING)
             annotator_project.save()
         except ObjectDoesNotExist:
             raise Exception(f"User {user.username} is not an annotator of the project.")
@@ -263,10 +279,25 @@ class Project(models.Model):
 
 
     def check_annotation_answer(self, annotation_data, answers):
-        # Compare answers to annotation
+        """
+        Compare answers between the annotation.data and document's gold standard field with answers
+        """
+
         is_correct = True
         for label in answers:
-            if annotation_data[label] != answers[label]["value"]:
+            if label not in annotation_data:
+                return False  # Label does not exist in annotation
+
+            annotation_val = annotation_data[label]
+            answer_val = answers[label]["value"]
+            if isinstance(annotation_val, str) and isinstance(answer_val, str):
+                if annotation_val != answer_val:
+                    is_correct = False
+            elif isinstance(annotation_val, list) and isinstance(answer_val, list):
+                comparison_set = set(annotation_val) & set(answer_val)
+                if len(answer_val) != len(annotation_val) or len(comparison_set) != len(answer_val):
+                    is_correct = False
+            else:
                 is_correct = False
 
         return is_correct
@@ -276,7 +307,7 @@ class Project(models.Model):
         try:
             annotator_project = AnnotatorProject.objects.get(project=self, annotator=user)
             annotator_project.test_completed = finished_time
-            annotator_project.test_score = self.get_annotator_document_score(user, Document.TEST)
+            annotator_project.test_score = self.get_annotator_document_score(user, DocumentType.TEST)
 
             annotator_test_score_proportion = annotator_project.test_score/self.num_test_documents
             if self.can_annotate_after_passing_test and \
@@ -305,9 +336,10 @@ class Project(models.Model):
             raise Exception(f"User {user.username} is not an annotator of the project.")
 
 
-    def reject_annotator(self, user):
+    def reject_annotator(self, user, finished_time=timezone.now()):
         try:
             annotator_project = AnnotatorProject.objects.get(project=self, annotator=user)
+            annotator_project.annotations_completed = finished_time
             annotator_project.status = AnnotatorProject.COMPLETED
             annotator_project.rejected = True
             annotator_project.save()
@@ -355,7 +387,7 @@ class Project(models.Model):
         user_occupied_count = Count('annotations', filter=user_occupied_filter)
 
         # All remaining documents that user can annotate
-        annotatable_docs = Document.objects.filter(project_id=self.pk) \
+        annotatable_docs = Document.objects.filter(project_id=self.pk, doc_type=DocumentType.ANNOTATION) \
             .annotate(num_occupied=occupied_count) \
             .annotate(num_user_occupied=user_occupied_count) \
             .filter(num_occupied__lt=self.annotations_per_doc, num_user_occupied__lt=1)

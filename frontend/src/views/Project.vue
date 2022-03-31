@@ -52,7 +52,7 @@
         <ProjectDocumentsManager :project="local_project" @updated="fetchProject()"></ProjectDocumentsManager>
       </b-tab>
       <b-tab title="Annotators" :disabled="!local_project.is_configured">
-        <Annotators :projectID="projectId" @updated="fetchProject()"></Annotators>
+        <Annotators :project="local_project" @updated="fetchProject()"></Annotators>
       </b-tab>
 
       <b-tab title="Statistics">

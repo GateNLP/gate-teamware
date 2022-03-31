@@ -63,11 +63,11 @@ class DownloadAnnotationsView(View):
             with ZipFile(z, "w") as zip:
                     all_docs = project.documents.all()
                     if doc_type == "training":
-                        all_docs = project.documents.filter(doc_type=Document.TRAINING)
+                        all_docs = project.documents.filter(doc_type=DocumentType.TRAINING)
                     elif doc_type == "test":
-                        all_docs = project.documents.filter(doc_type=Document.TEST)
+                        all_docs = project.documents.filter(doc_type=DocumentType.TEST)
                     elif doc_type == "annotation":
-                        all_docs = project.documents.filter(doc_type=Document.ANNOTATION)
+                        all_docs = project.documents.filter(doc_type=DocumentType.ANNOTATION)
 
 
                     num_docs = all_docs.count()

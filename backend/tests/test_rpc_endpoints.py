@@ -9,7 +9,7 @@ from django.test import TestCase, Client
 from django.utils import timezone
 import json
 
-from backend.models import Annotation, Document, Project, AnnotatorProject
+from backend.models import Annotation, Document, DocumentType, Project, AnnotatorProject
 from backend.rpc import create_project, update_project, add_project_document, add_document_annotation, \
     get_possible_annotators, add_project_annotator, remove_project_annotator, get_project_annotators, \
     get_annotation_task, complete_annotation_task, reject_annotation_task, register, activate_account, \
@@ -534,18 +534,18 @@ class TestDocument(TestEndpoint):
 
             # Annotation docs
             for j in range(num_docs_per_project):
-                doc = Document.objects.create(project=project, doc_type=Document.ANNOTATION)
+                doc = Document.objects.create(project=project, doc_type=DocumentType.ANNOTATION)
                 for k in range(num_annotations_per_doc):
                     annotation = Annotation.objects.create(document=doc, user=self.get_default_user())
             # Training docs
             for j in range(num_train_docs_per_project):
-                doc = Document.objects.create(project=project, doc_type=Document.TRAINING)
+                doc = Document.objects.create(project=project, doc_type=DocumentType.TRAINING)
                 for k in range(num_annotations_per_doc):
                     annotation = Annotation.objects.create(document=doc, user=self.get_default_user())
 
             # Test docs
             for j in range(num_test_docs_per_project):
-                doc = Document.objects.create(project=project, doc_type=Document.TEST)
+                doc = Document.objects.create(project=project, doc_type=DocumentType.TEST)
                 for k in range(num_annotations_per_doc):
                     annotation = Annotation.objects.create(document=doc, user=self.get_default_user())
 
