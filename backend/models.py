@@ -47,6 +47,19 @@ class ServiceUser(AbstractUser):
         return self.annotatorproject_set.filter(status=AnnotatorProject.ACTIVE).count() > 0
 
     @property
+    def active_project(self):
+        """
+        Gets the project that user's currently active in
+        :returns: Project object that user's active in, None if not active in any project
+        """
+        active_annotator_project = self.annotatorproject_set.filter(status=AnnotatorProject.ACTIVE).first()
+        if active_annotator_project:
+            return active_annotator_project.project
+
+        return None
+
+
+    @property
     def is_activated(self):
         """
         Checks whether the user has activated their account, but also takes into account
@@ -322,12 +335,6 @@ class Project(models.Model):
     def annotator_set_allowed_to_annotate(self, user, finished_time=timezone.now()):
         try:
             annotator_project = AnnotatorProject.objects.get(project=self, annotator=user)
-
-            # Mark training and testing as completed
-            if annotator_project.training_completed is None:
-                annotator_project.training_completed = finished_time
-            if annotator_project.test_completed is None:
-                annotator_project.test_completed = finished_time
 
             annotator_project.allowed_to_annotate = True
             annotator_project.save()

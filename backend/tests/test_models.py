@@ -75,13 +75,16 @@ class TestUserModel(TestCase):
 
         user = get_user_model().objects.create(username="test1")
         self.assertFalse(user.has_active_project)
+        self.assertEqual(user.active_project, None)
 
         project = Project.objects.create()
         project.add_annotator(user)
         self.assertTrue(user.has_active_project)
+        self.assertEqual(user.active_project, project)
 
         project.remove_annotator(user)
         self.assertFalse(user.has_active_project)
+        self.assertEqual(user.active_project, None)
 
 
 
@@ -445,10 +448,6 @@ class TestProjectModel(ModelTestCase):
         self.project.annotator_set_allowed_to_annotate(annotator)
 
         annotator_proj = AnnotatorProject.objects.get(annotator=annotator, project=self.project)
-        self.assertTrue(annotator_proj.training_completed is not None)
-        self.assertTrue(annotator_proj.training_score == 0)
-        self.assertTrue(annotator_proj.test_completed is not None)
-        self.assertTrue(annotator_proj.test_score == 0)
         self.assertTrue(annotator_proj.allowed_to_annotate is True)
 
     def test_annotator_completed_annotation(self):
