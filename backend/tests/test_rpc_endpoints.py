@@ -17,7 +17,7 @@ from backend.rpc import create_project, update_project, add_project_document, ad
     set_user_receive_mail_notifications, delete_documents_and_annotations, import_project_config, export_project_config, \
     clone_project, delete_project, get_projects, get_project_documents, get_user_annotated_projects, \
     get_user_annotations_in_project, add_project_test_document, add_project_training_document, \
-    get_project_training_documents, get_project_test_documents
+    get_project_training_documents, get_project_test_documents, project_annotator_allow_annotation
 from backend.rpcserver import rpc_method
 
 
@@ -670,24 +670,35 @@ class TestUsers(TestEndpoint):
         ann3 = get_user_model().objects.create(username="ann3")
 
         proj = Project.objects.create(owner=user)
+        proj2 = Project.objects.create(owner=user)
 
-        possible_annotators = get_possible_annotators(self.get_loggedin_request())
-        self.assertEqual(len(possible_annotators), 4, "Should list all users")
+
+        # Listing all annotators for project 1 and 2 without anyone added to project
+        possible_annotators = get_possible_annotators(self.get_loggedin_request(), proj_id=proj.pk)
+        self.assertEqual(4, len(possible_annotators), "Should list all users")
+        possible_annotators = get_possible_annotators(self.get_loggedin_request(), proj_id=proj2.pk)
+        self.assertEqual(4, len(possible_annotators), "Should list all users")
         project_annotators = get_project_annotators(self.get_loggedin_request(), proj_id=proj.pk)
-        self.assertEqual(len(project_annotators), 0)
+        self.assertEqual(0, len(project_annotators))
 
+        # Add two project annotators to project 1
         add_project_annotator(self.get_loggedin_request(), proj.pk, ann1.username)
         add_project_annotator(self.get_loggedin_request(), proj.pk, ann2.username)
-        possible_annotators = get_possible_annotators(self.get_loggedin_request())
-        self.assertEqual(len(possible_annotators), 2, "Associate 2 users with a project, should list 2 users")
+        possible_annotators = get_possible_annotators(self.get_loggedin_request(), proj_id=proj.pk)
+        self.assertEqual(2, len(possible_annotators), "Associate 2 users with a project, should list 2 users")
+        possible_annotators = get_possible_annotators(self.get_loggedin_request(), proj_id=proj2.pk)
+        self.assertEqual(2, len(possible_annotators), "Associate 2 users with a project, should list 2 users")
         project_annotators = get_project_annotators(self.get_loggedin_request(), proj_id=proj.pk)
-        self.assertEqual(len(project_annotators), 2)
+        self.assertEqual(2, len(project_annotators))
 
+        # Remove a an annotator form project 1
         remove_project_annotator(self.get_loggedin_request(), proj.pk, ann1.username)
-        possible_annotators = get_possible_annotators(self.get_loggedin_request())
-        self.assertEqual(len(possible_annotators), 3, "Remove 1 user from project, should list 3 users")
+        possible_annotators = get_possible_annotators(self.get_loggedin_request(), proj_id=proj.pk)
+        self.assertEqual(2, len(possible_annotators), "Remove 1 user from project, should still list 2 users")
+        possible_annotators = get_possible_annotators(self.get_loggedin_request(), proj_id=proj2.pk)
+        self.assertEqual(3, len(possible_annotators), "Remove 1 user from project 2, should list 3 users")
         project_annotators = get_project_annotators(self.get_loggedin_request(), proj_id=proj.pk)
-        self.assertEqual(len(project_annotators), 1)
+        self.assertEqual(2, len(project_annotators))
 
 class TestUserAnnotationList(TestEndpoint):
     def test_get_user_annotated_projects(self):
@@ -870,6 +881,61 @@ class TestAnnotationTaskManager(TestEndpoint):
         task_context = get_annotation_task(ann1_request)
         self.assertIsNone(task_context)
 
+    def test_allowed_to_annotate(self):
+        """
+        add_project_annotator allows annotators to perform annotation on real dataset by default if there's no
+        testing or training stages, otherwise they must be allowed to annotate using project_annotator_allow_annotation
+        """
+
+        # Create users and project, add them as annotators
+        manager = self.get_default_user()
+        manager_request = self.get_loggedin_request()
+
+        ann1 = get_user_model().objects.create(username="ann1")
+        ann1_request = self.get_request()
+        ann1_request.user = ann1
+
+        proj_test_stage = Project.objects.create(owner=manager, has_test_stage=True)
+        proj_train_stage = Project.objects.create(owner=manager, has_training_stage=True)
+        proj_test_train_stage = Project.objects.create(owner=manager, has_training_stage=True, has_test_stage=True)
+        proj = Project.objects.create(owner=manager)
+
+        projects = [proj_test_stage, proj_test_train_stage, proj_train_stage, proj]
+
+        # Create documents
+        num_docs = 10
+        for project in projects:
+            for i in range(num_docs):
+                Document.objects.create(project=project)
+
+
+        # Add ann1 as the proj_test_stage's annotator and get task, must be allowed to annotate
+        self.assertTrue(add_project_annotator(manager_request, proj_test_stage.id, ann1.username))
+        self.assertEqual(None, get_annotation_task(ann1_request))
+        project_annotator_allow_annotation(manager_request, proj_id=proj_test_stage.id, username=ann1.username)
+        self.assertTrue(get_annotation_task(ann1_request))
+        remove_project_annotator(manager_request, proj_test_stage.id, username=ann1.username)
+
+        # Add ann1 as the proj_train_stage's annotator and get task, must be allowed to annotate
+        self.assertTrue(add_project_annotator(manager_request, proj_train_stage.id, ann1.username))
+        self.assertEqual(None, get_annotation_task(ann1_request))
+        project_annotator_allow_annotation(manager_request, proj_id=proj_train_stage.id, username=ann1.username)
+        self.assertTrue(get_annotation_task(ann1_request))
+        remove_project_annotator(manager_request, proj_train_stage.id, username=ann1.username)
+
+        # Add ann1 as the proj_test_train_stage's annotator and get task, must be allowed to annotate
+        self.assertTrue(add_project_annotator(manager_request, proj_test_train_stage.id, ann1.username))
+        self.assertEqual(None, get_annotation_task(ann1_request))
+        project_annotator_allow_annotation(manager_request, proj_id=proj_test_train_stage.id, username=ann1.username)
+        self.assertTrue(get_annotation_task(ann1_request))
+        remove_project_annotator(manager_request, proj_test_train_stage.id, username=ann1.username)
+
+        # Add ann1 as the proj_test_stage's annotator and get task, allowed to annotate by default if
+        # there's no testing or training stages
+        self.assertTrue(add_project_annotator(manager_request, proj.id, ann1.username))
+        self.assertTrue(get_annotation_task(ann1_request))
+
+
     def test_task_rejection(self):
         """
         User should be removed from the project if they don't have more tasks due to rejecting
@@ -897,6 +963,7 @@ class TestAnnotationTaskManager(TestEndpoint):
         # Add ann1 as the project's annotator
         self.assertTrue(add_project_annotator(manager_request, proj.id, ann1.username))
         ann1.refresh_from_db()
+
 
         # Reject all tasks
         for i in range(num_docs+1):
@@ -931,7 +998,7 @@ class TestAnnotationTaskManager(TestEndpoint):
         proj.annotator_max_annotation = annotator_max_annotation
         proj.save()
 
-        # Make them project annotator
+        # Make them project annotator and allow them to annotate
         for annotator in annotators:
             self.assertTrue(add_project_annotator(manager_request, proj.id, annotator.username))
 
@@ -1014,7 +1081,7 @@ class TestAnnotationTaskManager(TestEndpoint):
         proj.annotator_max_annotation = annotator_max_annotation
         proj.save()
 
-        # Make them project annotator
+        # Make them project annotator and allow to annotate
         for annotator in annotators:
             self.assertTrue(add_project_annotator(manager_request, proj.id, annotator.username))
 

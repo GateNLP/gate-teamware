@@ -355,6 +355,15 @@ class TestProjectModel(ModelTestCase):
         project = self.project
         annotator = self.annotators[0]
 
+        # Add some pre-annotated test and training docs to ensure that they do not
+        # interfere with actual annotation document counts
+        for doc in self.training_docs:
+            Annotation.objects.create(document=doc, user=annotator, status=Annotation.COMPLETED)
+        for doc in self.test_docs:
+            Annotation.objects.create(document=doc, user=annotator, status=Annotation.COMPLETED)
+
+
+
         # Can annotate all docs when blank
         self.assertEqual(project.get_annotator_annotatable_documents_query(annotator).count(), self.num_docs)
 

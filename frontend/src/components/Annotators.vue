@@ -127,7 +127,7 @@
                   Stage disabled
                 </div>
               </b-col>
-              <b-col :class="{stageActive:isAtAnnotationStage(annotator)}">
+              <b-col :class="getAnnotationStageBackgroundClass(annotator)">
                 <div style="font-weight: bold">
                   Annotation
                   <b-icon-exclamation-triangle-fill variant="warning" v-if="getAnnotationStageWarning(annotator)"
@@ -281,6 +281,16 @@ export default {
       return null
 
     },
+    getAnnotationStageBackgroundClass(annotator){
+      if(this.isAtAnnotationStage(annotator)){
+        return {stageActive: true}
+      }
+      else if(this.getAnnotationStageWarning(annotator)){
+        return {stageWarning: true}
+      }
+
+      return {}
+    },
     getMakeAnnotatorBtnVariant(annotator) {
       if (annotator.allowed_to_annotate)
         return "secondary"
@@ -432,5 +442,8 @@ export default {
 <style scoped>
 .stageActive {
   background: #c0fdea;
+}
+.stageWarning {
+  background: #fac980;
 }
 </style>

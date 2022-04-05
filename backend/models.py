@@ -242,14 +242,11 @@ class Project(models.Model):
         try:
             annotator_project = AnnotatorProject.objects.get(project=self, annotator=user)
         except ObjectDoesNotExist:
+            allowed_to_annotate = not self.has_test_stage and not self.has_training_stage
             annotator_project = AnnotatorProject.objects.create(annotator=user,
                                                                 project=self,
-                                                                status=AnnotatorProject.ACTIVE)
-
-            if not self.has_training_stage:
-                annotator_project.training_completed = timezone.now()
-            if not self.has_test_stage:
-                annotator_project.test_completed = timezone.now()
+                                                                status=AnnotatorProject.ACTIVE,
+                                                                allowed_to_annotate=allowed_to_annotate)
 
         return annotator_project
 
@@ -321,8 +318,7 @@ class Project(models.Model):
             annotator_project = AnnotatorProject.objects.get(project=self, annotator=user)
             annotator_project.test_completed = finished_time
             annotator_project.test_score = self.get_annotator_document_score(user, DocumentType.TEST)
-
-            annotator_test_score_proportion = annotator_project.test_score/self.num_test_documents
+            annotator_test_score_proportion = annotator_project.test_score/self.num_test_documents if self.num_test_documents > 0 else 0
             if self.can_annotate_after_passing_test and \
                 annotator_test_score_proportion > self.min_test_pass_threshold:
                 annotator_project.allowed_to_annotate = True
@@ -379,7 +375,7 @@ class Project(models.Model):
         else:
             return num_annotable
 
-    def get_annotator_annotatable_documents_query(self, user):
+    def get_annotator_annotatable_documents_query(self, user, doc_type=DocumentType.ANNOTATION):
         # Filter to get the count of occupied annotations in the document
         # (annotations with COMPLETED and PENDING status)
         occupied_filter = (Q(annotations__status=Annotation.COMPLETED) |
@@ -394,14 +390,14 @@ class Project(models.Model):
         user_occupied_count = Count('annotations', filter=user_occupied_filter)
 
         # All remaining documents that user can annotate
-        annotatable_docs = Document.objects.filter(project_id=self.pk, doc_type=DocumentType.ANNOTATION) \
+        annotatable_docs = Document.objects.filter(project_id=self.pk, doc_type=doc_type) \
             .annotate(num_occupied=occupied_count) \
             .annotate(num_user_occupied=user_occupied_count) \
             .filter(num_occupied__lt=self.annotations_per_doc, num_user_occupied__lt=1)
 
         return annotatable_docs
 
-    def get_annotator_occupied_documents_query(self, user):
+    def get_annotator_occupied_documents_query(self, user, doc_type=DocumentType.ANNOTATION):
         # Filter to get the count of user occupied annotation in the document
         # (annotations with COMPLETED, PENDING, and REJECTED status)
         user_occupied_filter = (Q(annotations__user_id=user.pk, annotations__status=Annotation.COMPLETED) |
@@ -410,35 +406,35 @@ class Project(models.Model):
         user_occupied_count = Count('annotations', filter=user_occupied_filter)
 
         # Number of user annotated docs in the project
-        occupied_docs = Document.objects \
+        occupied_docs = Document.objects.filter(project_id=self.pk, doc_type=doc_type) \
             .annotate(num_user_occupied=user_occupied_count) \
-            .filter(project_id=self.pk, num_user_occupied__gt=0)
+            .filter(num_user_occupied__gt=0)
 
         return occupied_docs
 
-    def get_annotator_completed_documents_query(self, user):
+    def get_annotator_completed_documents_query(self, user, doc_type=DocumentType.ANNOTATION):
         # Filter to get the count of user occupied annotation in the document
         # (annotations with COMPLETED, PENDING, and REJECTED status)
         completed_filter = (Q(annotations__user_id=user.pk, annotations__status=Annotation.COMPLETED))
         completed_count = Count('annotations', filter=completed_filter)
 
         # Number of user completed annotated docs in the project
-        completed_docs = Document.objects \
+        completed_docs = Document.objects.filter(project_id=self.pk, doc_type=doc_type) \
             .annotate(num_user_occupied=completed_count) \
-            .filter(project_id=self.pk, num_user_occupied__gt=0)
+            .filter(num_user_occupied__gt=0)
 
         return completed_docs
 
-    def get_annotator_pending_documents_query(self, user):
+    def get_annotator_pending_documents_query(self, user, doc_type=DocumentType.ANNOTATION):
         # Filter to get the count of user occupied annotation in the document
         # (annotations with COMPLETED, PENDING, and REJECTED status)
         pending_filter = (Q(annotations__user_id=user.pk, annotations__status=Annotation.PENDING))
         pending_count = Count('annotations', filter=pending_filter)
 
         # Number of user completed annotated docs in the project
-        pending_docs = Document.objects \
+        pending_docs = Document.objects.filter(project_id=self.pk, doc_type=doc_type) \
             .annotate(num_user_occupied=pending_count) \
-            .filter(project_id=self.pk, num_user_occupied__gt=0)
+            .filter(num_user_occupied__gt=0)
 
         return pending_docs
 
@@ -454,14 +450,12 @@ class Project(models.Model):
 
         # Generate new task if there's no existing task and user has not reached quota
         if not annotation and not self.annotator_reached_quota(user):
-            annotation = self.assign_annotator_task(user)
+            annotation = self.decide_annotator_task_type_and_assign(user)
 
         # Returns annotation task dict or remove user from project if there's no task
         if annotation:
             return self.get_annotation_task_dict(annotation)
         else:
-            # If there's no new annotation task then remove user from project
-            self.remove_annotator(user)
             return None
 
     def annotator_reached_quota(self, user):
@@ -509,13 +503,48 @@ class Project(models.Model):
             "annotator_completed_tasks": self.get_annotator_completed_documents_query(user=annotation.user).count()
         }
 
-    def assign_annotator_task(self, user):
+    def decide_annotator_task_type_and_assign(self, user):
         """
         Assign an available annotation task to a user
         """
 
-        if self.num_annotation_tasks_remaining > 0:
-            for doc in self.documents.order_by('?').all():
+        # Check annotator's current status in the project
+        annotator_proj = AnnotatorProject.objects.get(annotator=user, project=self)
+
+        if annotator_proj.allowed_to_annotate:
+            # If allowed to annotate then skip over testing and training stage
+            annotation = self.assign_annotator_task(user)
+            if annotation is None:
+                # If there's no new annotation task then remove user from project
+                self.remove_annotator(user)
+            return annotation
+        else:
+            # Check whether annotator is in test or training
+            if self.has_training_stage and not annotator_proj.training_completed:
+                # Check whether the annotator's completed all training tasks, mark complete if so
+                if self.get_annotator_annotatable_documents_query(user, doc_type=DocumentType.TRAINING).count() == 0:
+                    self.annotator_completed_training(user)
+                else:
+                    return self.assign_annotator_task(user, DocumentType.TRAINING)
+            elif self.has_test_stage and not  annotator_proj.test_completed:
+                # Check whether annotator's completed all test tasks, mark complete if so
+                if self.get_annotator_annotatable_documents_query(user, doc_type=DocumentType.TEST).count() == 0:
+                    self.annotator_completed_test(user)
+                else:
+                    # Assign a test task
+                    return self.assign_annotator_task(user, DocumentType.TEST)
+
+        return None
+
+    def assign_annotator_task(self, user, doc_type=DocumentType.ANNOTATION):
+        """
+        Assigns an annotation task to the annotator, works for testing, training and annotation tasks.
+        Annotation task performs an extra check for remaining annotation task (num_annotation_tasks_remaining),
+        testing and training does not do this check as the annotator must annotate all documents.
+        """
+        if (DocumentType.ANNOTATION and self.num_annotation_tasks_remaining > 0) or \
+                DocumentType.TEST or DocumentType.TRAINING:
+            for doc in self.documents.filter(doc_type=doc_type).order_by('?'):
                 # Check that annotator hasn't annotated and that
                 # doc hasn't been fully annotated
                 if doc.user_can_annotate_document(user):
@@ -526,6 +555,7 @@ class Project(models.Model):
                                                          minutes=self.annotation_timeout))
 
         return None
+
 
     def check_project_complete(self):
         """ Checks that all annotations have been completed, release all annotators from project. """
