@@ -1102,3 +1102,181 @@ class TestAnnotationTaskManager(TestEndpoint):
         self.assertTrue(proj.is_completed)
         self.assertEqual(0, proj.num_annotators)
 
+class TestAnnotationTaskManagerTrainTestMode(TestEndpoint):
+    def setUp(self):
+        # Create users and project, add them as annotators
+        self.manager = self.get_default_user()
+        self.manager_request = self.get_loggedin_request()
+
+        self.ann1 = get_user_model().objects.create(username="ann1")
+        self.ann1_request = self.get_request()
+        self.ann1_request.user = self.ann1
+
+        self.proj = Project.objects.create(owner=self.manager)
+        self.proj.annotations_per_doc = 3
+        self.proj.annotator_max_annotation = 0.6  # Annotator can annotator max of 60% of docs
+        # Example sentiment config, single label
+        self.proj.configuration = [
+          {
+            "name": "htmldisplay",
+            "type": "html",
+            "text": "{{{text}}}"
+          },
+          {
+            "name": "sentiment",
+            "type": "radio",
+            "title": "Sentiment",
+            "description": "Please select a sentiment of the text above.",
+            "options": {
+              "negative": "Negative",
+              "neutral": "Neutral",
+              "positive": "Positive"
+            }
+          }
+        ]
+        self.proj.save()
+
+        # Create documents
+        self.num_docs = 20
+        self.docs = []
+        for i in range(self.num_docs):
+            self.docs.append(Document.objects.create(project=self.proj, data={
+                "text": f"Document {i}"
+            }))
+
+        # Create training documents
+        self.num_training_docs = 5
+        self.training_docs = []
+        for i in range(self.num_training_docs):
+            self.docs.append(Document.objects.create(project=self.proj,
+                                                     doc_type=DocumentType.TRAINING,
+                                                     data={
+                                                        "text": f"Document {i}",
+                                                         "gold": {
+                                                             "sentiment": {
+                                                                 "value": "positive",
+                                                             }
+                                                         }
+                                                    }))
+
+
+
+        # Create test document
+        self.num_test_docs = 10
+        self.test_docs = []
+        for i in range(self.num_test_docs):
+            self.docs.append(Document.objects.create(project=self.proj,
+                                                     doc_type=DocumentType.TEST,
+                                                     data={
+                                                         "text": f"Document {i}",
+                                                         "gold": {
+                                                             "sentiment": {
+                                                                 "value": "positive",
+                                                             }
+                                                         }
+                                                     }))
+
+    def test_annotation_task_with_training_only(self):
+
+        self.proj.has_training_stage = True
+        self.proj.has_test_stage = False
+        self.proj.save()
+
+        # Add annotator 1 to project
+        self.assertTrue(add_project_annotator(self.manager_request, self.proj.id, self.ann1.username))
+
+        # Complete training annotations
+        self.assertEqual(self.num_training_docs, self.complete_annotations(self.num_training_docs, "training"))
+
+        # Expect perfect score
+        self.proj.refresh_from_db()
+        self.assertEqual(self.num_training_docs,
+                         self.proj.get_annotator_document_score(self.ann1, DocumentType.TRAINING))
+
+        # No task until annotator is allowed to annotate
+        self.assertFalse(get_annotation_task(self.ann1_request))
+        project_annotator_allow_annotation(self.manager_request, self.proj.id, self.ann1.username)
+        self.assertTrue(get_annotation_task(self.ann1_request))
+
+        # Then complete the task normally
+        self.assertEqual(self.proj.max_num_task_per_annotator, self.complete_annotations(self.num_docs, "annotation"))
+
+        self.assertEqual(0, self.proj.num_annotator_task_remaining(self.ann1))
+
+    def test_annotation_task_with_test_only(self):
+
+        self.proj.has_training_stage = False
+        self.proj.has_test_stage = True
+        self.proj.save()
+
+        # Add annotator 1 to project
+        self.assertTrue(add_project_annotator(self.manager_request, self.proj.id, self.ann1.username))
+
+        # Complete test annotations
+        self.assertEqual(self.num_test_docs, self.complete_annotations(self.num_test_docs, "test"))
+
+        # Expect perfect score
+        self.proj.refresh_from_db()
+        self.assertEqual(self.num_test_docs,
+                         self.proj.get_annotator_document_score(self.ann1, DocumentType.TEST))
+
+        # No task until annotator is allowed to annotate
+        self.assertFalse(get_annotation_task(self.ann1_request))
+        project_annotator_allow_annotation(self.manager_request, self.proj.id, self.ann1.username)
+        self.assertTrue(get_annotation_task(self.ann1_request))
+
+        # Then complete the task normally
+        self.assertEqual(self.proj.max_num_task_per_annotator, self.complete_annotations(self.num_docs, "annotation"))
+
+        self.assertEqual(0, self.proj.num_annotator_task_remaining(self.ann1))
+
+    def test_annotation_task_with_test_and_train(self):
+
+        self.proj.has_training_stage = True
+        self.proj.has_test_stage = True
+        self.proj.save()
+
+        # Add annotator 1 to project
+        self.assertTrue(add_project_annotator(self.manager_request, self.proj.id, self.ann1.username))
+
+        # Complete training annotations
+        self.assertEqual(self.num_training_docs, self.complete_annotations(self.num_training_docs, "training"))
+
+        # Expect perfect score
+        self.proj.refresh_from_db()
+        self.assertEqual(self.num_training_docs,
+                         self.proj.get_annotator_document_score(self.ann1, DocumentType.TRAINING))
+
+        # Complete test annotations
+        self.assertEqual(self.num_test_docs, self.complete_annotations(self.num_test_docs, "test"))
+
+        # Expect perfect score
+        self.proj.refresh_from_db()
+        self.assertEqual(self.num_test_docs,
+                         self.proj.get_annotator_document_score(self.ann1, DocumentType.TEST))
+
+        # No task until annotator is allowed to annotate
+        self.assertFalse(get_annotation_task(self.ann1_request))
+        project_annotator_allow_annotation(self.manager_request, self.proj.id, self.ann1.username)
+        self.assertTrue(get_annotation_task(self.ann1_request))
+
+        # Then complete the task normally
+        self.assertEqual(self.proj.max_num_task_per_annotator, self.complete_annotations(self.num_docs, "annotation"))
+
+        self.assertEqual(0, self.proj.num_annotator_task_remaining(self.ann1))
+
+
+    def complete_annotations(self, num_annotations_to_complete, expected_doc_type_str):
+        # Expect to get self.num_training_docs tasks
+        num_completed_tasks = 0
+        for i in range(num_annotations_to_complete):
+            task_context = get_annotation_task(self.ann1_request)
+            if task_context:
+                self.assertEqual(expected_doc_type_str, task_context["document_type"])
+                complete_annotation_task(self.ann1_request, task_context["annotation_id"], {"sentiment": "positive"})
+                num_completed_tasks += 1
+
+        return num_completed_tasks
+
+
+

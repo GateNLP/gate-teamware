@@ -146,6 +146,17 @@ class TestDocumentModel(ModelTestCase):
         self.assertEqual(1, doc.num_user_rejected_annotations(annotator))
         self.assertEqual(1, doc.num_user_aborted_annotations(annotator))
 
+    def test_document_type_str(self):
+        project = Project.objects.create()
+        doc = Document.objects.create(project=project, doc_type=DocumentType.ANNOTATION)
+        self.assertEqual("annotation", doc.doc_type_str)
+
+        doc = Document.objects.create(project=project, doc_type=DocumentType.TRAINING)
+        self.assertEqual("training", doc.doc_type_str)
+
+        doc = Document.objects.create(project=project, doc_type=DocumentType.TEST)
+        self.assertEqual("test", doc.doc_type_str)
+
 
 class TestProjectModel(ModelTestCase):
 

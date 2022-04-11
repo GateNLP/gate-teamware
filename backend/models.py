@@ -487,6 +487,7 @@ class Project(models.Model):
 
     def get_annotation_task_dict(self, annotation):
         document = annotation.document
+
         return {
             "project_name": self.name,
             "project_description": self.description,
@@ -496,6 +497,7 @@ class Project(models.Model):
             "document_id": document.pk,
             "document_field_id": get_value_from_key_path(document.data, self.document_id_field),
             "document_data": document.data,
+            "document_type": document.doc_type_str,
             "annotation_id": annotation.pk,
             "allow_document_reject": self.allow_document_reject,
             "annotation_timeout": annotation.times_out_at,
@@ -511,6 +513,22 @@ class Project(models.Model):
         # Check annotator's current status in the project
         annotator_proj = AnnotatorProject.objects.get(annotator=user, project=self)
 
+        # Check annotator's current status in the project
+        if not annotator_proj.allowed_to_annotate:
+            # Check whether annotator is in test or training
+            if self.has_training_stage and not annotator_proj.training_completed:
+                # Check whether the annotator's completed all training tasks, mark complete if so
+                if self.get_annotator_annotatable_documents_query(user, doc_type=DocumentType.TRAINING).count() == 0:
+                    self.annotator_completed_training(user)
+
+            if self.has_test_stage and not annotator_proj.test_completed:
+                # Check whether annotator's completed all test tasks, mark complete if so
+                if self.get_annotator_annotatable_documents_query(user, doc_type=DocumentType.TEST).count() == 0:
+                    self.annotator_completed_test(user)
+
+        annotator_proj.refresh_from_db()
+
+        # Assign task
         if annotator_proj.allowed_to_annotate:
             # If allowed to annotate then skip over testing and training stage
             annotation = self.assign_annotator_task(user)
@@ -518,21 +536,12 @@ class Project(models.Model):
                 # If there's no new annotation task then remove user from project
                 self.remove_annotator(user)
             return annotation
-        else:
-            # Check whether annotator is in test or training
-            if self.has_training_stage and not annotator_proj.training_completed:
-                # Check whether the annotator's completed all training tasks, mark complete if so
-                if self.get_annotator_annotatable_documents_query(user, doc_type=DocumentType.TRAINING).count() == 0:
-                    self.annotator_completed_training(user)
-                else:
-                    return self.assign_annotator_task(user, DocumentType.TRAINING)
-            elif self.has_test_stage and not  annotator_proj.test_completed:
-                # Check whether annotator's completed all test tasks, mark complete if so
-                if self.get_annotator_annotatable_documents_query(user, doc_type=DocumentType.TEST).count() == 0:
-                    self.annotator_completed_test(user)
-                else:
-                    # Assign a test task
-                    return self.assign_annotator_task(user, DocumentType.TEST)
+        elif self.has_training_stage and not annotator_proj.training_completed:
+            # Tries to assign training task
+            return self.assign_annotator_task(user, DocumentType.TRAINING)
+        elif self.has_test_stage and not annotator_proj.test_completed:
+            # Tries to assign test task
+            return self.assign_annotator_task(user, DocumentType.TEST)
 
         return None
 
@@ -621,20 +630,10 @@ class Document(models.Model):
     Model to represent a document.
     """
 
-    ANNOTATION = 0
-    TRAINING = 1
-    TEST = 2
-
-    DOCUMENT_TYPE = (
-        (ANNOTATION, 'Annotation'),
-        (TRAINING, 'Training'),
-        (TEST, 'Test')
-    )
-
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="documents")
     data = models.JSONField(default=dict)
     created = models.DateTimeField(default=timezone.now)
-    doc_type = models.IntegerField(choices=DOCUMENT_TYPE, default=ANNOTATION)
+    doc_type = models.IntegerField(choices=DocumentType.DOCUMENT_TYPE, default=DocumentType.ANNOTATION)
 
     @property
     def num_completed_annotations(self):
@@ -660,6 +659,18 @@ class Document(models.Model):
     def num_completed_and_pending_annotations(self):
         return self.annotations.filter(
             Q(status=Annotation.COMPLETED) | Q(status=Annotation.PENDING)).count()
+
+    @property
+    def doc_type_str(self):
+        if(self.doc_type == DocumentType.ANNOTATION):
+            return "annotation"
+        elif(self.doc_type == DocumentType.TRAINING):
+            return "training"
+        elif(self.doc_type == DocumentType.TEST):
+            return "test"
+        else:
+            raise Exception("Unknown document type")
+
 
     def user_can_annotate_document(self, user):
         """ User must not have completed, pending or rejected the document"""
