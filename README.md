@@ -19,8 +19,8 @@ GATE teamware provides a flexible web app platform for managing classification o
 ## Requirements
 We recommend the following software as a minimum requirement for running GATE Teamware:
 * recommended OS: linux or macOS.
-* git
-* docker & docker-compose
+* [git](http://git-scm.com/)
+* [docker](https://www.docker.com/) & [docker-compose](https://docs.docker.com/compose/)
 * bash (or similar shell)
 
 ## Instructions
