@@ -12,7 +12,7 @@ if [ -f .env ]; then
 fi
 
 # get current branch
-BRANCH=$(git branch --show-current)
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
 case $BRANCH in 
     master|main)
