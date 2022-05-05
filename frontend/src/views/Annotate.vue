@@ -27,7 +27,13 @@
           </h2>
         </b-col>
         <b-col class="text-right">
-          <b-badge :title="'Current annotating document ID: '+annotationTask.document_field_id" class="mr-2">
+          <b-badge variant="primary" 
+                  v-if="(annotationTask.document_type == DocumentType.Training) || annotationTask.document_type == DocumentType.Test"
+                  :title="'You are currently in the annotator ' + annotationTask.document_type + ' stage'"
+                  class="mr-2">
+            Stage: Annotator {{ annotationTask.document_type }}
+          </b-badge>
+          <b-badge :title="'Currently annotating document ID: '+annotationTask.document_field_id" class="mr-2">
             #{{ annotationTask.document_field_id }}
           </b-badge>
           <b-badge variant="success"
@@ -79,6 +85,7 @@ import AnnotationRenderer from "@/components/AnnotationRenderer";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
 import CollapseText from "@/components/CollapseText";
 import {toastError} from "@/utils";
+import {DocumentType} from '@/enum/DocumentTypes';
 
 export default {
   name: "Annotate",
@@ -86,7 +93,8 @@ export default {
   components: {CollapseText, MarkdownRenderer, AnnotationRenderer},
   data() {
     return {
-      annotationTask: null
+      annotationTask: null,
+      DocumentType
     }
   },
   computed: {},
