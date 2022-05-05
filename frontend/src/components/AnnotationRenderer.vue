@@ -92,6 +92,9 @@ export default {
       this.startTime = new Date();
     },
     getTimeElapsed(){
+      if (this.document_type != this.DocumentType.Annotation){
+        return null
+      }
       let endTime = new Date();
       return (endTime - this.startTime)/1E3;
     },
