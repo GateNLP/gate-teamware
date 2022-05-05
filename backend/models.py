@@ -502,7 +502,8 @@ class Project(models.Model):
             "allow_document_reject": self.allow_document_reject,
             "annotation_timeout": annotation.times_out_at,
             "annotator_remaining_tasks": self.num_annotator_task_remaining(user=annotation.user),
-            "annotator_completed_tasks": self.get_annotator_completed_documents_query(user=annotation.user).count()
+            "annotator_completed_tasks": self.get_annotator_completed_documents_query(user=annotation.user).count(),
+            "document_gold_standard_field": self.document_gold_standard_field,
         }
 
     def decide_annotator_task_type_and_assign(self, user):
@@ -663,11 +664,11 @@ class Document(models.Model):
     @property
     def doc_type_str(self):
         if(self.doc_type == DocumentType.ANNOTATION):
-            return "annotation"
+            return "Annotation"
         elif(self.doc_type == DocumentType.TRAINING):
-            return "training"
+            return "Training"
         elif(self.doc_type == DocumentType.TEST):
-            return "test"
+            return "Test"
         else:
             raise Exception("Unknown document type")
 

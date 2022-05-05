@@ -48,6 +48,8 @@
 
         <AnnotationRenderer :config="annotationTask.project_config"
                             :document="annotationTask.document_data"
+                            :document_type="annotationTask.document_type"
+                            :doc_gold_field="annotationTask.document_gold_standard_field"
                             :allow_document_reject="annotationTask.allow_document_reject"
                             @submit="submitHandler"
                             @reject="rejectHandler"

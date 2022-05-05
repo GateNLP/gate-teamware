@@ -1,6 +1,9 @@
 <template>
   <div class="annotation">
     <div v-for="elemConfig in config" :key="elemConfig.name">
+      <b-card class="mb-4" v-if="(elemConfig.type != 'html') && (document_type == DocumentType.Training)">
+        <MarkdownRenderer :content="document[doc_gold_field][elemConfig.name].explanation"></MarkdownRenderer>
+      </b-card>
       <b-form-group :label="elemConfig.title">
         <p class="annotation-description" v-if="elemConfig.description">{{ elemConfig.description }}</p>
         <component v-if="getInputType(elemConfig.type)"
@@ -36,13 +39,15 @@ import RadioInput from "@/components/annotation/RadioInput";
 import CheckboxInput from "@/components/annotation/CheckboxInput";
 import SelectorInput from "@/components/annotation/SelectorInput";
 import HtmlDisplay from "@/components/annotation/HtmlDisplay";
+import {DocumentType} from '@/enum/DocumentTypes';
+import MarkdownRenderer from "@/components/MarkdownRenderer";
 
 /**
  * Renders annotation display and input capture from the config property
  */
 export default {
   name: "AnnotationRenderer",
-  components: {TextInput, TextareaInput, RadioInput, CheckboxInput, SelectorInput, HtmlDisplay},
+  components: {TextInput, TextareaInput, RadioInput, CheckboxInput, SelectorInput, HtmlDisplay, MarkdownRenderer},
   data() {
     return {
       annotationOutput: {},
@@ -57,7 +62,8 @@ export default {
         html: 'HtmlDisplay',
       },
       ignoreValidateTypes: ['html'],
-      startTime: null
+      startTime: null,
+      DocumentType
     }
   },
   props: {
@@ -69,7 +75,13 @@ export default {
         return {
           text: "<p>Some html text <strong>in bold</strong>.</p><p>Paragraph 2.</p>"
         }
-      }
+      },
+    },
+    document_type: {
+      default: null
+    },
+    doc_gold_field: {
+      default: 'gold'
     },
     allow_document_reject: {
       default: null
@@ -183,7 +195,6 @@ export default {
       this.$emit('reject')
       this.startTimer();
     }
-
   },
   watch: {
     config: {
