@@ -58,7 +58,7 @@
                   <b-icon-dash-circle-fill v-if="annotator.rejected" rotate="-45" variant="danger"
                                            title="Annotator rejected"></b-icon-dash-circle-fill>
                   <b-icon-dash-circle-fill v-else rotate="-45" variant="secondary"
-                                           title="Annotator rejected"></b-icon-dash-circle-fill>
+                                           title="Annotator not rejected"></b-icon-dash-circle-fill>
                 </div>
 
 
