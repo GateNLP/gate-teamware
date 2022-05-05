@@ -1186,7 +1186,7 @@ class TestAnnotationTaskManagerTrainTestMode(TestEndpoint):
         self.assertTrue(add_project_annotator(self.manager_request, self.proj.id, self.ann1.username))
 
         # Complete training annotations
-        self.assertEqual(self.num_training_docs, self.complete_annotations(self.num_training_docs, "training"))
+        self.assertEqual(self.num_training_docs, self.complete_annotations(self.num_training_docs, "Training"))
 
         # Expect perfect score
         self.proj.refresh_from_db()
@@ -1199,7 +1199,7 @@ class TestAnnotationTaskManagerTrainTestMode(TestEndpoint):
         self.assertTrue(get_annotation_task(self.ann1_request))
 
         # Then complete the task normally
-        self.assertEqual(self.proj.max_num_task_per_annotator, self.complete_annotations(self.num_docs, "annotation"))
+        self.assertEqual(self.proj.max_num_task_per_annotator, self.complete_annotations(self.num_docs, "Annotation"))
 
         self.assertEqual(0, self.proj.num_annotator_task_remaining(self.ann1))
 
@@ -1213,7 +1213,7 @@ class TestAnnotationTaskManagerTrainTestMode(TestEndpoint):
         self.assertTrue(add_project_annotator(self.manager_request, self.proj.id, self.ann1.username))
 
         # Complete test annotations
-        self.assertEqual(self.num_test_docs, self.complete_annotations(self.num_test_docs, "test"))
+        self.assertEqual(self.num_test_docs, self.complete_annotations(self.num_test_docs, "Test"))
 
         # Expect perfect score
         self.proj.refresh_from_db()
@@ -1226,7 +1226,7 @@ class TestAnnotationTaskManagerTrainTestMode(TestEndpoint):
         self.assertTrue(get_annotation_task(self.ann1_request))
 
         # Then complete the task normally
-        self.assertEqual(self.proj.max_num_task_per_annotator, self.complete_annotations(self.num_docs, "annotation"))
+        self.assertEqual(self.proj.max_num_task_per_annotator, self.complete_annotations(self.num_docs, "Annotation"))
 
         self.assertEqual(0, self.proj.num_annotator_task_remaining(self.ann1))
 
@@ -1240,7 +1240,7 @@ class TestAnnotationTaskManagerTrainTestMode(TestEndpoint):
         self.assertTrue(add_project_annotator(self.manager_request, self.proj.id, self.ann1.username))
 
         # Complete training annotations
-        self.assertEqual(self.num_training_docs, self.complete_annotations(self.num_training_docs, "training"))
+        self.assertEqual(self.num_training_docs, self.complete_annotations(self.num_training_docs, "Training"))
 
         # Expect perfect score
         self.proj.refresh_from_db()
@@ -1248,7 +1248,7 @@ class TestAnnotationTaskManagerTrainTestMode(TestEndpoint):
                          self.proj.get_annotator_document_score(self.ann1, DocumentType.TRAINING))
 
         # Complete test annotations
-        self.assertEqual(self.num_test_docs, self.complete_annotations(self.num_test_docs, "test"))
+        self.assertEqual(self.num_test_docs, self.complete_annotations(self.num_test_docs, "Test"))
 
         # Expect perfect score
         self.proj.refresh_from_db()
@@ -1261,7 +1261,7 @@ class TestAnnotationTaskManagerTrainTestMode(TestEndpoint):
         self.assertTrue(get_annotation_task(self.ann1_request))
 
         # Then complete the task normally
-        self.assertEqual(self.proj.max_num_task_per_annotator, self.complete_annotations(self.num_docs, "annotation"))
+        self.assertEqual(self.proj.max_num_task_per_annotator, self.complete_annotations(self.num_docs, "Annotation"))
 
         self.assertEqual(0, self.proj.num_annotator_task_remaining(self.ann1))
 
