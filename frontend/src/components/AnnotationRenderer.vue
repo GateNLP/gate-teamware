@@ -1,9 +1,6 @@
 <template>
   <div class="annotation">
     <div v-for="elemConfig in config" :key="elemConfig.name">
-      <b-card class="mb-4" v-if="(elemConfig.type != 'html') && (document_type == DocumentType.Training)">
-        <MarkdownRenderer :content="document[doc_gold_field][elemConfig.name].explanation"></MarkdownRenderer>
-      </b-card>
       <b-form-group :label="elemConfig.title">
         <p class="annotation-description" v-if="elemConfig.description">{{ elemConfig.description }}</p>
         <component v-if="getInputType(elemConfig.type)"
@@ -19,6 +16,11 @@
         <div v-else>
           Component invalid
         </div>
+        <b-card class="mb-4"
+          :border-variant="answerBgColor[elemConfig.name]"
+          v-if="showExplanation(elemConfig)">
+          <MarkdownRenderer :content="answerText(elemConfig) + '<br>' + document[doc_gold_field][elemConfig.name].explanation"></MarkdownRenderer>
+        </b-card>
       </b-form-group>
     </div>
     <b-row>
@@ -63,7 +65,8 @@ export default {
       },
       ignoreValidateTypes: ['html'],
       startTime: null,
-      DocumentType
+      DocumentType,
+      answerBgColor: {}
     }
   },
   props: {
@@ -197,6 +200,46 @@ export default {
     rejectHandler(e){
       this.$emit('reject')
       this.startTimer();
+    },
+    getAnswerBgColor(elemConfig){
+      let answer = this.annotationOutput[elemConfig.name];
+      let expected = this.document[this.doc_gold_field][elemConfig.name].value;
+
+      if (Object.keys(elemConfig.options).includes(answer)) {
+        if (answer == expected){
+          return "success"
+        } else {
+          return "danger"
+        }
+      } else {
+        return "Default"
+      }
+    },
+    showExplanation(elemConfig){
+
+      if (elemConfig.type == 'html'){
+        return false
+      } else if (this.document_type == DocumentType.Training) {
+        return true
+      } else if (Object.keys(elemConfig.options).includes(this.annotationOutput[elemConfig.name])){
+        return true
+      } else {
+        return false
+      }
+    },
+    answerText(elemConfig){
+      let answer = this.annotationOutput[elemConfig.name];
+      let expected = this.document[this.doc_gold_field][elemConfig.name].value;
+
+      if (Object.keys(elemConfig.options).includes(answer)) {
+        if (answer == expected){
+          return "Correct! ✔️"
+        } else {
+          return "Incorrect ❌"
+        }
+      } else {
+        return ""
+      }
     }
   },
   watch: {
@@ -205,9 +248,25 @@ export default {
       handler(newConfig) {
         this.generateValidationTracker(newConfig)
       }
+    },
+    annotationOutput: {
+      immediate: true,
+      deep: true,
+      handler() {
+        for (const prop in this.config){
+          if (this.config[prop].type != 'html') {
+            this.answerBgColor[this.config[prop].name] = this.getAnswerBgColor(this.config[prop]);
+          }
+        }
+      }
     }
   },
   mounted(){
+    for (const prop in this.config){
+      if(this.config[prop].type != 'html') {
+        this.answerBgColor[this.config[prop].name] = "Default";
+      }
+    }
     this.startTimer();
   }
 
