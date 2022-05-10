@@ -1,0 +1,20 @@
+{{- with .Values.staticFiles }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "gate-teamware.fullname" $ }}-static
+  labels:
+    {{- include "gate-teamware.labels" $ | nindent 4 }}
+    {{- include "gate-teamware.selectorLabels" $ | nindent 4 }}
+    app.kubernetes.io/component: static-files
+spec:
+  type: {{ .service.type }}
+  ports:
+    - port: {{ .service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "gate-teamware.selectorLabels" $ | nindent 4 }}
+    app.kubernetes.io/component: static-files
+{{- end }}

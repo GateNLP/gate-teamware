@@ -1,0 +1,167 @@
+{{- with .Values.backend }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "gate-teamware.fullname" $ }}-backend
+  labels:
+    {{- include "gate-teamware.labels" $ | nindent 4 }}
+    {{- include "gate-teamware.selectorLabels" $ | nindent 4 }}
+    app.kubernetes.io/component: backend
+spec:
+  {{- if not .autoscaling.enabled }}
+  replicas: {{ .replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "gate-teamware.selectorLabels" $ | nindent 6 }}
+      app.kubernetes.io/component: backend
+  template:
+    metadata:
+      {{- with .podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "gate-teamware.selectorLabels" $ | nindent 8 }}
+        app.kubernetes.io/component: backend
+    spec:
+      {{- with .imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "gate-teamware.serviceAccountName" $ }}
+      securityContext:
+        {{- toYaml .podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ $.Chart.Name }}
+          securityContext:
+            {{- toYaml .securityContext | nindent 12 }}
+          image: "{{ $.Values.imageRegistry }}{{ .image.repository }}:{{ .image.tag | default $.Chart.AppVersion }}"
+          imagePullPolicy: {{ .image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+          env:
+          - name: DJANGO_SETTINGS_MODULE
+            value: teamware.settings.deployment
+          - name: DJANGO_ALLOWED_HOSTS
+            value: {{ $.Values.hostName | quote }}
+          # Don't run migrations at startup
+          - name: TEAMWARE_SKIP_SETUP
+            value: "true"
+          - name: DJANGO_DB_NAME
+            value: {{ $.Values.postgresql.auth.database | quote }}
+          - name: DB_HOST
+            value: {{ include "postgresql.primary.fullname" $.Subcharts.postgresql | quote }}
+          - name: DB_PORT
+            value: {{ include "postgresql.service.port" $.Subcharts.postgresql | quote }}
+          - name: DB_USERNAME
+            value: {{ $.Values.postgresql.auth.username | quote }}
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "postgresql.secretName" $.Subcharts.postgresql }}
+                key: password
+          - name: DJANGO_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: {{ .djangoSecret | required "backend.djangoSecret must be set to the name of an existing secret with an entry 'secret-key' and a value consisting of 40+ random printable characters" }}
+                key: secret-key
+          {{- with $.Values.email }}
+          {{- if .backend }}
+          - name: DJANGO_ADMIN_EMAIL
+            value: {{ .adminAddress | required "email.adminAddress is required if email sending is enabled" | quote }}
+          {{- end }}
+          {{- if .activationEnabled }}
+          - name: DJANGO_ACTIVATION_WITH_EMAIL
+            value: "true"
+          {{- end }}
+          {{- if eq .backend "smtp" }}
+          {{- /* SMTP email settings */}}
+          - name: DJANGO_EMAIL_BACKEND
+            value: "django.core.mail.backends.smtp.EmailBackend"
+          - name: DJANGO_EMAIL_HOST
+            value: {{ .smtp.host | required "email.smtp.host must be specified if email.backend is smtp" | quote }}
+          - name: DJANGO_EMAIL_PORT
+            value: {{ .smtp.port | quote }}
+          {{- if .smtp.user }}
+          - name: DJANGO_EMAIL_HOST_USER
+            value: {{ .smtp.user | quote }}
+          - name: DJANGO_EMAIL_HOST_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ .smtp.passwordSecret | required "smtp.passwordSecret is required if smtp.user is set" | quote }}
+                key: password
+          {{- end }}
+          {{- if .smtp.security }}
+          - name: DJANGO_EMAIL_SECURITY
+            value: {{ .smtp.security | quote }}
+          {{- if .smtp.clientCertSecret }}
+          {{- /* These paths are fixed - the actual key and cert are mounted from the secret as a volume */}}
+          - name: DJANGO_EMAIL_CLIENT_KEY
+            value: /email-client-cert/tls.key
+          - name: DJANGO_EMAIL_CLIENT_CERTIFICATE
+            value: /email-client-cert/tls.crt
+          {{- end }}{{/* if clientCertSecret */}}
+          {{- end }}{{/* if security */}}
+          {{- else if eq .backend "gmail" }}
+          {{- /* GMail API email settings */}}
+          - name: DJANGO_EMAIL_BACKEND
+            value: "gmailapi_backend.mail.GmailBackend"
+          - name: DJANGO_GMAIL_API_CLIENT_ID
+            value: {{ .gmail.clientId | required "gmail.clientId required when email.backend is gmail" | quote }}
+          - name: DJANGO_GMAIL_API_CLIENT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: {{ .gmail.secretName | required "gmail.secretName required when email.backend is gmail" | quote }}
+                key: client-secret
+          - name: DJANGO_GMAIL_API_REFRESH_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: {{ .gmail.secretName | quote }}
+                key: refresh-token
+          {{- end }}{{/* if backend gmail */}}
+          {{- end }}{{/* with .Values.email */}}
+          {{- if and $.Values.email.smtp.security $.Values.email.smtp.clientCertSecret }}
+          volumeMounts:
+          - name: email-client-cert
+            mountPath: /email-client-cert
+            readOnly: true
+          {{- end }}{{/* if smtp client cert */}}
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+              httpHeaders:
+              - name: Host
+                value: {{ $.Values.hostName | quote }}
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+              httpHeaders:
+              - name: Host
+                value: {{ $.Values.hostName | quote }}
+          resources:
+            {{- toYaml .resources | nindent 12 }}
+      {{- if and $.Values.email.smtp.security $.Values.email.smtp.clientCertSecret }}
+      volumes:
+      - name: email-client-cert
+        secret:
+          secretName: {{ $.Values.email.smtp.clientCertSecret | quote }}
+      {{- end }}{{/* if smtp client cert */}}
+      {{- with .nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+---
+{{ end }}
