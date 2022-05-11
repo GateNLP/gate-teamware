@@ -219,9 +219,7 @@ export default {
 
       if (elemConfig.type == 'html'){
         return false
-      } else if (this.document_type == DocumentType.Training) {
-        return true
-      } else if (Object.keys(elemConfig.options).includes(this.annotationOutput[elemConfig.name])){
+      } else if ((this.document_type == DocumentType.Training) && (Object.keys(elemConfig.options).includes(this.annotationOutput[elemConfig.name]))) {
         return true
       } else {
         return false
