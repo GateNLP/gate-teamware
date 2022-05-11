@@ -1,0 +1,32 @@
+name: Test image build and run Integration tests
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
+      - dev
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Generate env
+        shell: bash
+        run: |
+          ./generate-env.sh
+      
+      - uses: docker-practice/actions-setup-docker@master
+      - run: |
+          ./build-images.sh
+
+      - name: Run integration tests with cypress
+        uses: cypress-io/github-action@v2
+        with:
+          start: /bin/bash deploy.sh integration
+          wait-on: 'http://localhost:8076'
+          config: baseUrl=http://localhost:8076
+          env: TESTENV=container

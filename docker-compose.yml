@@ -1,0 +1,67 @@
+version: "3.3"
+
+services:
+
+  backend:
+    image: ${IMAGE_REGISTRY}${MAIN_IMAGE}:${IMAGE_TAG}
+    restart: always
+    environment:
+      - DJANGO_ALLOWED_HOSTS
+      - DJANGO_SETTINGS_MODULE
+      - DJANGO_SECRET_KEY
+      - DJANGO_DB_NAME
+      - DB_USERNAME
+      - DB_PASSWORD
+    depends_on:
+      - db
+
+  nginx:
+    image: ${IMAGE_REGISTRY}${STATIC_IMAGE}:${IMAGE_TAG}
+    ports:
+      - 8076:80
+    depends_on:
+      - backend
+      - db
+
+  db:
+    image: postgres:12-alpine
+    restart: always
+    env_file: 
+      - ./.env
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=${PG_SUPERUSER_PASSWORD}
+      - DJANGO_DB_NAME
+      - DJANGO_DB_USER=${DB_USERNAME}
+      - DJANGO_DB_PASSWORD=${DB_PASSWORD}
+      - DB_BACKUP_USER
+      - DB_BACKUP_PASSWORD
+    volumes:
+      - postgresql-data:/var/lib/postgresql/data
+      - ./create-django-db.sh:/docker-entrypoint-initdb.d/001-create-django-db.sh
+
+  pgbackups:
+    image: prodrigestivill/postgres-backup-local:12
+    restart: always
+    user: ${BACKUPS_USER_GROUP}
+    volumes:
+      - ${BACKUPS_VOLUME}:/backups
+    depends_on:
+      - db
+    environment:
+      - POSTGRES_HOST=db
+      - PGHOST=db
+      - PGPORT=5432
+      - PGPASSWORD=${PG_SUPERUSER_PASSWORD}
+      - PGUSER=postgres
+      - POSTGRES_DB=${DJANGO_DB_NAME}
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_EXTRA_OPTS=-Z6 --schema=public --blobs
+      - SCHEDULE=@daily
+      - BACKUP_KEEP_DAYS=7
+      - BACKUP_KEEP_WEEKS=4
+      - BACKUP_KEEP_MONTHS=6
+
+volumes:
+  postgresql-data:
