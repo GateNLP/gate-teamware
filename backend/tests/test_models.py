@@ -149,13 +149,13 @@ class TestDocumentModel(ModelTestCase):
     def test_document_type_str(self):
         project = Project.objects.create()
         doc = Document.objects.create(project=project, doc_type=DocumentType.ANNOTATION)
-        self.assertEqual("annotation", doc.doc_type_str)
+        self.assertEqual("Annotation", doc.doc_type_str)
 
         doc = Document.objects.create(project=project, doc_type=DocumentType.TRAINING)
-        self.assertEqual("training", doc.doc_type_str)
+        self.assertEqual("Training", doc.doc_type_str)
 
         doc = Document.objects.create(project=project, doc_type=DocumentType.TEST)
-        self.assertEqual("test", doc.doc_type_str)
+        self.assertEqual("Test", doc.doc_type_str)
 
 
 class TestProjectModel(ModelTestCase):
