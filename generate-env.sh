@@ -63,10 +63,24 @@ IMAGE_TAG=latest
 # For Gmail API backend:  gmailapi_backend.mail.GmailBackend
 DJANGO_EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
 # Settings for SMTP email
-DJANGO_EMAIL_HOST=localhost
-DJANGO_EMAIL_PORT=22
+DJANGO_EMAIL_HOST=smtp.example.com
+DJANGO_EMAIL_PORT=587
 DJANGO_EMAIL_HOST_USER=username
 DJANGO_EMAIL_HOST_PASSWORD=password
+# If the mail server requires an encrypted connection, we must specify what
+# kind. Options are tls (= STARTTLS on port 25 or 587) or ssl (= "SMTPS", i.e.
+# implicit TLS on connect, usually on port 465)
+DJANGO_EMAIL_SECURITY=tls
+# If the server requires you to identify yourself with a client certificate,
+# specify it as follows:
+# 
+# DJANGO_EMAIL_CLIENT_KEY=/path/to/private.key
+# DJANGO_EMAIL_CLIENT_CERTIFICATE=/path/to/certificate.pem
+#
+# The certificate file should contain the client certificate itself followed by
+# any intermediate CA certificates, but not the ultimate root CA certificate
+
+
 # Settings for Gmail API
 DJANGO_GMAIL_API_CLIENT_ID=google_assigned_id
 DJANGO_GMAIL_API_CLIENT_SECRET=google_assigned_secret
