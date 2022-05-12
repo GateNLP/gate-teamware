@@ -177,3 +177,37 @@ postgresql:
     existingSecret: postgres-credentials
 
   # Additional useful settings include persistence.storageClass and persistence.size
+
+# Configure regular database backups to S3 (or compatible) storage
+backup:
+  image: "schickling/postgres-backup-s3:latest"
+  pullPolicy: Always
+  # API endpoint, if not the public Amazon S3
+  endpoint: ""
+  # S3 region e.g. us-east-1
+  region: ""
+  # Bucket to which the backups should be stored
+  bucketName: ""
+  # common key prefix for all the backups
+  keyPrefix: ""
+  # Kubernetes secret with keys "access-key-id" and "secret-key" that have
+  # write access to the specified bucket
+  credentialsSecret: ""
+
+  concurrencyPolicy: ""
+  failedJobsHistoryLimit: ""
+  successfulJobsHistoryLimit: ""
+
+  # Backup schedule.  Keys in the map are the name of the backup schedule
+  # (e.g. daily, weekly), values are the cron expression defining the schedule.
+  # The actual backup files will be placed at
+  # s3://<bucketName>/<keyPrefix>/<schedule-name>/<database-name>_<timestamp>.sql.gz
+  #
+  # Note that the cron job creates new backups but does not expire old ones -
+  # if you want old backups to expire (or be moved to cheaper storage like
+  # infrequent access or Glacier) then you should configure that at the bucket
+  # level using S3 lifecycle rules.
+  schedule: {}
+  # daily:   "13 01 * * *"
+  # weekly:  "13 02 * * 0"
+  # monthly: "13 00 1 * *"
