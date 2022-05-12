@@ -22,6 +22,19 @@ spec:
       securityContext:
         {{- toYaml .podSecurityContext | nindent 8 }}
       restartPolicy: Never
+      {{- with $.Values.migrations.waitFor }}
+      initContainers:
+      - name: wait-for
+        image: {{ print .registry .image ":" .tag | quote }}
+        env:
+        - name: POSTGRES_HOST
+          value: {{ printf "%s:%s" (include "postgresql.primary.fullname" $.Subcharts.postgresql) (include "postgresql.service.port" $.Subcharts.postgresql) | quote }}
+        command:
+          - /wait-for
+        args:
+          - --host="$(POSTGRES_HOST)"
+          - --timeout={{ .timeout }}
+      {{- end }}
       containers:
         - name: {{ $.Chart.Name }}
           securityContext:

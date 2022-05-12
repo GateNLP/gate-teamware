@@ -19,6 +19,12 @@ migrations:
   run: false
   ttl: 300
 
+  waitFor:
+    registry: "ghcr.io/patrickdappollonio/"
+    image: "wait-for"
+    tag: "latest"
+    timeout: "30s"
+
 backend:
   image:
     repository: teamware-backend
