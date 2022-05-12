@@ -4,6 +4,7 @@
 
 # Host name under which the app will be exposed by the ingress
 hostName: "example.gate.ac.uk"
+publicUrl: ""
 
 # Docker registry prefix from which the backend and staticFiles images will be
 # pulled - if specified, this value _must_ end with a forward slash, e.g.

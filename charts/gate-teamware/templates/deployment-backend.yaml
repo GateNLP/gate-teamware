@@ -47,6 +47,12 @@ spec:
             value: teamware.settings.deployment
           - name: DJANGO_ALLOWED_HOSTS
             value: {{ $.Values.hostName | quote }}
+          - name: DJANGO_APP_URL
+          {{- if $.Values.publicUrl }}
+            value: {{ $.Values.publicUrl | quote }}
+          {{- else }}
+            value: {{ printf "https://%s" $.Values.hostName | quote }}
+          {{- end }}
           # Don't run migrations at startup
           - name: TEAMWARE_SKIP_SETUP
             value: "true"

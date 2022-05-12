@@ -16,6 +16,7 @@ To set up a new installation of teamware:
 Things you will commonly need to override include:
 
 - `hostName` - set this to the fully-qualified public hostname of the teamware installation, e.g. `annotate.gate.ac.uk`
+- `publicUrl` - set this to the fully qualified _public_ base URL of the site, including the protocol and port (if not 80/443) but no trailing slash.  The default is `https://{hostName}` so you should only need to override if your app is not served over HTTPS, or if it uses a non-standard port number. 
 - `ingress.className` - ingress class to use, if the cluster does not have a default or if you want to use a different class from the default one.
 - `ingress.tls.secret` - name of the secret holding the TLS certificate for the configured `hostName`.  Whether this is required or optional depends on the cluster and its configured ingress controller, e.g. the GATE cluster is set up to use a `*.gate.ac.uk` wildcard certificate for ingresses that do not specify their own, so on that cluster if the `hostName` matches that wildcard then a separate secret is not required.
 - `email` settings to be able to send registration and password reminder emails
