@@ -19,6 +19,8 @@ services:
     image: ${IMAGE_REGISTRY}${STATIC_IMAGE}:${IMAGE_TAG}
     ports:
       - 8076:80
+    volumes:
+      - ./nginx:/etc/nginx/templates
     depends_on:
       - backend
       - db

@@ -160,15 +160,15 @@ CSRF_USE_SESSIONS = False
 CSRF_COOKIE_HTTPONLY = False
 
 APP_NAME = "GATE Teamware"
-APP_URL = "http://127.0.0.1:8000"
+APP_URL = os.getenv('DJANGO_APP_URL', "http://127.0.0.1:8000")
 
 # Admin email - The mail address to be used for contacting
 # users of the system
-ADMIN_EMAIL = 'admin@test.com'
+ADMIN_EMAIL = os.getenv('DJANGO_ADMIN_EMAIL', 'admin@test.com')
 
 # User account activation settings
 ACTIVATION_URL_PATH = "/activate"
-ACTIVATION_WITH_EMAIL = False
+ACTIVATION_WITH_EMAIL = os.getenv('DJANGO_ACTIVATION_WITH_EMAIL', '').lower() in ['true', 'yes', 'on']
 ACTIVATION_EMAIL_TIMEOUT_DAYS = 7
 ACTIVATION_TOKEN_LENGTH = 128
 
@@ -198,9 +198,26 @@ Send e-mail through standard SMTP server. See [https://github.com/dolfim/django-
 for full list of configuration parameters.
 """
 EMAIL_HOST = os.getenv('DJANGO_EMAIL_HOST', 'localhost')
-EMAIL_PORT = os.getenv('DJANGO_EMAIL_PORT', 22)
-EMAIL_HOST_USER = os.getenv('DJANGO_EMAIL_HOST_USER', 'username')
-EMAIL_HOST_PASSWORD = os.getenv('DJANGO_EMAIL_HOST_PASSWORD', 'password')
+EMAIL_PORT = int(os.getenv('DJANGO_EMAIL_PORT', 25))
+if 'DJANGO_EMAIL_HOST_USER' in os.environ:
+    # If user is set then password must also, and we want to raise an
+    # exception if it's missing
+    EMAIL_HOST_USER = os.environ['DJANGO_EMAIL_HOST_USER']
+    EMAIL_HOST_PASSWORD = os.environ['DJANGO_EMAIL_HOST_PASSWORD']
+
+if 'DJANGO_EMAIL_SECURITY' in os.environ:
+    if os.environ['DJANGO_EMAIL_SECURITY'].lower() == 'ssl':
+        EMAIL_USE_SSL = True
+    elif os.environ['DJANGO_EMAIL_SECURITY'].lower() == 'tls':
+        EMAIL_USE_TLS = True
+    else:
+        raise ValueError("DJANGO_EMAIL_SECURITY, if set, must be either SSL or TLS")
+
+    if 'DJANGO_EMAIL_CLIENT_CERTIFICATE' in os.environ:
+        # If certificate is set then key must also, and we want to raise an
+        # exception if it's missing
+        EMAIL_SSL_CERTFILE = os.environ['DJANGO_EMAIL_CLIENT_CERTIFICATE']
+        EMAIL_SSL_KEYFILE = os.environ['DJANGO_EMAIL_CLIENT_KEY']
 
 """
 If sending e-mail through Gmail using Google's API, the following parameters must be set:
