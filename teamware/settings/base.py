@@ -160,15 +160,15 @@ CSRF_USE_SESSIONS = False
 CSRF_COOKIE_HTTPONLY = False
 
 APP_NAME = "GATE Teamware"
-APP_URL = "http://127.0.0.1:8000"
+APP_URL = os.getenv('DJANGO_APP_URL', "http://127.0.0.1:8000")
 
 # Admin email - The mail address to be used for contacting
 # users of the system
-ADMIN_EMAIL = 'admin@test.com'
+ADMIN_EMAIL = os.getenv('DJANGO_ADMIN_EMAIL', 'admin@test.com')
 
 # User account activation settings
 ACTIVATION_URL_PATH = "/activate"
-ACTIVATION_WITH_EMAIL = False
+ACTIVATION_WITH_EMAIL = os.getenv('DJANGO_ACTIVATION_WITH_EMAIL', '').lower() in ['true', 'yes', 'on']
 ACTIVATION_EMAIL_TIMEOUT_DAYS = 7
 ACTIVATION_TOKEN_LENGTH = 128
 

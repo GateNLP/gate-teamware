@@ -34,10 +34,8 @@ ENTRYPOINT [ "/app/run-server.sh" ]
 
 
 FROM nginx:stable-alpine as frontend
-RUN rm /etc/nginx/conf.d/default.conf
-COPY nginx/production.conf /etc/nginx/nginx.conf
-COPY --from=nodebuilder /app/frontend/static /usr/share/nginx/html
-COPY --from=nodebuilder /app/frontend/public/static /usr/share/nginx/html
+COPY --from=nodebuilder /app/frontend/static /usr/share/nginx/html/static
+COPY --from=nodebuilder /app/frontend/public/static /usr/share/nginx/html/static
 
 
 FROM backend as test
