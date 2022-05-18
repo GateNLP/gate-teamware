@@ -8,7 +8,7 @@ from django.http import StreamingHttpResponse, HttpResponse
 from django.shortcuts import render
 from django.views import View
 
-from backend.models import Project, Document
+from backend.models import Project, Document, DocumentType
 
 
 class MainView(View):
