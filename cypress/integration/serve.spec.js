@@ -204,7 +204,8 @@ describe('Site serve test', () => {
 
         // Add admin user as annotator
         cy.contains("Annotators").click()
-        cy.get("h2").contains("Annotators Management").parent().contains("admin").click()
+        cy.get("h5").contains("Add annotator to project").parent().contains("admin").click()
+        cy.get("h5").contains("Current annotators of the project").parent().contains("admin").should("be.visible")
 
         cy.contains("Improperly configured project").should("not.exist")
 
@@ -227,7 +228,7 @@ describe('Site serve test', () => {
         cy.get("[data-role='annotation-display-container']").first().contains(adminUsername)
 
         //Check annotation exists in user profile
-        cy.get("a").contains(adminUsername).click()
+        cy.get(".navbar").contains(adminUsername).click()
         cy.contains("Profile").click()
         cy.contains(newProjectName)
         cy.get("[data-role='annotation-display-container']").first().contains(adminUsername)
