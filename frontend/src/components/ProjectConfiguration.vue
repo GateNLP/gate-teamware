@@ -100,11 +100,11 @@
         description="Automatically allows annotation on real dataset after the training and testing stage. A disabled stage counts as having been completed.">
         <b-form-checkbox
             id="project-can-annotate-after-passing"
-            v-model="local_project.can_annotate_after_passing_test"
+            v-model="local_project.can_annotate_after_passing_training_and_test"
             name="can-annotate-after-passing-checkbox"
             switch
         >
-          <span v-if="local_project.can_annotate_after_passing_test">Can</span><span v-else>Cannot</span> annotate after
+          <span v-if="local_project.can_annotate_after_passing_training_and_test">Can</span><span v-else>Cannot</span> annotate after
           passing
         </b-form-checkbox>
 
@@ -212,7 +212,7 @@ export default {
         is_completed: false,
         has_training_stage: false,
         has_test_stage: false,
-        can_annotate_after_passing_test: false,
+        can_annotate_after_passing_training_and_test: false,
         min_test_pass_threshold: 0.8,
         document_id_field: "",
       },

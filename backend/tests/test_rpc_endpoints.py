@@ -884,7 +884,7 @@ class TestAnnotationTaskManager(TestEndpoint):
     def test_allowed_to_annotate(self):
         """
         add_project_annotator allows annotators to perform annotation on real dataset by default if there's no
-        testing or training stages, otherwise they must be allowed to annotate using project_annotator_allow_annotation
+        testing or training stages
         """
 
         # Create users and project, add them as annotators
@@ -895,40 +895,15 @@ class TestAnnotationTaskManager(TestEndpoint):
         ann1_request = self.get_request()
         ann1_request.user = ann1
 
-        proj_test_stage = Project.objects.create(owner=manager, has_test_stage=True)
-        proj_train_stage = Project.objects.create(owner=manager, has_training_stage=True)
-        proj_test_train_stage = Project.objects.create(owner=manager, has_training_stage=True, has_test_stage=True)
+
         proj = Project.objects.create(owner=manager)
 
-        projects = [proj_test_stage, proj_test_train_stage, proj_train_stage, proj]
 
         # Create documents
         num_docs = 10
-        for project in projects:
-            for i in range(num_docs):
-                Document.objects.create(project=project)
+        for i in range(num_docs):
+            Document.objects.create(project=proj)
 
-
-        # Add ann1 as the proj_test_stage's annotator and get task, must be allowed to annotate
-        self.assertTrue(add_project_annotator(manager_request, proj_test_stage.id, ann1.username))
-        self.assertEqual(None, get_annotation_task(ann1_request))
-        project_annotator_allow_annotation(manager_request, proj_id=proj_test_stage.id, username=ann1.username)
-        self.assertTrue(get_annotation_task(ann1_request))
-        remove_project_annotator(manager_request, proj_test_stage.id, username=ann1.username)
-
-        # Add ann1 as the proj_train_stage's annotator and get task, must be allowed to annotate
-        self.assertTrue(add_project_annotator(manager_request, proj_train_stage.id, ann1.username))
-        self.assertEqual(None, get_annotation_task(ann1_request))
-        project_annotator_allow_annotation(manager_request, proj_id=proj_train_stage.id, username=ann1.username)
-        self.assertTrue(get_annotation_task(ann1_request))
-        remove_project_annotator(manager_request, proj_train_stage.id, username=ann1.username)
-
-        # Add ann1 as the proj_test_train_stage's annotator and get task, must be allowed to annotate
-        self.assertTrue(add_project_annotator(manager_request, proj_test_train_stage.id, ann1.username))
-        self.assertEqual(None, get_annotation_task(ann1_request))
-        project_annotator_allow_annotation(manager_request, proj_id=proj_test_train_stage.id, username=ann1.username)
-        self.assertTrue(get_annotation_task(ann1_request))
-        remove_project_annotator(manager_request, proj_test_train_stage.id, username=ann1.username)
 
         # Add ann1 as the proj_test_stage's annotator and get task, allowed to annotate by default if
         # there's no testing or training stages
@@ -1180,6 +1155,7 @@ class TestAnnotationTaskManagerTrainTestMode(TestEndpoint):
 
         self.proj.has_training_stage = True
         self.proj.has_test_stage = False
+        self.proj.can_annotate_after_passing_training_and_test = False
         self.proj.save()
 
         # Add annotator 1 to project
@@ -1203,10 +1179,38 @@ class TestAnnotationTaskManagerTrainTestMode(TestEndpoint):
 
         self.assertEqual(0, self.proj.num_annotator_task_remaining(self.ann1))
 
+
+    def test_annotation_task_with_training_only_auto_annotate(self):
+
+        self.proj.has_training_stage = True
+        self.proj.has_test_stage = False
+        self.proj.can_annotate_after_passing_training_and_test = True
+        self.proj.save()
+
+        # Add annotator 1 to project
+        self.assertTrue(add_project_annotator(self.manager_request, self.proj.id, self.ann1.username))
+
+        # Complete training annotations
+        self.assertEqual(self.num_training_docs, self.complete_annotations(self.num_training_docs, "Training"))
+
+        # Expect perfect score
+        self.proj.refresh_from_db()
+        self.assertEqual(self.num_training_docs,
+                         self.proj.get_annotator_document_score(self.ann1, DocumentType.TRAINING))
+
+        # No task until annotator is allowed to annotate
+        self.assertTrue(get_annotation_task(self.ann1_request))
+
+        # Then complete the task normally
+        self.assertEqual(self.proj.max_num_task_per_annotator, self.complete_annotations(self.num_docs, "Annotation"))
+
+        self.assertEqual(0, self.proj.num_annotator_task_remaining(self.ann1))
+
     def test_annotation_task_with_test_only(self):
 
         self.proj.has_training_stage = False
         self.proj.has_test_stage = True
+        self.proj.can_annotate_after_passing_training_and_test = False
         self.proj.save()
 
         # Add annotator 1 to project
@@ -1234,6 +1238,7 @@ class TestAnnotationTaskManagerTrainTestMode(TestEndpoint):
 
         self.proj.has_training_stage = True
         self.proj.has_test_stage = True
+        self.proj.can_annotate_after_passing_training_and_test = False
         self.proj.save()
 
         # Add annotator 1 to project
@@ -1270,8 +1275,8 @@ class TestAnnotationTaskManagerTrainTestMode(TestEndpoint):
 
         self.proj.has_training_stage = True
         self.proj.has_test_stage = True
-        self.proj.min_test_pass_threshold = 0.6
-        self.proj.can_annotate_after_passing_test = True
+        self.proj.min_test_pass_threshold = 1.0
+        self.proj.can_annotate_after_passing_training_and_test = True
         self.proj.save()
 
         # Add annotator 1 to project
@@ -1307,7 +1312,7 @@ class TestAnnotationTaskManagerTrainTestMode(TestEndpoint):
         self.proj.has_training_stage = True
         self.proj.has_test_stage = True
         self.proj.min_test_pass_threshold = 0.6
-        self.proj.can_annotate_after_passing_test = True
+        self.proj.can_annotate_after_passing_training_and_test = True
         self.proj.save()
 
         # Add annotator 1 to project

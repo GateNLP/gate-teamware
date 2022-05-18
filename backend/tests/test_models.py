@@ -235,7 +235,7 @@ class TestProjectModel(ModelTestCase):
             "document_id_field": models.TextField,
             "has_training_stage": models.BooleanField,
             "has_test_stage": models.BooleanField,
-            "can_annotate_after_passing_test": models.BooleanField,
+            "can_annotate_after_passing_training_and_test": models.BooleanField,
             "min_test_pass_threshold": models.FloatField,
             "document_gold_standard_field": models.TextField,
 

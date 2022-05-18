@@ -32,7 +32,7 @@ class ServiceUser(AbstractUser):
     """
     Custom user class.
     """
-    
+
     is_manager = models.BooleanField(default=False)
     created = models.DateTimeField(default=timezone.now)
     is_account_activated = models.BooleanField(default=False)
@@ -58,7 +58,6 @@ class ServiceUser(AbstractUser):
 
         return None
 
-
     @property
     def is_activated(self):
         """
@@ -78,7 +77,7 @@ class ServiceUser(AbstractUser):
 
         if self.is_manager or self.is_staff or self.is_superuser:
             return True
-    
+
         if self.annotations.filter(document_id=document.pk).count() > 0:
             return True
 
@@ -88,11 +87,10 @@ class ServiceUser(AbstractUser):
 
             if self.annotates.filter(pk=document.project.pk).first().documents.count() > 0:
                 return True
-        
+
         else:
             # If user is no longer active on a project, but has annotations from that project, this should have been caught above
             return False
-
 
     def is_associated_with_annotation(self, annotation):
 
@@ -104,6 +102,7 @@ class ServiceUser(AbstractUser):
 
 def default_document_input_preview():
     return {"text": "<p>Some html text <strong>in bold</strong>.</p><p>Paragraph 2.</p>"}
+
 
 class Project(models.Model):
     """
@@ -124,7 +123,7 @@ class Project(models.Model):
     annotators = models.ManyToManyField(get_user_model(), through='AnnotatorProject', related_name="annotates")
     has_training_stage = models.BooleanField(default=False)
     has_test_stage = models.BooleanField(default=False)
-    can_annotate_after_passing_test = models.BooleanField(default=True)
+    can_annotate_after_passing_training_and_test = models.BooleanField(default=True)
     min_test_pass_threshold = models.FloatField(default=1.0, null=True)
     document_gold_standard_field = models.TextField(default="gold")
 
@@ -141,11 +140,10 @@ class Project(models.Model):
         "document_id_field",
         "has_training_stage",
         "has_test_stage",
-        "can_annotate_after_passing_test",
+        "can_annotate_after_passing_training_and_test",
         "min_test_pass_threshold",
         "document_gold_standard_field",
     }
-
 
     @property
     def num_documents(self):
@@ -213,7 +211,8 @@ class Project(models.Model):
 
     @property
     def max_num_task_per_annotator(self):
-        return math.ceil(self.annotator_max_annotation * self.documents.filter(doc_type=DocumentType.ANNOTATION).count())
+        return math.ceil(
+            self.annotator_max_annotation * self.documents.filter(doc_type=DocumentType.ANNOTATION).count())
 
     @property
     def num_annotators(self):
@@ -236,7 +235,6 @@ class Project(models.Model):
 
         return errors
 
-
     def add_annotator(self, user):
 
         try:
@@ -255,6 +253,10 @@ class Project(models.Model):
             annotator_project = AnnotatorProject.objects.get(project=self, annotator=user)
             annotator_project.training_completed = finished_time
             annotator_project.training_score = self.get_annotator_document_score(user, DocumentType.TRAINING)
+
+            if annotator_project.project.can_annotate_after_passing_training_and_test and not annotator_project.project.has_test_stage:
+                annotator_project.allowed_to_annotate = True
+
             annotator_project.save()
         except ObjectDoesNotExist:
             raise Exception(f"User {user.username} is not an annotator of the project.")
@@ -287,7 +289,6 @@ class Project(models.Model):
 
         return score
 
-
     def check_annotation_answer(self, annotation_data, answers):
         """
         Compare answers between the annotation.data and document's gold standard field with answers
@@ -312,15 +313,14 @@ class Project(models.Model):
 
         return is_correct
 
-
     def annotator_completed_test(self, user, finished_time=timezone.now()):
         try:
             annotator_project = AnnotatorProject.objects.get(project=self, annotator=user)
             annotator_project.test_completed = finished_time
             annotator_project.test_score = self.get_annotator_document_score(user, DocumentType.TEST)
-            annotator_test_score_proportion = annotator_project.test_score/self.num_test_documents if self.num_test_documents > 0 else 0
-            if self.can_annotate_after_passing_test and \
-                    annotator_test_score_proportion > self.min_test_pass_threshold:
+            annotator_test_score_proportion = annotator_project.test_score / self.num_test_documents if self.num_test_documents > 0 else 0
+            if self.can_annotate_after_passing_training_and_test and \
+                    annotator_test_score_proportion >= self.min_test_pass_threshold:
                 annotator_project.allowed_to_annotate = True
 
             annotator_project.save()
@@ -338,7 +338,6 @@ class Project(models.Model):
         except ObjectDoesNotExist:
             raise Exception(f"User {user.username} is not an annotator of the project.")
 
-
     def reject_annotator(self, user, finished_time=timezone.now()):
         try:
             annotator_project = AnnotatorProject.objects.get(project=self, annotator=user)
@@ -348,8 +347,6 @@ class Project(models.Model):
             annotator_project.save()
         except ObjectDoesNotExist:
             raise Exception(f"User {user.username} is not an annotator of the project.")
-
-
 
     def remove_annotator(self, user, finished_time=timezone.now()):
         try:
@@ -437,7 +434,6 @@ class Project(models.Model):
             .filter(num_user_occupied__gt=0)
 
         return pending_docs
-
 
     def get_annotator_task(self, user):
         """
@@ -566,7 +562,6 @@ class Project(models.Model):
 
         return None
 
-
     def check_project_complete(self):
         """ Checks that all annotations have been completed, release all annotators from project. """
         if self.is_completed:
@@ -575,7 +570,8 @@ class Project(models.Model):
 
     def get_annotators_dict(self):
         return {
-            "annotators": [{"id":ann.id, "username":ann.username, "email":ann.email} for ann in self.annotators.filter(annotatorproject__status=AnnotatorProject.ACTIVE).all()]
+            "annotators": [{"id": ann.id, "username": ann.username, "email": ann.email} for ann in
+                           self.annotators.filter(annotatorproject__status=AnnotatorProject.ACTIVE).all()]
         }
 
     def get_project_stats(self):
@@ -593,6 +589,7 @@ class Project(models.Model):
             "is_completed": self.is_completed,
             "num_annotators": self.num_annotators,
         }
+
 
 class AnnotatorProject(models.Model):
     """
@@ -616,7 +613,7 @@ class AnnotatorProject(models.Model):
     allowed_to_annotate = models.BooleanField(default=False)
     status = models.IntegerField(choices=STATUS, default=ACTIVE)
     rejected = models.BooleanField(default=False)
-    
+
     @property
     def num_annotations(self):
         # Is this better as a prop method or as a normal property?
@@ -625,6 +622,7 @@ class AnnotatorProject(models.Model):
     def set_status(self, status):
         self.status = status
         self.save()
+
 
 class Document(models.Model):
     """
@@ -663,15 +661,14 @@ class Document(models.Model):
 
     @property
     def doc_type_str(self):
-        if(self.doc_type == DocumentType.ANNOTATION):
+        if (self.doc_type == DocumentType.ANNOTATION):
             return "Annotation"
-        elif(self.doc_type == DocumentType.TRAINING):
+        elif (self.doc_type == DocumentType.TRAINING):
             return "Training"
-        elif(self.doc_type == DocumentType.TEST):
+        elif (self.doc_type == DocumentType.TEST):
             return "Test"
         else:
             raise Exception("Unknown document type")
-
 
     def user_can_annotate_document(self, user):
         """ User must not have completed, pending or rejected the document"""
@@ -695,7 +692,6 @@ class Document(models.Model):
 
     def num_user_rejected_annotations(self, user):
         return self.annotations.filter(user_id=user.pk, status=Annotation.REJECTED).count()
-
 
     def num_user_timed_out_annotations(self, user):
         return self.annotations.filter(user_id=user.pk, status=Annotation.TIMED_OUT).count()
@@ -792,6 +788,7 @@ class Document(models.Model):
 
         return doc_dict
 
+
 class Annotation(models.Model):
     """
     Model to represent a single annotation.
@@ -820,12 +817,10 @@ class Annotation(models.Model):
     status_time = models.DateTimeField(default=None, null=True)
     time_to_complete = models.FloatField(default=None, null=True)
 
-
     def _set_new_status(self, status, time=timezone.now()):
         self.ensure_status_pending()
         self.status = status
         self.status_time = time
-
 
     def complete_annotation(self, data, elapsed_time=None, time=timezone.now()):
         self.data = data
@@ -847,7 +842,6 @@ class Annotation(models.Model):
     def abort_annotation(self, time=timezone.now()):
         self._set_new_status(Annotation.ABORTED, time)
         self.save()
-
 
     def ensure_status_pending(self):
         if self.status == Annotation.PENDING and self.status_time is None:
@@ -908,5 +902,3 @@ class Annotation(models.Model):
 
         for annotation in pending_annotations:
             annotation.abort_annotation()
-
-
