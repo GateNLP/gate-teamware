@@ -1266,14 +1266,93 @@ class TestAnnotationTaskManagerTrainTestMode(TestEndpoint):
         self.assertEqual(0, self.proj.num_annotator_task_remaining(self.ann1))
 
 
-    def complete_annotations(self, num_annotations_to_complete, expected_doc_type_str):
+    def test_annotation_task_with_test_and_train_auto_pass(self):
+
+        self.proj.has_training_stage = True
+        self.proj.has_test_stage = True
+        self.proj.min_test_pass_threshold = 0.6
+        self.proj.can_annotate_after_passing_test = True
+        self.proj.save()
+
+        # Add annotator 1 to project
+        self.assertTrue(add_project_annotator(self.manager_request, self.proj.id, self.ann1.username))
+
+        # Complete training annotations
+        self.assertEqual(self.num_training_docs, self.complete_annotations(self.num_training_docs, "Training"))
+
+        # Expect perfect score
+        self.proj.refresh_from_db()
+        self.assertEqual(self.num_training_docs,
+                         self.proj.get_annotator_document_score(self.ann1, DocumentType.TRAINING))
+
+        # Complete test annotations
+        self.assertEqual(self.num_test_docs, self.complete_annotations(self.num_test_docs, "Test"))
+
+        # Expect perfect score
+        self.proj.refresh_from_db()
+        self.assertEqual(self.num_test_docs,
+                         self.proj.get_annotator_document_score(self.ann1, DocumentType.TEST))
+
+        # Pass mark above threshold elevates user to annotator
+        self.assertTrue(get_annotation_task(self.ann1_request))
+
+        # Then complete the task normally
+        self.assertEqual(self.proj.max_num_task_per_annotator, self.complete_annotations(self.num_docs, "Annotation"))
+
+        self.assertEqual(0, self.proj.num_annotator_task_remaining(self.ann1))
+
+
+    def test_annotation_task_with_test_and_train_auto_pass_fail(self):
+
+        self.proj.has_training_stage = True
+        self.proj.has_test_stage = True
+        self.proj.min_test_pass_threshold = 0.6
+        self.proj.can_annotate_after_passing_test = True
+        self.proj.save()
+
+        # Add annotator 1 to project
+        self.assertTrue(add_project_annotator(self.manager_request, self.proj.id, self.ann1.username))
+
+        # Complete training annotations
+        self.assertEqual(self.num_training_docs, self.complete_annotations(self.num_training_docs, "Training"))
+
+        # Expect perfect score
+        self.proj.refresh_from_db()
+        self.assertEqual(self.num_training_docs,
+                         self.proj.get_annotator_document_score(self.ann1, DocumentType.TRAINING))
+
+        # Complete test annotations
+        self.assertEqual(self.num_test_docs, self.complete_annotations(self.num_test_docs, "Test", use_wrong_answer=True))
+
+        # Expect zero score, user not elevated to annotator
+        self.proj.refresh_from_db()
+        self.assertEqual(0,
+                         self.proj.get_annotator_document_score(self.ann1, DocumentType.TEST))
+
+        # No task until annotator is allowed to annotate
+        self.assertFalse(get_annotation_task(self.ann1_request))
+        project_annotator_allow_annotation(self.manager_request, self.proj.id, self.ann1.username)
+        self.assertTrue(get_annotation_task(self.ann1_request))
+
+        # Then complete the task normally
+        self.assertEqual(self.proj.max_num_task_per_annotator, self.complete_annotations(self.num_docs, "Annotation"))
+
+        self.assertEqual(0, self.proj.num_annotator_task_remaining(self.ann1))
+
+
+    def complete_annotations(self, num_annotations_to_complete, expected_doc_type_str, use_wrong_answer=False):
+
+        answer = "positive"
+        if use_wrong_answer:
+            answer = "negative"
+
         # Expect to get self.num_training_docs tasks
         num_completed_tasks = 0
         for i in range(num_annotations_to_complete):
             task_context = get_annotation_task(self.ann1_request)
             if task_context:
                 self.assertEqual(expected_doc_type_str, task_context["document_type"])
-                complete_annotation_task(self.ann1_request, task_context["annotation_id"], {"sentiment": "positive"})
+                complete_annotation_task(self.ann1_request, task_context["annotation_id"], {"sentiment": answer})
                 num_completed_tasks += 1
 
         return num_completed_tasks

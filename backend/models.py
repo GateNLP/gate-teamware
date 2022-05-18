@@ -320,7 +320,7 @@ class Project(models.Model):
             annotator_project.test_score = self.get_annotator_document_score(user, DocumentType.TEST)
             annotator_test_score_proportion = annotator_project.test_score/self.num_test_documents if self.num_test_documents > 0 else 0
             if self.can_annotate_after_passing_test and \
-                annotator_test_score_proportion > self.min_test_pass_threshold:
+                    annotator_test_score_proportion > self.min_test_pass_threshold:
                 annotator_project.allowed_to_annotate = True
 
             annotator_project.save()
