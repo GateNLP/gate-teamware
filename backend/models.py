@@ -578,6 +578,8 @@ class Project(models.Model):
         return {
             "owned_by": self.owner.username,
             "documents": self.num_documents,
+            "training_documents": self.num_training_documents,
+            "test_documents": self.num_test_documents,
             "completed_tasks": self.num_completed_tasks,
             "pending_tasks": self.num_pending_tasks,
             "rejected_tasks": self.num_rejected_tasks,

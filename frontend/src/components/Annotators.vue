@@ -88,7 +88,7 @@
                       <b-icon-check-square-fill></b-icon-check-square-fill>
                     </div>
                     <div>
-                      {{ annotator.training_score }}
+                      {{ annotator.training_score }}/{{project.training_documents}}
                     </div>
                   </div>
                 </div>
@@ -118,7 +118,7 @@
                       <b-icon-check-square-fill></b-icon-check-square-fill>
                     </div>
                     <div>
-                      {{ annotator.test_score }}
+                      {{ annotator.test_score }}/{{project.test_documents}}
                     </div>
                   </div>
                 </div>
