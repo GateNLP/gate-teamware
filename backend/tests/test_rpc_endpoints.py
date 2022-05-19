@@ -1170,7 +1170,7 @@ class TestAnnotationTaskManagerTrainTestMode(TestEndpoint):
                          self.proj.get_annotator_document_score(self.ann1, DocumentType.TRAINING))
 
         # No task until annotator is allowed to annotate
-        self.assertFalse(get_annotation_task(self.ann1_request))
+        self.assertFalse("annotation_id" in get_annotation_task(self.ann1_request))
         project_annotator_allow_annotation(self.manager_request, self.proj.id, self.ann1.username)
         self.assertTrue(get_annotation_task(self.ann1_request))
 
@@ -1225,7 +1225,7 @@ class TestAnnotationTaskManagerTrainTestMode(TestEndpoint):
                          self.proj.get_annotator_document_score(self.ann1, DocumentType.TEST))
 
         # No task until annotator is allowed to annotate
-        self.assertFalse(get_annotation_task(self.ann1_request))
+        self.assertFalse("annotation_id" in get_annotation_task(self.ann1_request))
         project_annotator_allow_annotation(self.manager_request, self.proj.id, self.ann1.username)
         self.assertTrue(get_annotation_task(self.ann1_request))
 
@@ -1261,7 +1261,7 @@ class TestAnnotationTaskManagerTrainTestMode(TestEndpoint):
                          self.proj.get_annotator_document_score(self.ann1, DocumentType.TEST))
 
         # No task until annotator is allowed to annotate
-        self.assertFalse(get_annotation_task(self.ann1_request))
+        self.assertFalse("annotation_id" in get_annotation_task(self.ann1_request))
         project_annotator_allow_annotation(self.manager_request, self.proj.id, self.ann1.username)
         self.assertTrue(get_annotation_task(self.ann1_request))
 
@@ -1335,7 +1335,7 @@ class TestAnnotationTaskManagerTrainTestMode(TestEndpoint):
                          self.proj.get_annotator_document_score(self.ann1, DocumentType.TEST))
 
         # No task until annotator is allowed to annotate
-        self.assertFalse(get_annotation_task(self.ann1_request))
+        self.assertFalse("annotation_id" in get_annotation_task(self.ann1_request))
         project_annotator_allow_annotation(self.manager_request, self.proj.id, self.ann1.username)
         self.assertTrue(get_annotation_task(self.ann1_request))
 

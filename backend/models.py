@@ -444,24 +444,19 @@ class Project(models.Model):
             user from annotator list if there's no more tasks or user reached quota.
         """
 
-        # User has existing task
-        annotation = self.get_current_annotator_task(user)
 
-        # Generate new task if there's no existing task
-        if not annotation:
+
+        annotation = self.get_current_annotator_task(user)
+        if annotation:
+            # User has existing task
+            return self.get_annotation_task_dict(annotation)
+        else:
+            # Tries to generate new task if there's no existing task
             if self.annotator_reached_quota(user):
-                # Remove user if already reached quota
                 self.remove_annotator(user)
                 return None  # Also return None as we've completed all the task
             else:
-                # Otherwise tries to assign a task
-                annotation = self.decide_annotator_task_type_and_assign(user)
-
-        # Returns annotation task dict or remove user from project if there's no task
-        if annotation:
-            return self.get_annotation_task_dict(annotation)
-        else:
-            return self.get_annotation_task_project_dict()
+                return self.decide_annotator_task_type_and_assign(user)
 
     def annotator_reached_quota(self, user):
 
@@ -540,21 +535,27 @@ class Project(models.Model):
                 if self.get_annotator_annotatable_documents_query(user, doc_type=DocumentType.TEST).count() == 0:
                     self.annotator_completed_test(user)
 
+        # Refresh object to ensure the phase changes are picked up
         annotator_proj.refresh_from_db()
 
         # Assign task
         if annotator_proj.allowed_to_annotate:
             # If allowed to annotate then skip over testing and training stage
             annotation = self.assign_annotator_task(user)
-            return annotation
+            if annotation:
+                return self.get_annotation_task_dict(annotation)
+            else:
+                # Remove annotator from project if there's no more tasks
+                self.remove_annotator(user)
+                return None
         elif self.has_training_stage and not annotator_proj.training_completed:
             # Tries to assign training task
-            return self.assign_annotator_task(user, DocumentType.TRAINING)
+            return self.get_annotation_task_dict(self.assign_annotator_task(user, DocumentType.TRAINING))
         elif self.has_test_stage and not annotator_proj.test_completed:
             # Tries to assign test task
-            return self.assign_annotator_task(user, DocumentType.TEST)
-
-        return None
+            return self.get_annotation_task_dict(self.assign_annotator_task(user, DocumentType.TEST))
+        else:
+            return self.get_annotation_task_project_dict()
 
     def assign_annotator_task(self, user, doc_type=DocumentType.ANNOTATION):
         """
