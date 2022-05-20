@@ -308,7 +308,7 @@ export default {
     async cloneProjectConfigHandler() {
       try {
         let clonedProjObj = await this.cloneProject(this.local_project.id)
-        this.$router.push("/project/" + clonedProjObj.id)
+        await this.$router.push("/project/" + clonedProjObj.id)
 
       } catch (e) {
         toastError("Could export project configuration", e, this)

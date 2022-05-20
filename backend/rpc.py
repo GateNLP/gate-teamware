@@ -675,6 +675,15 @@ def add_project_annotator(request, proj_id, username):
         return True
 
 @rpc_method_manager
+def make_project_annotator_active(request, proj_id, username):
+    with transaction.atomic():
+        annotator = User.objects.get(username=username)
+        project = Project.objects.get(pk=proj_id)
+        project.make_annotator_active(annotator)
+        return True
+
+
+@rpc_method_manager
 def project_annotator_allow_annotation(request, proj_id, username):
     with transaction.atomic():
         annotator = User.objects.get(username=username)
@@ -796,6 +805,16 @@ def get_annotation_content(request, annotation_id):
     else:
         raise PermissionError("No permission to access the annotation")
 
+@rpc_method_auth
+def annotator_leave_project(request):
+    """ Allow annotator to leave their currently associated project. """
+    user = request.user
+    project = user.active_project
+
+    if project is None:
+        raise Exception("No current active project")
+
+    project.remove_annotator(get_user_model().objects.get(pk=user.id))
 
 
 ###############################

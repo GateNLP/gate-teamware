@@ -158,6 +158,16 @@
                     <b-icon-pencil-square></b-icon-pencil-square>
                     Make annotator
                   </b-button>
+                  <b-button
+                      :variant="getMakeAnnotatorActiveBtnVariant(annotator)"
+                      size="sm"
+                      @click="makeAnnotatorActive(annotator.username)"
+                      :title="getMakeAnnotatorActiveBtnTitle(annotator)"
+                      :disabled="getMakeAnnotatorActiveBtnDisabled(annotator)"
+                  >
+                    <b-icon-person-check-fill></b-icon-person-check-fill>
+                    Make active
+                  </b-button>
                   <b-button size="sm"
                             @click="removeAnnotator(annotator.username)"
                             :variant="getAnnotatorCompleteBtnVariant(annotator)"
@@ -228,6 +238,7 @@
 <script>
 import _ from "lodash"
 import {mapActions, mapState} from "vuex";
+import {toastError} from "@/utils";
 
 export default {
   name: "Annotators",
@@ -251,7 +262,7 @@ export default {
   },
   methods: {
     ...mapActions(["getPossibleAnnotators", "addProjectAnnotator", "removeProjectAnnotator", "getProjectAnnotators",
-      "projectAnnotatorAllowAnnotation", "rejectProjectAnnotator"]),
+      "projectAnnotatorAllowAnnotation", "rejectProjectAnnotator", "makeProjectAnnotatorActive"]),
 
     isAtTrainingStage(annotator){
       return annotator.status == 0 &&
@@ -292,23 +303,50 @@ export default {
       return {}
     },
     getMakeAnnotatorBtnVariant(annotator) {
+      if(annotator.status != 0)
+        return "secondary"
+
       if (annotator.allowed_to_annotate)
         return "secondary"
       else
         return "primary"
     },
     getMakeAnnotatorBtnTitle(annotator) {
+      if(annotator.status != 0)
+        return "Annotator is not active in this project."
+
       if (annotator.allowed_to_annotate)
         return "Annotator already allowed to annotate."
       else
-        return "Allow annotator to annotate data, skipping training and testing stages."
+        return "Allow annotator to annotate data. Training and testing stages are skipped if not already completed."
 
     },
     getMakeAnnotatorBtnDisabled(annotator) {
-      if ( annotator.allowed_to_annotate)
+      if(annotator.status != 0)
         return true
 
-      return false
+      if (annotator.allowed_to_annotate)
+        return true
+      else
+        return false
+    },
+    getMakeAnnotatorActiveBtnVariant(annotator){
+      if(annotator.status == 0)
+        return "secondary"
+      else
+        return "primary"
+
+    },
+    getMakeAnnotatorActiveBtnTitle(annotator){
+      if(annotator.status == 0)
+        return "Annotator already active in the project."
+      else
+        return "Makes the annotator active in the project."
+
+    },
+    getMakeAnnotatorActiveBtnDisabled(annotator){
+      return annotator.status == 0
+
     },
     getAnnotatorCompleteBtnVariant(annotator) {
       if(annotator.status == 0)
@@ -352,30 +390,64 @@ export default {
     },
     async addAnnotator(username) {
       this.setLoading(true)
-      await this.addProjectAnnotator({projectID: this.project.id, username: username});
-      await this.updateAnnotators();
-      this.$emit("updated")
+      try {
+        await this.addProjectAnnotator({projectID: this.project.id, username: username});
+        await this.updateAnnotators();
+        this.$emit("updated")
+      } catch (e) {
+        toastError("Could not add annotator", e, this)
+      }
+
+      this.setLoading(false)
+    },
+    async makeAnnotatorActive(username) {
+      this.setLoading(true)
+      try {
+        await this.makeProjectAnnotatorActive({projectID: this.project.id, username: username});
+        await this.updateAnnotators();
+        this.$emit("updated")
+      } catch (e) {
+        toastError("Could not make annotator active", e, this)
+      }
+
       this.setLoading(false)
     },
     async removeAnnotator(username) {
       this.setLoading(true)
-      await this.removeProjectAnnotator({projectID: this.project.id, username: username});
-      await this.updateAnnotators();
-      this.$emit("updated")
+
+      try {
+        await this.removeProjectAnnotator({projectID: this.project.id, username: username});
+        await this.updateAnnotators();
+        this.$emit("updated")
+      } catch (e) {
+        toastError("Could not remove annotator", e, this)
+      }
+
       this.setLoading(false)
     },
     async rejectAnnotator(username) {
       this.setLoading(true)
-      await this.rejectProjectAnnotator({projectID: this.project.id, username: username});
-      await this.updateAnnotators();
-      this.$emit("updated")
+      try {
+        await this.rejectProjectAnnotator({projectID: this.project.id, username: username});
+        await this.updateAnnotators();
+        this.$emit("updated")
+
+      } catch (e) {
+        toastError("Could not reject annotator", e, this)
+      }
+
       this.setLoading(false)
     },
     async allowAnnotation(username) {
       this.setLoading(true)
-      await this.projectAnnotatorAllowAnnotation({projectID: this.project.id, username: username});
-      await this.updateAnnotators();
-      this.$emit("updated")
+      try {
+        await this.projectAnnotatorAllowAnnotation({projectID: this.project.id, username: username});
+        await this.updateAnnotators();
+        this.$emit("updated")
+      } catch (e) {
+        toastError("Could not make this user an annotator", e, this)
+      }
+
       this.setLoading(false)
     },
     searchAnnotators(annotators, searchString) {
@@ -385,8 +457,13 @@ export default {
     },
     async refreshAnnotatorsHandler() {
       this.setLoading(true)
-      await this.updateAnnotators()
-      this.$emit("updated")
+      try {
+        await this.updateAnnotators()
+        this.$emit("updated")
+      } catch (e) {
+        toastError("Could not update annotator list", e, this)
+      }
+
       this.setLoading(false)
     },
     async setLoading(isLoading) {
