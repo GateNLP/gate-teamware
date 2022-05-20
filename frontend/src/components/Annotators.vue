@@ -139,8 +139,8 @@
                       <b-icon-clock></b-icon-clock>
                     </div>
                     <div>
-                      <span v-if="annotator.test_completed">
-                        {{ annotator.test_completed | datetime }}
+                      <span v-if="annotator.annotations_completed">
+                        {{ annotator.annotations_completed | datetime }}
                       </span>
                       <span v-else>-</span>
                     </div>

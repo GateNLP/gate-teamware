@@ -576,6 +576,8 @@ class Project(models.Model):
                 return self.get_annotation_task_dict(annotation)
             else:
                 # Remove annotator from project if there's no more tasks
+                annotator_proj.annotations_completed = timezone.now()
+                annotator_proj.save()
                 self.remove_annotator(user)
                 return None
         elif self.has_training_stage and not annotator_proj.training_completed:
