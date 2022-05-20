@@ -364,7 +364,7 @@ describe('Site serve test', () => {
      * Tests the entire annotation cycle including logging in, creating a project, configuring a project, upload
      * documents, add self as annotator and annotating something.
      */
-    it('Test annotator training and test', () => {
+    it.only('Test annotator training and test', () => {
         // Login through JSON request
         cy.login("admin", "testpassword")
 
@@ -473,7 +473,7 @@ describe('Site serve test', () => {
         cy.get("[data-role='annotation-display-container']").first().contains(adminUsername)
 
         //Check annotation exists in user profile
-        cy.get("a").contains(adminUsername).click()
+        cy.get(".user-profile-menu").contains(adminUsername).click()
         cy.contains("Profile").click()
         cy.contains(newProjectName)
         cy.get("[data-role='annotation-display-container']").first().contains(adminUsername)
