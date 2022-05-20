@@ -264,6 +264,9 @@ class Project(models.Model):
         if active_project is not None:
             raise Exception(f"User is already active in project {active_project.name}")
 
+        if self.annotator_reached_quota(user):
+            raise Exception(f"User is already reached annotation quota")
+
         try:
             annotator_project = AnnotatorProject.objects.get(project=self, annotator=user)
             annotator_project.status = AnnotatorProject.ACTIVE

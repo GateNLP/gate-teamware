@@ -254,6 +254,9 @@ class TestProjectModel(ModelTestCase):
 
     def test_make_annotator_active(self):
         project = Project.objects.create()
+        for i in range(20):
+            document = Document.objects.create(project=project)
+
         project2 = Project.objects.create()
         annotator = get_user_model().objects.create(username="anno1")
 
@@ -282,6 +285,18 @@ class TestProjectModel(ModelTestCase):
         project.make_annotator_active(annotator)
         annotator_project = AnnotatorProject.objects.get(project=project, annotator=annotator)
         self.assertEqual(AnnotatorProject.ACTIVE, annotator_project.status)
+
+        # Adds annotation to project mark user as completed
+        for document in project.documents.all():
+            annotation = Annotation.objects.create(user=annotator, document=document, status=Annotation.COMPLETED)
+        project.remove_annotator(annotator)
+
+        # Fail if already reached quota
+        with self.assertRaises(Exception):
+            project.make_annotator_active(annotator)
+
+
+
 
 
     def test_remove_annotator(self):
