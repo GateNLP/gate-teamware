@@ -34,8 +34,10 @@ ENTRYPOINT [ "/app/run-server.sh" ]
 
 
 FROM nginx:stable-alpine as frontend
+COPY nginx/health.conf.template /etc/nginx/templates/
 COPY --from=nodebuilder /app/frontend/static /usr/share/nginx/html/static
 COPY --from=nodebuilder /app/frontend/public/static /usr/share/nginx/html/static
+ENV HEALTH_PORT=8888
 
 
 FROM backend as test

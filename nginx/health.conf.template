@@ -1,0 +1,12 @@
+# Separate port for health checks, to avoid spamming the access log
+
+server {
+    listen      ${HEALTH_PORT};
+    listen [::]:${HEALTH_PORT};
+
+    location /healthz {
+        access_log off;
+        add_header 'Content-Type' 'application/json';
+        return 200 '{"status":"Healthy"}';
+    }
+}
