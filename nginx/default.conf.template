@@ -1,3 +1,8 @@
+#
+# Replacement for the default config when running under docker-compose - note
+# this file is not copied into the image by docker build, it must be mounted
+# into the container if you wish to use it.
+#
 include /etc/nginx/mime.types;
 
 upstream teamware {
