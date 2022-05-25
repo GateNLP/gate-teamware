@@ -252,7 +252,7 @@ export default {
       deep: true,
       handler() {
         for (const prop in this.config){
-          if (this.config[prop].type != 'html') {
+          if (this.showExplanation(this.config[prop])) {
             this.answerBgColor[this.config[prop].name] = this.getAnswerBgColor(this.config[prop]);
           }
         }
