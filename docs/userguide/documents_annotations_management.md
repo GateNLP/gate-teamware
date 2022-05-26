@@ -66,7 +66,7 @@ in csv:
 
 It is recommended that:
 
-* Spaces are not used in column headings, use `-` or `_` instead.
+* Spaces are not used in column headings, use dash (`-`), underscore (`_`) or camel case (e.g. fieldName) instead.
 * The `.` is used to indicate hierachical information so don't use it if that's not what's intended. 
   Explanation on this feature is given below.
   
