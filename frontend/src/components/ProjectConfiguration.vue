@@ -74,6 +74,10 @@
           Allow annotators to reject documents?
         </b-form-checkbox>
       </b-form-group>
+      <b-form-group label="Document ID field"
+                    description="The field in your uploaded documents that is used as a unique identifier. GATE's json format uses the name field. You can use a dot limited key path to access subfields e.g. enter features.name to get the id from the object {'features':{'name':'nameValue'}}">
+        <b-form-input v-model="local_project.document_id_field" name="project_document_id_field"></b-form-input>
+      </b-form-group>
       <b-form-group label="Training stage"
                     description="">
         <b-form-checkbox
@@ -96,7 +100,7 @@
           Testing stage <span v-if="local_project.has_test_stage">enabled</span><span v-else>disabled</span>
         </b-form-checkbox>
       </b-form-group>
-      <b-form-group label="Allow annotation on real dataset automatically after training and/or testing is finished"
+      <b-form-group label="Auto elevate to annotator"
         description="Automatically allows annotation on real dataset after the training and testing stage. A disabled stage counts as having been completed.">
         <b-form-checkbox
             id="project-can-annotate-after-passing"
@@ -107,23 +111,15 @@
           <span v-if="local_project.can_annotate_after_passing_training_and_test">Can</span><span v-else>Cannot</span> annotate after
           passing
         </b-form-checkbox>
-
-      </b-form-group>
-      <b-form-group label="Gold standard field"
-                    description="The field in document's JSON that contains the ideal annotation values and explanation for the annotation.">
-        <b-form-input v-model="local_project.document_gold_standard_field"></b-form-input>
       </b-form-group>
       <b-form-group label="Test pass proportion"
                     description="Annotator must score at least this proportion to pass the test."
       >
         <b-form-input v-model="local_project.min_test_pass_threshold"></b-form-input>
       </b-form-group>
-
-
-
-      <b-form-group label="Document ID field"
-                    description="The field in your uploaded documents that is used as a unique identifier. GATE's json format uses the name field. You can use a dot limited key path to access subfields e.g. enter features.name to get the id from the object {'features':{'name':'nameValue'}}">
-        <b-form-input v-model="local_project.document_id_field" name="project_document_id_field"></b-form-input>
+      <b-form-group label="Gold standard field"
+                    description="The field in document's JSON that contains the ideal annotation values and explanation for the annotation.">
+        <b-form-input v-model="local_project.document_gold_standard_field"></b-form-input>
       </b-form-group>
       <b-form-row>
         <b-col>

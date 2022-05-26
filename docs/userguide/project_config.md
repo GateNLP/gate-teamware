@@ -30,6 +30,21 @@ documents, annotations or annotators to the new project.
 * **Document ID field** - The field in your uploaded documents that is used as a unique identifier. GATE's json format
   uses the name field. You can use a dot limited key path to access subfields e.g. enter features.name to get the id
   from the object `{'features':{'name':'nameValue'}}`
+* **Training stage enable/disable** - Enable or disable training stage, allows testing documents to be uploaded to the project. 
+* **Test stage enable/disable** - Enable or disable testing stage, allows test documents to be uploaded to the project.
+* **Auto elevate to annotator** - The option works in combination with the training and test stage options, see table below for the behaviour:
+
+  | Training stage | Testing stage | Auto elevate to annotator | Desciption |
+  | --- | --- | --- | --- |
+  | Disabled | Disabled | Enabled/Disabled | User allowed to annotate without manual approval. |
+  | Enabled | Disabled | Disabled | Manual approval required. |
+  | Disabled | Enabled | Disabled | " |
+  | Enabled | Disabled | Enabled | User always allowed to annotate after training phase completed |
+  | Disabled | Enabled | Enabled | User automatically allowed to annotate after passing test, if user fails test they have to be manually approved. |
+  | Enabled | Enabled | Enabled | " |
+
+* **Test pass proportion** - The proportion of correct test annotations to be automatically allowed to annotate documents.
+* **Gold standard field** - The field in document's JSON/column that contains the ideal annotation values and explanation for the annotation.
 
 ## Anotation configuration
 
@@ -137,7 +152,73 @@ The annotation is linked to a Document and is converted to a GATE JSON annotatio
     {
         "name": "htmldisplay",
         "type": "html",
-        "text": "{{{text}}}"
+        "text": "{{{text}}}" // The text that will be displayed
+    }
+]
+```
+
+</AnnotationRendererPreview>
+
+The `htmldisplay` widget allows you to display the text you want annotated. It accepts almost full range of HTML
+input which gives full styling flexibility. 
+
+Any field/column from the document can be inserted by surrounding a field/column name with double or 
+triple curly brackets. Double curly brackets renders text as-is and triple curly brackets accepts HTML string:
+
+<AnnotationRendererPreview :config="configs.configDisplayHtmlNoHtml">
+
+Input:
+
+```json
+{
+  "text": "Sometext with <strong>html</strong>"
+}
+```
+
+Configuration, showing the same field/column in document as-is or as HTML:
+```json
+[
+    {
+        "name": "htmldisplay",
+        "type": "html",
+        "text": "No HTML: {{text}} <br/> HTML: {{{text}}}"
+    }
+]
+```
+
+</AnnotationRendererPreview>
+
+The widget makes no assumption about your document structure and any field/column names can be used, 
+even sub-fields by using the dot notation e.g. `parentField.childField`:
+
+<AnnotationRendererPreview :config="configs.configDisplayCustomFieldnames" :document="configs.doc2">
+
+JSON input:
+
+```json
+{
+    "customField": "Content of custom field.",
+    "anotherCustomField": "Content of another custom field.",
+    "subfield": {
+        "subfieldContent": "Content of a subfield."
+    }
+}
+```
+
+or in csv
+
+| customField | anotherCustomField | subfield.subfieldContent |
+| --- | --- | --- |
+| Content of custom field. | Content of another custom field. | Content of a subfield. |
+
+
+Configuration, showing the same field/column in document as-is or as HTML:
+```json
+[
+    {
+        "name": "htmldisplay",
+        "type": "html",
+        "text": "Custom field: {{customField}} <br/> Another custom field: {{{anotherCustomField}}} <br/> Subfield: {{{subfield.subfieldContent}}}"
     }
 ]
 ```

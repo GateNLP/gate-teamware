@@ -32,6 +32,73 @@ Documents can be imported using the **Import** button. The supported file types 
 * `.csv` - File must have a header row. It will be internally converted to JSON format.
 * `.zip` - Can contain any number of `.json,.jsonl and .csv` files inside.
 
+### Importing Training and Test documents
+
+When importing documents for the training and testing phase, Teamware expects a field/column (called `gold` by default) 
+that contains the correct annotation response for each label and, only for training documents, an explanation.
+
+For example, if we're expecting a multi-choice label for doing sentiment classification with a 
+widget named `sentiment` and choice of `postive`, `negative` and `neutrual`:
+
+```js
+[
+    {
+        "text": "What's my sentiment",
+        "gold": {
+            "sentiment": {
+                "value": "positive", // For this document, the correct value is postive
+                "explanation": "Because..." // Explanation is only given in the traiing phase and are optional in the test documents
+            }
+        }
+    }
+]
+```
+
+in csv:
+
+| text | gold.sentiment.value | gold.sentiment.explanation |
+| --- | --- | --- |
+| What's my sentiment | positive | Because... |
+
+
+
+### Guidance on CSV column headings
+
+It is recommended that:
+
+* Spaces are not used in column headings, use `-` or `_` instead.
+* The `.` is used to indicate hierachical information so don't use it if that's not what's intended. 
+  Explanation on this feature is given below.
+  
+Documents imported from a CSV files are converted to JSON for use internally in Teamware, the reverse is true 
+when converting back to CSV. To allow a CSV to represent a tree structure, a dot notation is used to indicate
+a sub-field. 
+
+In the following example, we can see that `gold` has a child field named `sentiment` which then has a child
+field named `value`:
+
+| text | gold.sentiment.value | gold.sentiment.explanation |
+| --- | --- | --- |
+| What's my sentiment | positive | Because... |
+
+The above column headers will generate the following JSON:
+
+```js
+[
+    {
+        "text": "What's my sentiment",
+        "gold": {
+            "sentiment": {
+                "value": "positive", // For this document, the correct value is postive
+                "explanation": "Because..." // Explanation is only given in the traiing phase and are optional in the test documents
+            }
+        }
+    }
+]
+```
+
+
+ 
 
 ## Exporting documents
 
