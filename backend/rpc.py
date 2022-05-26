@@ -24,7 +24,7 @@ from gatenlp import annotation_set
 
 from backend.errors import AuthError
 from backend.rpcserver import rpc_method, rpc_method_auth, rpc_method_manager, rpc_method_admin
-from backend.models import Project, Document, Annotation
+from backend.models import Project, Document, DocumentType, Annotation, AnnotatorProject
 from backend.utils.misc import get_value_from_key_path, insert_value_to_key_path
 from backend.utils.serialize import ModelSerializer
 
@@ -360,8 +360,9 @@ def create_project(request):
         proj = Project.objects.create()
         proj.owner = request.user
         proj.save()
-
-        return serializer.serialize(proj)
+        serialized_project = serializer.serialize(proj, exclude_fields=set(["annotators", "annotatorproject"]))
+        serialized_project["annotators"] = get_project_annotators(request, proj.id)
+        return serialized_project
 
 @rpc_method_manager
 def delete_project(request, project_id):
@@ -373,14 +374,15 @@ def delete_project(request, project_id):
 @rpc_method_manager
 def update_project(request, project_dict):
     with transaction.atomic():
-        project = serializer.deserialize(Project, project_dict)
+        project = serializer.deserialize(Project, project_dict, exclude_fields=set(["annotators", "annotatorproject"]))
         return True
 
 @rpc_method_manager
 def get_project(request, project_id):
     proj = Project.objects.get(pk=project_id)
     out_proj = {
-        **serializer.serialize(proj),
+        **serializer.serialize(proj, exclude_fields=set(["annotators", "annotatorproject"])),
+        **proj.get_annotators_dict(),
         **proj.get_project_stats()
     }
     return out_proj
@@ -400,7 +402,7 @@ def clone_project(request, project_id):
                 setattr(new_project, field_name, getattr(current_project, field_name))
         new_project.save()
 
-        return serializer.serialize(new_project)
+        return serializer.serialize(new_project, exclude_fields=set(["annotators", "annotatorproject"]))
 
 
 
@@ -461,6 +463,7 @@ def get_projects(request, current_page=1, page_size=None, filters=None):
     for proj in projects:
         out_proj = {
             **serializer.serialize(proj, {"id", "name", "created"}),
+            **proj.get_annotators_dict(),
             **proj.get_project_stats()
         }
         output_projects.append(out_proj)
@@ -468,8 +471,7 @@ def get_projects(request, current_page=1, page_size=None, filters=None):
     return {"items": output_projects, "total_count": total_count}
 
 
-@rpc_method_manager
-def get_project_documents(request, project_id, current_page=1, page_size=None, filters=None):
+def _get_project_documents(project_id, current_page=1, page_size=None, filters=None, doc_type=DocumentType.ANNOTATION):
     """
     Gets the list of documents and its annotations. Query result can be limited by using current_page and page_size
     and sorted by using filters
@@ -477,8 +479,8 @@ def get_project_documents(request, project_id, current_page=1, page_size=None, f
     :param project_id: The id of the project that the documents belong to, is a required variable
     :param current_page: A 1-indexed page count
     :param page_size: The maximum number of items to return per query
-    :param filters: Filter currently only searches for ID of documents
-    for project title
+    :param filters: Filter currently only searches for ID of documents for project title
+    :param doc_type: Integer enum representation of document type Document.[ANNOTATION, TRAINING, TEST]
     :returns: Dictionary of items and total count after filter is applied {"items": [], "total_count": int}
     """
 
@@ -499,10 +501,10 @@ def get_project_documents(request, project_id, current_page=1, page_size=None, f
     # Filter
     if isinstance(filters, str):
         # Search for id
-        documents_query = project.documents.filter(pk=filters.strip())
+        documents_query = project.documents.filter(pk=filters.strip(), doc_type=doc_type)
         total_count = documents_query.count()
     else:
-        documents_query = project.documents.all()
+        documents_query = project.documents.filter(doc_type=doc_type).all()
         total_count = documents_query.count()
 
     # Paginate
@@ -522,16 +524,75 @@ def get_project_documents(request, project_id, current_page=1, page_size=None, f
     return {"items": documents_out, "total_count": total_count}
 
 @rpc_method_manager
+def get_project_documents(request, project_id, current_page=1, page_size=None, filters=None):
+    """
+    Gets the list of documents and its annotations. Query result can be limited by using current_page and page_size
+    and sorted by using filters
+
+    :param project_id: The id of the project that the documents belong to, is a required variable
+    :param current_page: A 1-indexed page count
+    :param page_size: The maximum number of items to return per query
+    :param filters: Filter currently only searches for ID of documents
+    for project title
+    :returns: Dictionary of items and total count after filter is applied {"items": [], "total_count": int}
+    """
+
+    return _get_project_documents(project_id, current_page, page_size, filters, DocumentType.ANNOTATION)
+
+@rpc_method_manager
+def get_project_test_documents(request, project_id, current_page=1, page_size=None, filters=None):
+    """
+    Gets the list of documents and its annotations. Query result can be limited by using current_page and page_size
+    and sorted by using filters
+
+    :param project_id: The id of the project that the documents belong to, is a required variable
+    :param current_page: A 1-indexed page count
+    :param page_size: The maximum number of items to return per query
+    :param filters: Filter currently only searches for ID of documents
+    for project title
+    :returns: Dictionary of items and total count after filter is applied {"items": [], "total_count": int}
+    """
+
+    return _get_project_documents(project_id, current_page, page_size, filters, DocumentType.TEST)
+
+@rpc_method_manager
+def get_project_training_documents(request, project_id, current_page=1, page_size=None, filters=None):
+    """
+    Gets the list of documents and its annotations. Query result can be limited by using current_page and page_size
+    and sorted by using filters
+
+    :param project_id: The id of the project that the documents belong to, is a required variable
+    :param current_page: A 1-indexed page count
+    :param page_size: The maximum number of items to return per query
+    :param filters: Filter currently only searches for ID of documents
+    for project title
+    :returns: Dictionary of items and total count after filter is applied {"items": [], "total_count": int}
+    """
+
+    return _get_project_documents(project_id, current_page, page_size, filters, DocumentType.TRAINING)
+
+def _add_project_document(project_id, document_data, doc_type=DocumentType.ANNOTATION):
+    project = Project.objects.get(pk=project_id)
+    document = Document.objects.create(project=project, doc_type=doc_type)
+    document.data = document_data
+    document.save()
+    return document.pk
+
+
+@rpc_method_manager
 def add_project_document(request, project_id, document_data):
-
     with transaction.atomic():
-        project = Project.objects.get(pk=project_id)
-        document = Document.objects.create(project=project)
-        document.data = document_data
-        document.save()
+        return _add_project_document(project_id, document_data=document_data, doc_type=DocumentType.ANNOTATION)
 
-        return document.pk
+@rpc_method_manager
+def add_project_test_document(request, project_id, document_data):
+    with transaction.atomic():
+        return _add_project_document(project_id, document_data=document_data, doc_type=DocumentType.TEST)
 
+@rpc_method_manager
+def add_project_training_document(request, project_id, document_data):
+    with transaction.atomic():
+        return _add_project_document(project_id, document_data=document_data, doc_type=DocumentType.TRAINING)
 
 @rpc_method_manager
 def add_document_annotation(request, doc_id, annotation):
@@ -581,16 +642,26 @@ def delete_documents_and_annotations(request, doc_id_ary, anno_id_ary):
     return True
 
 @rpc_method_manager
-def get_possible_annotators(request):
-    annotators = User.objects.filter(annotates=None)
-    output = [serializer.serialize(annotator, {"id", "username", "email"}) for annotator in annotators]
+def get_possible_annotators(request, proj_id):
+    project = Project.objects.get(pk=proj_id)
+    # get a list of IDs of annotators that is currently active in any project
+    active_annotators = User.objects.filter(annotatorproject__status=AnnotatorProject.ACTIVE).values_list('id', flat=True)
+    project_annotators = project.annotators.all().values_list('id', flat=True)
+    # Do an exclude filter to remove annotator with the those ids
+    valid_annotators = User.objects.exclude(id__in=active_annotators).exclude(id__in=project_annotators)
+    output = [serializer.serialize(annotator, {"id", "username", "email"}) for annotator in valid_annotators]
     return output
 
 
 @rpc_method_manager
 def get_project_annotators(request, proj_id):
-    project = Project.objects.get(pk=proj_id)
-    output = [serializer.serialize(annotator, {"id", "username", "email"}) for annotator in project.annotators.all()]
+    project_annotators = AnnotatorProject.objects.filter(project_id=proj_id)
+    output = []
+    for ap in project_annotators:
+        output.append({
+            **serializer.serialize(ap.annotator, {"id", "username", "email"}),
+            **serializer.serialize(ap, exclude_fields={"annotator", "project"})
+        })
     return output
 
 
@@ -603,6 +674,22 @@ def add_project_annotator(request, proj_id, username):
         project.save()
         return True
 
+@rpc_method_manager
+def make_project_annotator_active(request, proj_id, username):
+    with transaction.atomic():
+        annotator = User.objects.get(username=username)
+        project = Project.objects.get(pk=proj_id)
+        project.make_annotator_active(annotator)
+        return True
+
+
+@rpc_method_manager
+def project_annotator_allow_annotation(request, proj_id, username):
+    with transaction.atomic():
+        annotator = User.objects.get(username=username)
+        project = Project.objects.get(pk=proj_id)
+        project.annotator_set_allowed_to_annotate(annotator)
+
 
 @rpc_method_manager
 def remove_project_annotator(request, proj_id, username):
@@ -613,6 +700,14 @@ def remove_project_annotator(request, proj_id, username):
         project.save()
         return True
 
+@rpc_method_manager
+def reject_project_annotator(request, proj_id, username):
+    with transaction.atomic():
+        annotator = User.objects.get(username=username)
+        project = Project.objects.get(pk=proj_id)
+        project.reject_annotator(annotator)
+        project.save()
+        return True
 
 @rpc_method_manager
 def get_annotation_timings(request, proj_id):
@@ -645,7 +740,7 @@ def get_annotation_task(request):
 
         # Gets project the user's associated with
         user = request.user
-        project = user.annotates
+        project = user.annotates.filter(annotatorproject__status=AnnotatorProject.ACTIVE).distinct().first()
 
         # No project to annotate
         if not project:
@@ -710,6 +805,16 @@ def get_annotation_content(request, annotation_id):
     else:
         raise PermissionError("No permission to access the annotation")
 
+@rpc_method_auth
+def annotator_leave_project(request):
+    """ Allow annotator to leave their currently associated project. """
+    user = request.user
+    project = user.active_project
+
+    if project is None:
+        raise Exception("No current active project")
+
+    project.remove_annotator(get_user_model().objects.get(pk=user.id))
 
 
 ###############################

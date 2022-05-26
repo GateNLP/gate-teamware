@@ -8,7 +8,7 @@ from django.http import StreamingHttpResponse, HttpResponse
 from django.shortcuts import render
 from django.views import View
 
-from backend.models import Project
+from backend.models import Project, Document, DocumentType
 
 
 class MainView(View):
@@ -37,9 +37,9 @@ class MainView(View):
 class DownloadAnnotationsView(View):
 
 
-    def get(self, request, project_id, export_type, json_format, entries_per_file):
+    def get(self, request, project_id, doc_type, export_type, json_format, entries_per_file):
         if request.user.is_manager or request.user.is_staff or request.user.is_superuser:
-            response = StreamingHttpResponse(self.generate_download(project_id, export_type, documents_per_file=entries_per_file))
+            response = StreamingHttpResponse(self.generate_download(project_id, doc_type, export_type, documents_per_file=entries_per_file))
 
             export_format_extension = ""
             if export_type == "json" or export_type == "jsonl":
@@ -55,13 +55,21 @@ class DownloadAnnotationsView(View):
 
         return HttpResponse("No permission to access this endpoint", status=401)
 
-    def generate_download(self, project_id, export_type="json", json_format="raw", chunk_size=512, documents_per_file=500):
+    def generate_download(self, project_id, doc_type="all", export_type="json", json_format="raw", chunk_size=512, documents_per_file=500):
 
         project = Project.objects.get(pk=project_id)
 
         with tempfile.TemporaryFile() as z:
             with ZipFile(z, "w") as zip:
                     all_docs = project.documents.all()
+                    if doc_type == "training":
+                        all_docs = project.documents.filter(doc_type=DocumentType.TRAINING)
+                    elif doc_type == "test":
+                        all_docs = project.documents.filter(doc_type=DocumentType.TEST)
+                    elif doc_type == "annotation":
+                        all_docs = project.documents.filter(doc_type=DocumentType.ANNOTATION)
+
+
                     num_docs = all_docs.count()
                     num_slices = math.ceil(num_docs/documents_per_file)
 
@@ -75,7 +83,7 @@ class DownloadAnnotationsView(View):
 
                         with tempfile.NamedTemporaryFile("w+") as f:
                             self.write_docs_to_file(f, slice_docs, export_type, json_format)
-                            zip.write(f.name, f"project-{project_id}-{slice_index:04d}.{export_type}")
+                            zip.write(f.name, f"project-{project_id}-{doc_type}-{slice_index:04d}.{export_type}")
 
             # Stream file output
 

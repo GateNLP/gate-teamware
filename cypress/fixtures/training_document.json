@@ -1,0 +1,12 @@
+[
+  {
+    "id": "1",
+    "text": "Training document 1",
+    "gold": {
+      "sentiment": {
+        "value": "positive",
+        "explanation": "Example explanation 1"
+      }
+    }
+  }
+]

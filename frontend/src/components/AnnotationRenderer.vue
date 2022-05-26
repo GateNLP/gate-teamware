@@ -16,6 +16,11 @@
         <div v-else>
           Component invalid
         </div>
+        <b-card class="mb-4"
+          :border-variant="answerBgColor[elemConfig.name]"
+          v-if="showExplanation(elemConfig)">
+          <MarkdownRenderer :content="answerText(elemConfig) + '<br>' + document[doc_gold_field][elemConfig.name].explanation"></MarkdownRenderer>
+        </b-card>
       </b-form-group>
     </div>
     <b-row>
@@ -36,13 +41,15 @@ import RadioInput from "@/components/annotation/RadioInput";
 import CheckboxInput from "@/components/annotation/CheckboxInput";
 import SelectorInput from "@/components/annotation/SelectorInput";
 import HtmlDisplay from "@/components/annotation/HtmlDisplay";
+import {DocumentType} from '@/enum/DocumentTypes';
+import MarkdownRenderer from "@/components/MarkdownRenderer";
 
 /**
  * Renders annotation display and input capture from the config property
  */
 export default {
   name: "AnnotationRenderer",
-  components: {TextInput, TextareaInput, RadioInput, CheckboxInput, SelectorInput, HtmlDisplay},
+  components: {TextInput, TextareaInput, RadioInput, CheckboxInput, SelectorInput, HtmlDisplay, MarkdownRenderer},
   data() {
     return {
       annotationOutput: {},
@@ -57,7 +64,9 @@ export default {
         html: 'HtmlDisplay',
       },
       ignoreValidateTypes: ['html'],
-      startTime: null
+      startTime: null,
+      DocumentType,
+      answerBgColor: {}
     }
   },
   props: {
@@ -69,7 +78,13 @@ export default {
         return {
           text: "<p>Some html text <strong>in bold</strong>.</p><p>Paragraph 2.</p>"
         }
-      }
+      },
+    },
+    document_type: {
+      default: null
+    },
+    doc_gold_field: {
+      default: 'gold'
     },
     allow_document_reject: {
       default: null
@@ -80,6 +95,9 @@ export default {
       this.startTime = new Date();
     },
     getTimeElapsed(){
+      if (this.document_type != this.DocumentType.Annotation){
+        return null
+      }
       let endTime = new Date();
       return (endTime - this.startTime)/1E3;
     },
@@ -182,8 +200,45 @@ export default {
     rejectHandler(e){
       this.$emit('reject')
       this.startTimer();
-    }
+    },
+    getAnswerBgColor(elemConfig){
+      let answer = this.annotationOutput[elemConfig.name];
+      let expected = this.document[this.doc_gold_field][elemConfig.name].value;
 
+      if (Object.keys(elemConfig.options).includes(answer)) {
+        if (answer == expected){
+          return "success"
+        } else {
+          return "danger"
+        }
+      } else {
+        return "Default"
+      }
+    },
+    showExplanation(elemConfig){
+
+      if (elemConfig.type == 'html'){
+        return false
+      } else if ((this.document_type == DocumentType.Training) && (Object.keys(elemConfig.options).includes(this.annotationOutput[elemConfig.name]))) {
+        return true
+      } else {
+        return false
+      }
+    },
+    answerText(elemConfig){
+      let answer = this.annotationOutput[elemConfig.name];
+      let expected = this.document[this.doc_gold_field][elemConfig.name].value;
+
+      if (Object.keys(elemConfig.options).includes(answer)) {
+        if (answer == expected){
+          return "Correct! ✔️"
+        } else {
+          return "Incorrect ❌"
+        }
+      } else {
+        return ""
+      }
+    }
   },
   watch: {
     config: {
@@ -191,9 +246,25 @@ export default {
       handler(newConfig) {
         this.generateValidationTracker(newConfig)
       }
+    },
+    annotationOutput: {
+      immediate: true,
+      deep: true,
+      handler() {
+        for (const prop in this.config){
+          if (this.showExplanation(this.config[prop])) {
+            this.answerBgColor[this.config[prop].name] = this.getAnswerBgColor(this.config[prop]);
+          }
+        }
+      }
     }
   },
   mounted(){
+    for (const prop in this.config){
+      if(this.config[prop].type != 'html') {
+        this.answerBgColor[this.config[prop].name] = "Default";
+      }
+    }
     this.startTimer();
   }
 

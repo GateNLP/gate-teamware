@@ -92,7 +92,7 @@
 
                 <strong>
                   <span v-if="doc.doc_id" title="ID of the document. ID is obtained from the field specified in the project's configuration.">{{ doc.doc_id }}</span>
-                  <b-badge v-else variant="warning" :title="`Specified field does not exist in document.`">
+                  <b-badge v-else variant="warning" :title="`Specified ID field does not exist in document.`">
                     <b-icon-exclamation-triangle></b-icon-exclamation-triangle>
                   </b-badge>
                 </strong>
@@ -283,7 +283,7 @@ export default {
     },
     showFilters: {
       default: true
-    }
+    },
   },
   computed: {
     loadingVariant() {

@@ -1,7 +1,26 @@
 <template>
   <b-container>
     <div v-if="annotationTask">
-      <h1>Annotate: {{ annotationTask.project_name }}</h1>
+      <b-row class="mt-4">
+        <b-col cols="9">
+          <h1>Annotate: {{ annotationTask.project_name }}</h1>
+
+        </b-col>
+        <b-col cols="3" class="text-right">
+          <b-button variant="danger" @click="showLeaveProjectModal = true">
+            Leave project
+          </b-button>
+        </b-col>
+      </b-row>
+
+      <DeleteModal title="Leaving project"
+                   v-model="showLeaveProjectModal"
+                   operation-string="Leave project"
+                   @delete="leaveProjectHandler">
+        Some message
+
+      </DeleteModal>
+
 
 
       <b-card class="mb-4">
@@ -20,41 +39,56 @@
 
       </b-card>
 
-      <b-row class="mt-4">
-        <b-col>
-          <h2>
-            Annotate a document
-          </h2>
-        </b-col>
-        <b-col class="text-right">
-          <b-badge :title="'Current annotating document ID: '+annotationTask.document_field_id" class="mr-2">
-            #{{ annotationTask.document_field_id }}
-          </b-badge>
-          <b-badge variant="success"
-                   :title="`You have completed ${annotationTask.annotator_completed_tasks} annotation task(s) in this project.`"
-                   class="mr-2">
-            <b-icon-check-square-fill></b-icon-check-square-fill>
-            {{ annotationTask.annotator_completed_tasks }}
-          </b-badge>
-          <b-badge variant="warning"
-                   :title="`You have ${annotationTask.annotator_remaining_tasks} remaining annotation task(s) in this project.`">
-            <b-icon-pencil-fill></b-icon-pencil-fill>
-            {{ annotationTask.annotator_remaining_tasks }}
-          </b-badge>
-        </b-col>
-      </b-row>
-      <b-card class="mb-4">
+      <div v-if="annotationTask.annotation_id">
+        <b-row class="mt-4">
+          <b-col>
+            <h2>
+              Annotate a document
+            </h2>
+          </b-col>
+          <b-col class="text-right">
+            <b-badge variant="primary"
+                     v-if="(annotationTask.document_type == DocumentType.Training) || annotationTask.document_type == DocumentType.Test"
+                     :title="'You are currently in the annotator ' + annotationTask.document_type + ' stage'"
+                     class="mr-2">
+              Stage: Annotator {{ annotationTask.document_type }}
+            </b-badge>
+            <b-badge :title="'Currently annotating document ID: '+annotationTask.document_field_id" class="mr-2">
+              #{{ annotationTask.document_field_id }}
+            </b-badge>
+            <b-badge variant="success"
+                     :title="`You have completed ${annotationTask.annotator_completed_tasks} annotation task(s) in this project.`"
+                     class="mr-2">
+              <b-icon-check-square-fill></b-icon-check-square-fill>
+              {{ annotationTask.annotator_completed_tasks }}
+            </b-badge>
+            <b-badge variant="warning"
+                     :title="`You have ${annotationTask.annotator_remaining_tasks} remaining annotation task(s) in this project.`">
+              <b-icon-pencil-fill></b-icon-pencil-fill>
+              {{ annotationTask.annotator_remaining_tasks }}
+            </b-badge>
+          </b-col>
+        </b-row>
+        <b-card class="mb-4">
 
 
-        <AnnotationRenderer :config="annotationTask.project_config"
-                            :document="annotationTask.document_data"
-                            :allow_document_reject="annotationTask.allow_document_reject"
-                            @submit="submitHandler"
-                            @reject="rejectHandler"
-        ></AnnotationRenderer>
+          <AnnotationRenderer :config="annotationTask.project_config"
+                              :document="annotationTask.document_data"
+                              :document_type="annotationTask.document_type"
+                              :doc_gold_field="annotationTask.document_gold_standard_field"
+                              :allow_document_reject="annotationTask.allow_document_reject"
+                              @submit="submitHandler"
+                              @reject="rejectHandler"
+          ></AnnotationRenderer>
 
-      </b-card>
-
+        </b-card>
+      </div>
+      <div v-else>
+        <h2>Waiting for approval to perform annotation</h2>
+        <b-card>
+          You require approval from the project manager to proceed with the annotation task.
+        </b-card>
+      </div>
 
     </div>
     <div v-else>
@@ -77,19 +111,23 @@ import AnnotationRenderer from "@/components/AnnotationRenderer";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
 import CollapseText from "@/components/CollapseText";
 import {toastError} from "@/utils";
+import {DocumentType} from '@/enum/DocumentTypes';
+import DeleteModal from "@/components/DeleteModal";
 
 export default {
   name: "Annotate",
   title: "Annotate",
-  components: {CollapseText, MarkdownRenderer, AnnotationRenderer},
+  components: {DeleteModal, CollapseText, MarkdownRenderer, AnnotationRenderer},
   data() {
     return {
-      annotationTask: null
+      annotationTask: null,
+      DocumentType,
+      showLeaveProjectModal: false,
     }
   },
   computed: {},
   methods: {
-    ...mapActions(["getUserAnnotationTask", "completeUserAnnotationTask", "rejectUserAnnotationTask"]),
+    ...mapActions(["getUserAnnotationTask", "completeUserAnnotationTask", "rejectUserAnnotationTask", "annotatorLeaveProject"]),
     async submitHandler(value, time) {
       try {
         await this.completeUserAnnotationTask({
@@ -102,7 +140,11 @@ export default {
         toastError("Could not get annotation task", e, this)
       }
 
-      await this.getAnnotationTask()
+      try {
+        await this.getAnnotationTask()
+      } catch (e) {
+        toastError("Could not get annotation task", e, this)
+      }
 
     },
     async rejectHandler() {
@@ -112,7 +154,11 @@ export default {
         toastError("Could not get annotation task", e, this)
       }
 
-      await this.getAnnotationTask()
+      try {
+        await this.getAnnotationTask()
+      } catch (e) {
+        toastError("Could not get annotation task", e, this)
+      }
 
     },
     async getAnnotationTask() {
@@ -122,6 +168,21 @@ export default {
       } catch (e) {
         toastError("Could not get annotation task", e, this)
       }
+    },
+    async leaveProjectHandler(){
+      try {
+        await this.annotatorLeaveProject()
+      } catch (e) {
+        toastError("Could not leave project", e, this)
+      }
+
+      try {
+        await this.getAnnotationTask()
+      } catch (e) {
+        toastError("Could not get annotation task", e, this)
+      }
+
+
     }
   },
   async mounted() {

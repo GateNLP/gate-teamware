@@ -13,11 +13,12 @@
 
     <DocumentUploader v-model="showDocumentUploadModal"
                     :project-id="project.id"
+                      :document-type="DocumentType.Training"
                     @uploading="documentStartUploadHandler"
                     @completed="documentUploadHandler"></DocumentUploader>
 
     <DocumentExporter v-model="showDocumentExportModal"
-                      default-doc-type="annotation"
+                      default-doc-type="training"
                       :project-id="project.id">
     </DocumentExporter>
   </div>
@@ -30,10 +31,10 @@ import DocumentUploader from "@/components/DocumentUploader";
 import DocumentsList from "@/components/DocumentsList";
 import {toastError, toastSuccess} from "@/utils";
 import DeleteModal from "@/components/DeleteModal";
-
+import {DocumentType} from "@/enum/DocumentTypes";
 
 export default {
-  name: "ProjectDocuments",
+  name: "ProjectTrainingDocuments",
   components: {
     DeleteModal,
     DocumentExporter,
@@ -50,6 +51,7 @@ export default {
       showDocumentUploadModal: false,
       showDocumentExportModal: false,
       loading: false,
+      DocumentType,
 
     }
   },
@@ -80,7 +82,7 @@ export default {
 
   },
   methods: {
-    ...mapActions(["getProjectDocuments", "addProjectDocument",
+    ...mapActions(["getProjectTrainingDocuments", "addProjectDocument",
       "deleteDocumentsAndAnnotations",]),
     isEverythingSelected() {
       return this.selectedDocuments.length >= this.numDocs &&
@@ -90,7 +92,7 @@ export default {
       this.setLoading(true)
 
       try {
-        const result = await this.getProjectDocuments({
+        const result = await this.getProjectTrainingDocuments({
           project_id: this.project.id,
           current_page: currentPage,
           page_size: pageSize,

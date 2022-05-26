@@ -262,6 +262,34 @@ export default new Vuex.Store({
                 throw e
             }
         },
+        async getProjectTrainingDocuments({dispatch,commit}, {project_id, current_page, page_size, filters=null}){
+
+            try {
+                let documents = await rpc.call("get_project_training_documents",
+                    project_id,
+                    current_page,
+                    page_size,
+                    filters);
+                return documents
+            } catch (e){
+                console.log(e)
+                throw e
+            }
+        },
+        async getProjectTestDocuments({dispatch,commit}, {project_id, current_page, page_size, filters=null}){
+
+            try {
+                let documents = await rpc.call("get_project_test_documents",
+                    project_id,
+                    current_page,
+                    page_size,
+                    filters);
+                return documents
+            } catch (e){
+                console.log(e)
+                throw e
+            }
+        },
         async createProject({dispatch, commit}){
             try{
                 console.log("Creating a project")
@@ -330,6 +358,22 @@ export default new Vuex.Store({
                 throw e
             }
         },
+        async addProjectTrainingDocument({dispatch, commit}, { projectId, document}){
+            try{
+                let docId = await rpc.call("add_project_training_document", projectId, document)
+            }catch (e){
+                console.error(e)
+                throw e
+            }
+        },
+        async addProjectTestDocument({dispatch, commit}, { projectId, document}){
+            try{
+                let docId = await rpc.call("add_project_test_document", projectId, document)
+            }catch (e){
+                console.error(e)
+                throw e
+            }
+        },
         async addAnnotation({dispatch, commit}, {docId, annotation}){
             try {
                 let annotateId = await rpc.call("add_document_annotation", docId, annotation)
@@ -358,9 +402,9 @@ export default new Vuex.Store({
             }
 
         },
-        async getPossibleAnnotators({dispatch, commit}){
+        async getPossibleAnnotators({dispatch, commit}, projectID){
             try{
-                let response = await rpc.call("get_possible_annotators");
+                let response = await rpc.call("get_possible_annotators", projectID);
                 return response
             }catch(e){
                 console.error(e)
@@ -385,9 +429,36 @@ export default new Vuex.Store({
                 throw e
             }
         },
+        async makeProjectAnnotatorActive({dispatch, commit}, {projectID, username}){
+            try{
+                let response = await rpc.call("make_project_annotator_active", projectID, username);
+                return response
+            }catch(e){
+                console.error(e)
+                throw e
+            }
+        },
+        async projectAnnotatorAllowAnnotation({dispatch, commit}, {projectID, username}){
+            try{
+                let response = await rpc.call("project_annotator_allow_annotation", projectID, username);
+                return response
+            }catch(e){
+                console.error(e)
+                throw e
+            }
+        },
         async removeProjectAnnotator({dispatch, commit}, {projectID, username}){
             try{
                 let response = await rpc.call("remove_project_annotator", projectID, username);
+                return response
+            }catch(e){
+                console.error(e)
+                throw e
+            }
+        },
+        async rejectProjectAnnotator({dispatch, commit}, {projectID, username}){
+            try{
+                let response = await rpc.call("reject_project_annotator", projectID, username);
                 return response
             }catch(e){
                 console.error(e)
@@ -451,6 +522,14 @@ export default new Vuex.Store({
                 throw e
             }
 
+        },
+        async annotatorLeaveProject({dispatch, commit}){
+            try{
+                return await rpc.call("annotator_leave_project")
+            }catch(e){
+                console.error(e)
+                throw e
+            }
         },
         async getEndpointListing({dispatch, commit}){
             try{
