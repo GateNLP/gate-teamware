@@ -255,7 +255,7 @@ describe('Site serve test', () => {
 
         // Delete the project
         cy.contains("Delete").click()
-        cy.contains("Unlock delete").click()
+        cy.contains("Unlock").click()
         cy.get(".modal-dialog").within(()=>{
             cy.get("button").contains("Delete").click()
         })
