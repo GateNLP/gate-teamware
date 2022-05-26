@@ -1,7 +1,26 @@
 <template>
   <b-container>
     <div v-if="annotationTask">
-      <h1>Annotate: {{ annotationTask.project_name }}</h1>
+      <b-row class="mt-4">
+        <b-col cols="9">
+          <h1>Annotate: {{ annotationTask.project_name }}</h1>
+
+        </b-col>
+        <b-col cols="3" class="text-right">
+          <b-button variant="danger" @click="showLeaveProjectModal = true">
+            Leave project
+          </b-button>
+        </b-col>
+      </b-row>
+
+      <DeleteModal title="Leaving project"
+                   v-model="showLeaveProjectModal"
+                   operation-string="Leave project"
+                   @delete="leaveProjectHandler">
+        Some message
+
+      </DeleteModal>
+
 
 
       <b-card class="mb-4">
@@ -93,20 +112,22 @@ import MarkdownRenderer from "@/components/MarkdownRenderer";
 import CollapseText from "@/components/CollapseText";
 import {toastError} from "@/utils";
 import {DocumentType} from '@/enum/DocumentTypes';
+import DeleteModal from "@/components/DeleteModal";
 
 export default {
   name: "Annotate",
   title: "Annotate",
-  components: {CollapseText, MarkdownRenderer, AnnotationRenderer},
+  components: {DeleteModal, CollapseText, MarkdownRenderer, AnnotationRenderer},
   data() {
     return {
       annotationTask: null,
-      DocumentType
+      DocumentType,
+      showLeaveProjectModal: false,
     }
   },
   computed: {},
   methods: {
-    ...mapActions(["getUserAnnotationTask", "completeUserAnnotationTask", "rejectUserAnnotationTask"]),
+    ...mapActions(["getUserAnnotationTask", "completeUserAnnotationTask", "rejectUserAnnotationTask", "annotatorLeaveProject"]),
     async submitHandler(value, time) {
       try {
         await this.completeUserAnnotationTask({
@@ -119,7 +140,11 @@ export default {
         toastError("Could not get annotation task", e, this)
       }
 
-      await this.getAnnotationTask()
+      try {
+        await this.getAnnotationTask()
+      } catch (e) {
+        toastError("Could not get annotation task", e, this)
+      }
 
     },
     async rejectHandler() {
@@ -129,7 +154,11 @@ export default {
         toastError("Could not get annotation task", e, this)
       }
 
-      await this.getAnnotationTask()
+      try {
+        await this.getAnnotationTask()
+      } catch (e) {
+        toastError("Could not get annotation task", e, this)
+      }
 
     },
     async getAnnotationTask() {
@@ -139,6 +168,21 @@ export default {
       } catch (e) {
         toastError("Could not get annotation task", e, this)
       }
+    },
+    async leaveProjectHandler(){
+      try {
+        await this.annotatorLeaveProject()
+      } catch (e) {
+        toastError("Could not leave project", e, this)
+      }
+
+      try {
+        await this.getAnnotationTask()
+      } catch (e) {
+        toastError("Could not get annotation task", e, this)
+      }
+
+
     }
   },
   async mounted() {

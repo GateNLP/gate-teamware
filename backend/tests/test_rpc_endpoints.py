@@ -17,7 +17,8 @@ from backend.rpc import create_project, update_project, add_project_document, ad
     set_user_receive_mail_notifications, delete_documents_and_annotations, import_project_config, export_project_config, \
     clone_project, delete_project, get_projects, get_project_documents, get_user_annotated_projects, \
     get_user_annotations_in_project, add_project_test_document, add_project_training_document, \
-    get_project_training_documents, get_project_test_documents, project_annotator_allow_annotation
+    get_project_training_documents, get_project_test_documents, project_annotator_allow_annotation, \
+    annotator_leave_project
 from backend.rpcserver import rpc_method
 
 
@@ -422,6 +423,24 @@ class TestProject(TestEndpoint):
         update_project(self.get_loggedin_request(), data)
         project.refresh_from_db()
 
+        # Add some documents to the project
+        for i in range(5):
+            Document.objects.create(project=project, doc_type=DocumentType.TRAINING)
+        for i in range(10):
+            Document.objects.create(project=project, doc_type=DocumentType.TEST)
+        for i in range(20):
+            Document.objects.create(project=project, doc_type=DocumentType.ANNOTATION)
+
+        self.assertEqual(5, project.num_training_documents)
+        self.assertEqual(10, project.num_test_documents)
+        self.assertEqual(20, project.num_documents)
+
+        # Add annotator to project
+        ann1 = get_user_model().objects.create(username="ann1")
+        project.add_annotator(ann1)
+
+        self.assertEqual(1, project.annotators.all().count())
+
         cloned_project_dict = clone_project(self.get_loggedin_request(), project.pk)
         cloned_project = Project.objects.get(pk=cloned_project_dict["id"])
         self.assertNotEqual(project.pk, cloned_project.pk)
@@ -430,6 +449,14 @@ class TestProject(TestEndpoint):
                 self.assertEqual("Copy of " + getattr(project, field_name),  getattr(cloned_project, field_name))
             else:
                 self.assertEqual(getattr(project, field_name), getattr(cloned_project, field_name))
+
+        # Must not have associated documents
+        self.assertEqual(0, cloned_project.num_training_documents)
+        self.assertEqual(0, cloned_project.num_test_documents)
+        self.assertEqual(0, cloned_project.num_documents)
+
+        # Must not have associated users
+        self.assertEqual(0, cloned_project.annotators.all().count())
 
 
     def test_get_projects(self):
@@ -1076,6 +1103,38 @@ class TestAnnotationTaskManager(TestEndpoint):
 
         self.assertTrue(proj.is_completed)
         self.assertEqual(0, proj.num_annotators)
+
+    def test_leave_project(self):
+        """ Tests a case where user leaves the project they're active in"""
+
+        # Create project and add annotator
+        project = Project.objects.create()
+        annotator = get_user_model().objects.create(username="annotator")
+        annotator2 = get_user_model().objects.create(username="annotator2")
+        project.add_annotator(annotator)
+
+        # They should be marked as active
+        annotator_proj = AnnotatorProject.objects.get(project=project, annotator=annotator)
+        self.assertEqual(AnnotatorProject.ACTIVE, annotator_proj.status,
+                         "Annotator status should be marked as active")
+
+        # Leave project
+        req = self.get_loggedin_request()
+        req.user = annotator
+        annotator_leave_project(req)
+
+        # Should be marked as complete
+        annotator_proj.refresh_from_db()
+        self.assertEqual(AnnotatorProject.COMPLETED, annotator_proj.status,
+                         "Annotator status should be marked as completed")
+
+        # Should raise an exception if user is not associated with project
+        with self.assertRaises(Exception):
+            req.user = annotator2
+            annotator_leave_project(req)
+
+
+
 
 class TestAnnotationTaskManagerTrainTestMode(TestEndpoint):
     def setUp(self):

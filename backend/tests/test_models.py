@@ -241,6 +241,95 @@ class TestProjectModel(ModelTestCase):
 
         })
 
+    def test_add_annotator(self):
+        project = Project.objects.create()
+        annotator = get_user_model().objects.create(username="anno1")
+        self.assertEqual(0, project.annotators.all().count())
+
+        project.add_annotator(annotator)
+        self.assertEqual(1, project.annotators.all().count())
+
+        annotator_project = AnnotatorProject.objects.get(project=project, annotator=annotator)
+        self.assertEqual(AnnotatorProject.ACTIVE, annotator_project.status)
+
+    def test_make_annotator_active(self):
+        project = Project.objects.create()
+        for i in range(20):
+            document = Document.objects.create(project=project)
+
+        project2 = Project.objects.create()
+        annotator = get_user_model().objects.create(username="anno1")
+
+        # Fails if not associated with project
+        with self.assertRaises(Exception):
+            project.make_annotator_active(annotator)
+
+        # Adds to first project and removes
+        project.add_annotator(annotator)
+
+        # Fails if already active
+        with self.assertRaises(Exception):
+            project.make_annotator_active(annotator)
+
+        # Removes from first project and adds to second project
+        project.remove_annotator(annotator)
+        project2.add_annotator(annotator)
+
+        # Fail if active in another project
+        with self.assertRaises(Exception):
+            project.make_annotator_active(annotator)
+
+        # Remove from project 2, should now be able to make active in project 1
+        project2.remove_annotator(annotator)
+
+        project.make_annotator_active(annotator)
+        annotator_project = AnnotatorProject.objects.get(project=project, annotator=annotator)
+        self.assertEqual(AnnotatorProject.ACTIVE, annotator_project.status)
+
+        # Adds annotation to project mark user as completed
+        for document in project.documents.all():
+            annotation = Annotation.objects.create(user=annotator, document=document, status=Annotation.COMPLETED)
+        project.remove_annotator(annotator)
+
+        # Fail if already reached quota
+        with self.assertRaises(Exception):
+            project.make_annotator_active(annotator)
+
+
+
+
+
+    def test_remove_annotator(self):
+        project = Project.objects.create()
+        annotator = get_user_model().objects.create(username="anno1")
+
+        project.add_annotator(annotator)
+        self.assertEqual(1, project.annotators.all().count())
+
+        project.remove_annotator(annotator)
+        self.assertEqual(1, project.annotators.all().count())
+
+        annotator_project = AnnotatorProject.objects.get(project=project, annotator=annotator)
+        self.assertEqual(AnnotatorProject.COMPLETED, annotator_project.status)
+
+    def test_reject_annotator(self):
+        project = Project.objects.create()
+        annotator = get_user_model().objects.create(username="anno1")
+
+        project.add_annotator(annotator)
+        self.assertEqual(1, project.annotators.all().count())
+
+        project.reject_annotator(annotator)
+        self.assertEqual(1, project.annotators.all().count())
+
+        annotator_project = AnnotatorProject.objects.get(project=project, annotator=annotator)
+        self.assertEqual(AnnotatorProject.COMPLETED, annotator_project.status)
+        self.assertEqual(True, annotator_project.rejected)
+
+
+
+
+
     def test_num_documents(self):
         self.assertEqual(self.project.num_documents, self.num_docs)
 
@@ -289,7 +378,7 @@ class TestProjectModel(ModelTestCase):
         self.annotate_docs_all_states(self.training_docs, self.annotators[0])
         self.assertEqual(self.project.num_occupied_tasks, self.num_docs*2, f"Must have {self.num_docs*2} annotations (completed + pending)")
 
-    def num_annotation_tasks_remaining(self):
+    def test_num_annotation_tasks_remaining(self):
         self.annotate_docs_all_states(self.docs, self.annotators[0])
         self.annotate_docs_all_states(self.test_docs, self.annotators[0])
         self.annotate_docs_all_states(self.training_docs, self.annotators[0])
@@ -584,9 +673,6 @@ class TestProjectModel(ModelTestCase):
         # Missing one label in annotation
         annotation_list_str_label.pop("label2")
         self.assertFalse(self.project.check_annotation_answer(annotation_list_str_label, answers_list_str_label))
-
-
-
 
 
 

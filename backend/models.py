@@ -248,6 +248,36 @@ class Project(models.Model):
 
         return annotator_project
 
+    def make_annotator_active(self, user):
+        """
+        Makes the user active in the project again. An user can be made inactive from the project as a
+        result of completing all annotation task, manager marking them as completed the project,
+        rejecting them from the project or the user has left the project themselves.
+        """
+
+        # Check that user is not active in another project
+        active_project = user.active_project
+
+        if active_project == self:
+            raise Exception("User already active in this project")
+
+        if active_project is not None:
+            raise Exception(f"User is already active in project {active_project.name}")
+
+        if self.annotator_reached_quota(user):
+            raise Exception(f"User is already reached annotation quota")
+
+        try:
+            annotator_project = AnnotatorProject.objects.get(project=self, annotator=user)
+            annotator_project.status = AnnotatorProject.ACTIVE
+            annotator_project.rejected = False
+            annotator_project.save()
+        except ObjectDoesNotExist:
+            raise Exception("User must be added to the project before they can be made active.")
+
+
+
+
     def annotator_completed_training(self, user, finished_time=timezone.now()):
         try:
             annotator_project = AnnotatorProject.objects.get(project=self, annotator=user)
@@ -546,6 +576,8 @@ class Project(models.Model):
                 return self.get_annotation_task_dict(annotation)
             else:
                 # Remove annotator from project if there's no more tasks
+                annotator_proj.annotations_completed = timezone.now()
+                annotator_proj.save()
                 self.remove_annotator(user)
                 return None
         elif self.has_training_stage and not annotator_proj.training_completed:

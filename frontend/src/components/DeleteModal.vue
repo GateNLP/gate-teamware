@@ -1,7 +1,7 @@
 <template>
   <b-modal v-model="showModal"
            ok-variant="danger"
-           ok-title="Delete"
+           :ok-title="operationString"
            :ok-disabled="deleteLocked"
            @ok="$emit('delete')"
            @hidden="deleteLocked = true"
@@ -14,14 +14,16 @@
       </div>
     </slot>
 
-    <div>
+    <div class="mt-4">
+      <p>Press the unlock button below to enable this operation.</p>
+
       <b-button @click="deleteLocked = !deleteLocked"
                 :class="{'btn-danger': deleteLocked, 'btn-success': !deleteLocked}"
       >
         <b-icon-lock-fill v-if="deleteLocked"></b-icon-lock-fill>
         <b-icon-unlock-fill v-else></b-icon-unlock-fill>
-        <span v-if="deleteLocked">Unlock delete</span>
-        <span v-else>Lock delete</span>
+        <span v-if="deleteLocked">Unlock</span>
+        <span v-else>Lock</span>
       </b-button>
 
     </div>
@@ -52,6 +54,9 @@ export default {
     },
     title: {
       default: "Confirm delete"
+    },
+    operationString: {
+      default: "Delete"
     }
   }
 }

@@ -429,6 +429,15 @@ export default new Vuex.Store({
                 throw e
             }
         },
+        async makeProjectAnnotatorActive({dispatch, commit}, {projectID, username}){
+            try{
+                let response = await rpc.call("make_project_annotator_active", projectID, username);
+                return response
+            }catch(e){
+                console.error(e)
+                throw e
+            }
+        },
         async projectAnnotatorAllowAnnotation({dispatch, commit}, {projectID, username}){
             try{
                 let response = await rpc.call("project_annotator_allow_annotation", projectID, username);
@@ -513,6 +522,14 @@ export default new Vuex.Store({
                 throw e
             }
 
+        },
+        async annotatorLeaveProject({dispatch, commit}){
+            try{
+                return await rpc.call("annotator_leave_project")
+            }catch(e){
+                console.error(e)
+                throw e
+            }
         },
         async getEndpointListing({dispatch, commit}){
             try{
