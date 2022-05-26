@@ -67,11 +67,11 @@ in csv:
 It is recommended that:
 
 * Spaces are not used in column headings, use dash (`-`), underscore (`_`) or camel case (e.g. fieldName) instead.
-* The `.` is used to indicate hierachical information so don't use it if that's not what's intended. 
+* The dot/full stop (`.`) is used to indicate hierarchical information so don't use it if that's not what's intended. 
   Explanation on this feature is given below.
   
 Documents imported from a CSV files are converted to JSON for use internally in Teamware, the reverse is true 
-when converting back to CSV. To allow a CSV to represent a tree structure, a dot notation is used to indicate
+when converting back to CSV. To allow a CSV to represent a hierarchical structure, a dot notation is used to indicate
 a sub-field. 
 
 In the following example, we can see that `gold` has a child field named `sentiment` which then has a child
