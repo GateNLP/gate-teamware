@@ -67,6 +67,17 @@ spec:
               secretKeyRef:
                 name: {{ .djangoSecret | required "backend.djangoSecret must be set to the name of an existing secret with an entry 'secret-key' and a value consisting of 40+ random printable characters" }}
                 key: secret-key
+          {{- with $.Values.superuser }}
+          - name: SUPERUSER_EMAIL
+            value: {{ .email | quote }}
+          - name: SUPERUSER_USERNAME
+            value: {{ .username | quote }}
+          - name: SUPERUSER_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "gate-teamware.superuserSecret" $ | quote }}
+                key: password
+          {{- end }}
           resources:
             {{- toYaml .resources | nindent 12 }}
       {{- with .nodeSelector }}
