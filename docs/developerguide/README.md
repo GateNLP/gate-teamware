@@ -3,9 +3,10 @@
 ## Architecture
 ```
 ├── .github/workflows/    # github actions workflow files
-├── teamware/      # Django project
+├── teamware/             # Django project
 │   └── settings/
 ├── backend/              # Django app
+├── charts/               # Helm charts for Kubernetes
 ├── cypress/              # integration test configurations
 ├── docs/                 # documentation
 ├── examples/             # example data files
@@ -116,8 +117,7 @@ Deployment is via [docker-compose](https://docs.docker.com/compose/), using [NGI
 
 To bring the stack down, run `docker-compose down`, using the `-v` flag to destroy the database volume (be careful with this).
 
-
-## Backups
+### Backups
 
 In a docker-compose based deployment, backups of the database are managed by the service `pgbackups` which uses the [`prodrigestivill/postgres-backup-local:12`](https://hub.docker.com/r/prodrigestivill/postgres-backup-local) image.
 By default, backups are taken of the database daily, and the `docker-compose.yml` contains settings for the number of backups kept under the options for the `pgbackups` service.
@@ -147,6 +147,12 @@ This will first launch the database container, then via Django's `dbshell` comma
 
 4. Redeploy the stack, via `./deploy.sh staging` or `./deploy.sh production`, whichever is the case.
 5. The database *should* be restored.
+
+
+## Deployment using Kubernetes
+Helm charts and instructions for deploying teamware via Kubernetes are available in the `charts/` folder.
+
+*More documentation to follow*
 
 
 ## Configuration
