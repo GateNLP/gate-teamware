@@ -40,6 +40,12 @@ esac
 
 # Populate .env with either existing or default values of the environment variables
 cat > .env <<EOF
+# GATE Teamware Docker Deployment Configuration
+# Add values to the variables here, most existing values will be kept after running generate-docker-env.sh
+# Anything that is left blank will be filled with a default value.
+# Passwords and keys are filled with auto-generated random values.
+# If you want to add any *new* variables - those must be added at the bottom after the DO NOT EDIT line
+
 # Database details
 PG_SUPERUSER_PASSWORD=${PG_SUPERUSER_PASSWORD:-$(openssl rand -base64 16)} # default: auto-generated
 DJANGO_DB_NAME=${DJANGO_DB_NAME:-annotations_db}
@@ -86,6 +92,11 @@ IMAGE_TAG=${IMAGE_TAG:-latest}
 # For Gmail API backend:  gmailapi_backend.mail.GmailBackend
 DJANGO_EMAIL_BACKEND=${DJANGO_EMAIL_BACKEND:-django.core.mail.backends.smtp.EmailBackend}
 
+# Settings for Gmail API
+DJANGO_GMAIL_API_CLIENT_ID=${DJANGO_GMAIL_API_CLIENT_ID:-google_assigned_id}
+DJANGO_GMAIL_API_CLIENT_SECRET=${DJANGO_GMAIL_API_CLIENT_SECRET:-google_assigned_secret}
+DJANGO_GMAIL_API_REFRESH_TOKEN=${DJANGO_GMAIL_API_REFRESH_TOKEN:-google_assigned_token}
+
 # Settings for SMTP email
 DJANGO_EMAIL_HOST=${DJANGO_EMAIL_HOST:-smtp.example.com}
 DJANGO_EMAIL_PORT=${DJANGO_EMAIL_PORT:-587}
@@ -98,17 +109,10 @@ DJANGO_EMAIL_HOST_PASSWORD=${DJANGO_EMAIL_HOST_PASSWORD:-password}
 DJANGO_EMAIL_SECURITY=${DJANGO_EMAIL_SECURITY:-tls}
 
 # If the server requires you to identify yourself with a client certificate,
-# specify it as follows:
+# Add these variables at the bottom of this file, after the DO NOT EDIT line
 # 
-# DJANGO_EMAIL_CLIENT_KEY=${DJANGO_EMAIL_CLIENT_KEY:-/path/to/private.key}
-# DJANGO_EMAIL_CLIENT_CERTIFICATE=${DJANGO_EMAIL_CLIENT_CERTIFICATE:-/path/to/certificate.pem}
-#
-#
-# Settings for Gmail API
-DJANGO_GMAIL_API_CLIENT_ID=${DJANGO_GMAIL_API_CLIENT_ID:-google_assigned_id}
-DJANGO_GMAIL_API_CLIENT_SECRET=${DJANGO_GMAIL_API_CLIENT_SECRET:-google_assigned_secret}
-DJANGO_GMAIL_API_REFRESH_TOKEN=${DJANGO_GMAIL_API_REFRESH_TOKEN:-google_assigned_token}
-
+# DJANGO_EMAIL_CLIENT_KEY=/path/to/private.key
+# DJANGO_EMAIL_CLIENT_CERTIFICATE=-/path/to/certificate.pem
 
 ### DO NOT EDIT THIS COMMENT
 ### generate-docker-env.sh will not touch anything below this line
