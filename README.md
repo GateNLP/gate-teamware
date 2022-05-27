@@ -21,7 +21,7 @@ We recommend the following software as a minimum requirement for running GATE Te
 * recommended OS: linux or macOS.
 * [git](http://git-scm.com/)
 * [docker](https://www.docker.com/) & [docker-compose](https://docs.docker.com/compose/)
-* bash (or similar shell)
+* [bash](https://www.gnu.org/software/bash/)
 
 ## Instructions
 Follow these steps to run the app on your local machine:
