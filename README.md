@@ -26,7 +26,7 @@ We recommend the following software as a minimum requirement for running GATE Te
 ## Instructions
 Follow these steps to run the app on your local machine:
 1. Clone this repository by running `git clone https://github.com/GateNLP/gate-teamware.git` and move into the `gate-teamware` directory.
-1. From inside the `gate-teamware` directory run `./generate-env.sh` to create a set of passwords and keys in a `.env` file.
+1. From inside the `gate-teamware` directory run `./generate-docker-env.sh` to create a set of passwords and keys in a `.env` file.
 1. Run `./build-images.sh` to build the backend and frontend images, this may take a while the first time it is run. 
 1. Run `./deploy.sh production` or `./deploy.sh staging`. Note: You may want to change the value of `DJANGO_ALLOWED_HOSTS` in `deploy.sh` to match the URL(s) that you are deploying to.
 

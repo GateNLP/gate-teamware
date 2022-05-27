@@ -21,7 +21,7 @@
 ├── create-django-db.sh
 ├── docker-compose.yml
 ├── Dockerfile
-├── generate-env.sh
+├── generate-docker-env.sh
 ├── manage.py
 ├── migrate-integration.sh
 ├── package.json
@@ -175,7 +175,7 @@ and this must be overridden depending on use.
 ### Database
 A SQLite3 database is used during development and during integration testing.
 
-For staging and production, postgreSQL is used, running from a `postgres-12` docker container. Settings are found in `teamware/settings/base.py` and `deployment.py` as well as being set as environment variables by `./generate-env.sh` and passed to the container as configured in `docker-compose.yml`.
+For staging and production, postgreSQL is used, running from a `postgres-12` docker container. Settings are found in `teamware/settings/base.py` and `deployment.py` as well as being set as environment variables by `./generate-docker-env.sh` and passed to the container as configured in `docker-compose.yml`.
 
 
 ### Sending E-mail 
