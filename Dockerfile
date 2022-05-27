@@ -24,7 +24,7 @@ USER gate:gate
 ENV PATH "/app/.local/bin:$PATH"
 RUN pip install -r requirements.txt
 RUN pip install gunicorn~=20.1.0
-COPY --chown=gate:gate run-server.sh generate-docker-env.sh count_superusers.py manage.py migrate-integration.sh ./
+COPY --chown=gate:gate run-server.sh generate-docker-env.sh manage.py migrate-integration.sh ./
 COPY --chown=gate:gate examples/ ./examples/
 COPY --chown=gate:gate teamware/ ./teamware/
 COPY --chown=gate:gate backend/ ./backend

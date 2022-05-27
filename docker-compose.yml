@@ -12,6 +12,9 @@ services:
       - DJANGO_DB_NAME
       - DB_USERNAME
       - DB_PASSWORD
+      - SUPERUSER_USERNAME
+      - SUPERUSER_PASSWORD
+      - SUPERUSER_EMAIL
     depends_on:
       - db
 

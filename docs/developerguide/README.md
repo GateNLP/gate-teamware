@@ -16,7 +16,6 @@
 # Top level directory contains scripts for management and deployment,
 # main project package.json, python requirements, docker configs
 ├── build-images.sh
-├── count_superusers.py
 ├── deploy.sh
 ├── create-django-db.sh
 ├── docker-compose.yml
