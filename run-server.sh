@@ -11,7 +11,7 @@ if [ "$TEAMWARE_SKIP_SETUP" != "true" ]; then
     echo "$OUT superusers found in database"
     if [ "$OUT" == 0 ]; then
         echo "Creating default admin user in new database..."
-        python manage.py loaddata --settings="$DJANGO_SETTINGS_MODULE" backend/fixtures/new_db_superuser.json
+        echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser($SUPERUSER_USERNAME, $SUPERUSER_EMAIL, $SUPERUSER_PASSWORD)" | python manage.py shell
     fi
 fi
 

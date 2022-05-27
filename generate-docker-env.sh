@@ -64,6 +64,12 @@ BACKUPS_USER_GROUP=${BACKUPS_USER_GROUP:-0:0}
 # Set automatically as production, staging or development based on branch (master, dev, other)
 DEPLOY_ENV=$DEPLOY_ENV
 
+# Default credentials user for setting up database
+# Only used if no superusers are found in database
+SUPERUSER_EMAIL=${SUPERUSER_EMAIL:-gate+teamware@sheffield.ac.uk}
+SUPERUSER_USERNAME=${SUPERUSER_USERNAME:-admin}
+SUPERUSER_PASSWORD=${SUPERUSER_PASSWORD:-password}
+
 #
 # If you are pushing images to a remote registry, set the registry names here
 # *including* the trailing slash
