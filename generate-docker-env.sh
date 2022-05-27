@@ -74,7 +74,7 @@ SUPERUSER_PASSWORD=${SUPERUSER_PASSWORD:-password}
 # If you are pushing images to a remote registry, set the registry names here
 # *including* the trailing slash
 #
-IMAGE_REGISTRY=${IMAGE_REGISTRY:-ghcr.io/gatenlp/}
+IMAGE_REGISTRY=${IMAGE_REGISTRY:-ghcr.io/gatenlp/} # leave blank for local images
 MAIN_IMAGE=$MAIN_IMAGE # Do not change
 STATIC_IMAGE=$STATIC_IMAGE # Do not change
 IMAGE_TAG=${IMAGE_TAG:-latest}
