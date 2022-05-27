@@ -101,7 +101,7 @@ To run separately:
 ## Deployment using Docker
 Deployment is via [docker-compose](https://docs.docker.com/compose/), using [NGINX](https://www.nginx.com/) to serve static content, a separate [postgreSQL](https://hub.docker.com/_/postgres) service containing the database and a database backup service (see `docker-compose.yml` for details).
 
-1. Run `./generate-env.sh` to create a `.env` file containing randomly generated secrets which are mounted as environment variables into the container.
+1. Run `./generate-docker-env.sh` to create a `.env` file containing randomly generated secrets which are mounted as environment variables into the container. See [below](#env-config) for details.
 
 2. Then build the images via:
   ```bash
@@ -116,6 +116,16 @@ Deployment is via [docker-compose](https://docs.docker.com/compose/), using [NGI
   ```
 
 To bring the stack down, run `docker-compose down`, using the `-v` flag to destroy the database volume (be careful with this).
+
+### Configuration using environment variables (.env file)<a id="env-config"></a>
+
+To allow the app to be easily configured between instances especially inside containers, many of the app's configuration can be done through environment variables.
+
+Run `./generate-docker-env.sh` to generate a `.env` file with all configurable environment parameters.
+
+To set values for your own deployment, add values to the variables in `.env`, most existing values will be kept after running `generate-docker-env.sh`, see comments in `.env` for specific details. Anything that is left blank will be filled with a default value. Passwords and keys are filled with auto-generated random values.
+
+Existing `.env` files are copied into a new file named `saved-env.<DATE-TIME>` by `generate-docker-env.sh`.
 
 ### Backups
 
@@ -161,14 +171,6 @@ Helm charts and instructions for deploying teamware via Kubernetes are available
 
 Django settings are located in `teamware/settings` folder. The app will use `base.py` setting by default
 and this must be overridden depending on use.
-
-### Configuration using environment variables (.env file)
-
-To allow the app to be easily configured between instances especially inside containers, many of the app's configuration can be done through environment variables.
-
-Run `./generate-env.sh` to generate a `.env` file with all configurable environment parameters.
-
-
 
 ### Database
 A SQLite3 database is used during development and during integration testing.
