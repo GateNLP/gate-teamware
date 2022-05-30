@@ -42,13 +42,14 @@
       <div v-if="annotationTask.annotation_id" :class="getAnnotationContainerBgClass()">
         <b-row>
           <b-col cols="9">
-            <h2 style="color: white; display: inline-block">
+            <h2 :class="getAnnotationSectionHeaderClass()">
               Annotate a document
             </h2>
 
-            <b-badge class="ml-2 " variant="dark" pill style="font-size: 1.2em">
-                  {{ annotationTask.document_type }} stage
-                </b-badge>
+            <b-badge v-if="annotationTask.document_type !== 'Annotation'"
+                     class="ml-2 " variant="dark" pill style="font-size: 1.2em">
+              {{ annotationTask.document_type }} stage
+            </b-badge>
 
           </b-col>
           <b-col class="text-right">
@@ -158,6 +159,13 @@ export default {
       }
 
     },
+    getAnnotationSectionHeaderClass(){
+      return {
+        lightHeader: this.annotationTask.document_type === "Training" || this.annotationTask.document_type === "Test",
+        darkHeader: this.annotationTask.document_type === "Annotation"
+      }
+
+    },
     async submitHandler(value, time) {
       try {
         await this.completeUserAnnotationTask({
@@ -253,10 +261,20 @@ export default {
 
 }
 
+.lightHeader {
+  color: white;
+  display: inline-block;
+}
+
+.darkHeader {
+  color: black;
+  display: inline-block;
+}
 
 
 .annotateBg {
-  background-image: linear-gradient(#4db1c1, white);
+  background-image: none;
+  background: white;
 
 }
 
