@@ -217,6 +217,7 @@ describe('Site serve test', () => {
         //Check can annotate
         cy.contains(annotatePageStr).click()
         cy.contains("New project name")
+        cy.contains("Start annotating").click()
         cy.contains("Negative").click()
         cy.contains("Submit").click()
 
@@ -438,7 +439,8 @@ describe('Site serve test', () => {
         //Check training mode functioning
         cy.contains(annotatePageStr).click()
         cy.contains("New project name")
-        cy.contains("Stage: Annotator Training")
+        cy.contains("Training stage")
+        cy.contains("Start annotating").click()
         cy.contains("Negative").click()
         cy.contains("Incorrect").should("be.visible")
         cy.contains("Example explanation").should("be.visible")
@@ -450,7 +452,8 @@ describe('Site serve test', () => {
         // Check test mode begins after training complete
         cy.contains(annotatePageStr).click()
         cy.contains("New project name")
-        cy.contains("Stage: Annotator Test")
+        cy.contains("Test stage")
+        cy.contains("Start annotating").click()
         cy.contains("Negative").click()
         cy.contains("Incorrect").should("not.exist")
         cy.contains("Example explanation").should("not.exist")
@@ -462,6 +465,7 @@ describe('Site serve test', () => {
         //Check can annotate
         cy.contains(annotatePageStr).click()
         cy.contains("New project name")
+        cy.contains("Start annotating").click()
         cy.contains("Negative").click()
         cy.contains("Submit").click()
 

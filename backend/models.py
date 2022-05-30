@@ -529,11 +529,12 @@ class Project(models.Model):
             "annotation_timeout": annotation.times_out_at,
             "annotator_remaining_tasks": self.num_annotator_task_remaining(user=annotation.user),
             "annotator_completed_tasks": self.get_annotator_completed_documents_query(user=annotation.user).count(),
+            "annotator_completed_training_tasks": self.get_annotator_completed_documents_query(user=annotation.user, doc_type=DocumentType.TRAINING).count(),
+            "annotator_completed_test_tasks": self.get_annotator_completed_documents_query(user=annotation.user, doc_type=DocumentType.TEST).count(),
             "document_gold_standard_field": self.document_gold_standard_field,
         }
 
     def get_annotation_task_project_dict(self):
-
 
         return {
             "project_name": self.name,
