@@ -22,7 +22,6 @@
       </DeleteModal>
 
 
-
       <b-card class="mb-4">
         <div v-if="annotationTask.project_description && annotationTask.project_description.length > 0">
           <h3>Project description</h3>
@@ -149,7 +148,7 @@ export default {
   computed: {},
   methods: {
     ...mapActions(["getUserAnnotationTask", "completeUserAnnotationTask", "rejectUserAnnotationTask", "annotatorLeaveProject"]),
-    getAnnotationContainerBgClass(){
+    getAnnotationContainerBgClass() {
       return {
         "mt-4": true,
         "p-2": true,
@@ -159,7 +158,7 @@ export default {
       }
 
     },
-    getAnnotationSectionHeaderClass(){
+    getAnnotationSectionHeaderClass() {
       return {
         lightHeader: this.annotationTask.document_type === "Training" || this.annotationTask.document_type === "Test",
         darkHeader: this.annotationTask.document_type === "Annotation"
@@ -205,29 +204,31 @@ export default {
 
         // Check that the user has not completed any task in this stage,
         // show intro card
-        if(this.annotationTask.annotation_id){
-          if(this.annotationTask.document_type === "Training" &&
-              this.annotationTask.annotator_completed_training_tasks < 1){
-            this.showStageIntroCard = true
-          }
+        if (this.annotationTask) {
+          if (this.annotationTask.annotation_id) {
+            if (this.annotationTask.document_type === "Training" &&
+                this.annotationTask.annotator_completed_training_tasks < 1) {
+              this.showStageIntroCard = true
+            }
 
-          if(this.annotationTask.document_type === "Test" &&
-              this.annotationTask.annotator_completed_test_tasks < 1){
-            this.showStageIntroCard = true
-          }
+            if (this.annotationTask.document_type === "Test" &&
+                this.annotationTask.annotator_completed_test_tasks < 1) {
+              this.showStageIntroCard = true
+            }
 
-          if(this.annotationTask.document_type === "Annotation" &&
-              this.annotationTask.annotator_completed_tasks < 1){
-            this.showStageIntroCard = true
+            if (this.annotationTask.document_type === "Annotation" &&
+                this.annotationTask.annotator_completed_tasks < 1) {
+              this.showStageIntroCard = true
+            }
           }
-
         }
 
       } catch (e) {
+        console.log("Still showing error for some reason")
         toastError("Could not get annotation task", e, this)
       }
     },
-    async leaveProjectHandler(){
+    async leaveProjectHandler() {
       try {
         await this.annotatorLeaveProject()
       } catch (e) {
