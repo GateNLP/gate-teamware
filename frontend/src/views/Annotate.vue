@@ -13,11 +13,11 @@
         </b-col>
       </b-row>
 
-      <DeleteModal title="Leaving project"
+      <DeleteModal :title="'Leaving project ' + annotationTask.project_name"
                    v-model="showLeaveProjectModal"
                    operation-string="Leave project"
                    @delete="leaveProjectHandler">
-        Some message
+        Are you sure you want to leave this project?
 
       </DeleteModal>
 
@@ -73,24 +73,27 @@
           <div v-if="annotationTask.document_type === 'Training'">
             <h3>Starting training stage</h3>
             <p>
-              Stage explanation
+              To familiarise you with the annotation process of this project, you will be annotating some
+              example documents. Expected annotation results for each label will be provided.
             </p>
           </div>
           <div v-else-if="annotationTask.document_type === 'Test'">
             <h3>Starting test stage</h3>
             <p>
-              Stage explanation
+              In this stage, you will be tested to ensure that you can annotate documents in accordance with
+              the annotation guideline.
             </p>
           </div>
           <div v-else>
             <h3>Starting annotation</h3>
             <p>
-              Stage explanation
+              You're about to start annotating documents. Please make sure you've read the annotator guideline
+              to make sure you know what's expected from your annotations.
             </p>
           </div>
           <b-button variant="primary" @click="showStageIntroCard = false">Start annotating</b-button>
         </b-card>
-        <b-card class="mt-4" v-else>
+        <b-card v-else>
           <AnnotationRenderer :config="annotationTask.project_config"
                               :document="annotationTask.document_data"
                               :document_type="annotationTask.document_type"
@@ -108,16 +111,27 @@
           You require approval from the project manager to proceed with the annotation task.
         </b-card>
       </div>
-
     </div>
-    <div v-else>
+    <div class="mt-4" v-else-if="showThankyouCard">
+      <h1>Thank you for participating!</h1>
+      <b-card>
+        <p>
+          Thank you, all of your annotation tasks for the project have been completed!
+        </p>
+        <p>
+          It's now possible to participate in annotating for other projects. Inform a project manager of your
+          username if you wish to do so.
+        </p>
+      </b-card>
+    </div>
+    <div class="mt-4" v-else>
       <h1>Nothing to annotate!</h1>
-      <p>
-        Thank you for participating. Notify the project manger of your username in order to be added to an
-        annotation project.
-      </p>
-
-
+      <b-card>
+        <p>
+          Thank you for participating. Notify the project manger of your username in order to be added to an
+          annotation project.
+        </p>
+      </b-card>
     </div>
 
   </b-container>
@@ -143,6 +157,7 @@ export default {
       DocumentType,
       showLeaveProjectModal: false,
       showStageIntroCard: false,
+      showThankyouCard: false,
     }
   },
   computed: {},
@@ -200,6 +215,9 @@ export default {
     },
     async getAnnotationTask() {
       try {
+
+        const previousTask = this.annotationTask
+
         this.annotationTask = await this.getUserAnnotationTask()
 
         // Check that the user has not completed any task in this stage,
@@ -221,6 +239,11 @@ export default {
               this.showStageIntroCard = true
             }
           }
+        }
+
+        // Show a thankyou message if we've just completed all annotation tasks
+        if (previousTask && !this.annotationTask) {
+          this.showThankyouCard = true
         }
 
       } catch (e) {
