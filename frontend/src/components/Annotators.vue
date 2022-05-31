@@ -5,31 +5,39 @@
                               style="cursor:pointer;"></b-icon-question-circle>
     </h2>
     <b-popover target="project-annotators-help" triggers="hover" placement="bottom">
-      Add annotators to the project by clicking on the list of names in the <strong>right column</strong>. Current
-      annotators can be removed
-      by clicking on the names in the <strong>left column</strong>. Removing annotators does not delete their
-      completed annotations
-      but will stop their current pending annotation task.
-
+      Add annotators to the project by clicking the <strong>+ Add annotators</strong> button.
+      Current annotators can be managed in the table below. Removing annotators does not delete their
+      completed annotations but will stop their current pending annotation task.
     </b-popover>
     <b-button-toolbar class="mt-2 mb-2">
       <b-button-group>
         <b-button :variant="loadingVariant" :disabled="loading" @click="refreshAnnotatorsHandler"
                   title="Refresh annotator list.">
           <b-icon-arrow-clockwise></b-icon-arrow-clockwise>
-          Refesh
+          Refresh
+        </b-button>
+        </b-button-group>
+        <b-button-group>
+        <b-button :variant="loadingVariant" :disabled="loading" @click="toggleShowAddAnnotators"
+                  title="Add annotators">
+          + Add annotators
         </b-button>
       </b-button-group>
     </b-button-toolbar>
 
     <div class="row">
-      <div class="col-6">
         <h5>Current annotators of the project</h5>
-
         <b-form-input v-model="projectAnnotatorSearch" placeholder="Search by username or email"></b-form-input>
+        <b-pagination
+          v-model="currentPageProjectAnnotators"
+          :total-rows="rowsProjectAnnotators"
+          :per-page="perPage"
+          aria-controls="projectAnnotators"
+          align="center"
+        ></b-pagination>
+    </div>
 
-        <br>
-
+    <div class="row">
         <b-list-group id="projectAnnotators">
           <b-list-group-item href="#" v-for="annotator in projectAnnotatorsPaginated" v-bind:key="annotator.id">
             <div class="d-flex justify-content-between align-items-center mb-3">
@@ -191,19 +199,11 @@
             </b-row>
           </b-list-group-item>
         </b-list-group>
+    </div>
 
-        <br>
 
-        <b-pagination
-            v-model="currentPageProjectAnnotators"
-            :total-rows="rowsProjectAnnotators"
-            :per-page="perPage"
-            aria-controls="projectAnnotators"
-            align="center"
-        ></b-pagination>
-
-      </div>
-      <div class="col-6">
+      <!-- Modal - Add Annotators -->
+      <b-modal class="col-6" v-model="showAddAnnotators">
         <h5>Add annotator to project</h5>
 
         <b-form-input v-model="possibleAnnotatorSearch" placeholder="Search by username or email"></b-form-input>
@@ -230,8 +230,7 @@
             align="center"
         ></b-pagination>
 
-      </div>
-    </div>
+      </b-modal>
   </div>
 </template>
 
@@ -252,6 +251,7 @@ export default {
       currentPagePossibleAnnotators: 1,
       perPage: 10,
       loading: false,
+      showAddAnnotators: false,
     }
   },
   props: {
@@ -469,6 +469,9 @@ export default {
     async setLoading(isLoading) {
       this.loading = isLoading
     },
+    toggleShowAddAnnotators(){
+      this.showAddAnnotators = !this.showAddAnnotators;
+    }    
   },
   computed: {
     possibleAnnotatorsFiltered() {
