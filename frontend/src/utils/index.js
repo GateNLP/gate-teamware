@@ -16,7 +16,8 @@ export async function readFileAsync(file){
 
 }
 
-const toastDelay = 2000  //ms of delay
+const toastDelay = 5000  //ms of delay
+const toastFailedDelay = 15000  //ms of delay
 let defaultVueOrComponentInstance = null
 
 /**
@@ -74,7 +75,7 @@ export async function toastError(title, errorObj, vueOrComponentInstance = null)
         // Diverts to login page if it's an authentication error
         vueOrComponentInstance.$router.push("/login")
     }else{
-        await showToast(title, errorObj.message, "danger", toastDelay, vueOrComponentInstance)
+        await showToast(title, errorObj.message, "danger", toastFailedDelay, vueOrComponentInstance)
     }
 }
 
