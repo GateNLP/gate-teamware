@@ -49,11 +49,11 @@
 
       <template #cell(selected)="{ rowSelected }">
         <template v-if="rowSelected">
-          <span aria-hidden="true">&check;</span>
+          <span aria-hidden="true"><b-icon-check-square></b-icon-check-square></span>
           <span class="sr-only">Selected</span>
         </template>
         <template v-else>
-          <span aria-hidden="true">&nbsp;</span>
+          <span aria-hidden="true"><b-icon-square></b-icon-square></span>
           <span class="sr-only">Not selected</span>
         </template>
       </template>
@@ -63,13 +63,17 @@
       </template>
 
       <template #cell(trainingscoretrainingcompleted)="data">
-        <div :title="data.item.training_completed | datetime" :class="{stageActive:isAtTrainingStage(data.item)}">
+        <div :title="trainingTestTooltip(data, 'Training')" :class="{stageActive:isAtTrainingStage(data.item)}">
+          <b-icon-check-square-fill v-if="data.item.training_completed !== null"></b-icon-check-square-fill>
+          <b-icon-square v-else></b-icon-square>
           {{ data.item.training_score }} / {{ project.training_documents }}
         </div>
       </template>
 
       <template #cell(testscoretestcompleted)="data" v-if="project.has_test_stage">
-        <div :title="data.item.test_completed | datetime" :class="{stageActive:isAtTestStage(data.item)}">
+        <div :title="trainingTestTooltip(data, 'Testing')" :class="{stageActive:isAtTestStage(data.item)}">
+          <b-icon-check-square-fill v-if="data.item.test_completed !== null"></b-icon-check-square-fill>
+          <b-icon-square v-else></b-icon-square>
           {{ data.item.test_score }} / {{ project.test_documents }}
         </div>
       </template>
@@ -411,6 +415,17 @@ export default {
         fields.splice(2,0,this.optionalTableFields.training)
       }
       return fields
+    },
+    trainingTestTooltip(data, phase){
+      if (phase == "Training" && data.item.training_completed){
+        return "Completed: " + this.$options.filters.datetime(data.item.training_completed);
+      } else if (phase == "Testing" && data.item.test_completed){
+        return "Completed: " + this.$options.filters.datetime(data.item.test_completed);
+      } else if (phase == "Testing" && !data.item.training_completed && this.project.has_training_stage){
+        return "Testing not started"
+      } else {
+        return phase + " in progress"
+      }
     }
   },
   computed: {
