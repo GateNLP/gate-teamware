@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h2 class="mt-2 mb-2">Annotators Management
+    <h2 class="mt-2 mb-2">Annotator Management
       <b-icon-question-circle id="project-annotators-help" scale="0.5"
                               style="cursor:pointer;"></b-icon-question-circle>
     </h2>
@@ -37,169 +37,87 @@
         ></b-pagination>
     </div>
 
-    <div class="row">
-        <b-list-group id="projectAnnotators">
-          <b-list-group-item href="#" v-for="annotator in projectAnnotatorsPaginated" v-bind:key="annotator.id">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-              <div>
-                <span :title="annotator.email"><strong>{{ annotator.username }}</strong></span>
-              </div>
-              <div class="d-flex align-items-end">
+    <b-table
+      hover
+      selectable
+      select-mode="multi"
+      :items="projectAnnotatorsPaginated"
+      :busy="loading"
+      :fields="getTableFields()"
+      @row-selected="onRowSelected"
+      >
 
-                <div class="mr-2">
-                  <b-icon-check-square-fill v-if="annotator.status == 0" title="Annotator is active in project"
-                                            variant="success"></b-icon-check-square-fill>
-                  <b-icon-check-square-fill v-else title="Annotator not active in project"
-                                            variant="secondary"></b-icon-check-square-fill>
+      <template #cell(selected)="{ rowSelected }">
+        <template v-if="rowSelected">
+          <span aria-hidden="true">&check;</span>
+          <span class="sr-only">Selected</span>
+        </template>
+        <template v-else>
+          <span aria-hidden="true">&nbsp;</span>
+          <span class="sr-only">Not selected</span>
+        </template>
+      </template>
 
+      <template #cell(usernameemail)="data">
+        <span :title="data.item.email"><strong>{{ data.item.username }}</strong></span>
+      </template>
 
-                </div>
-                <div class="mr-2">
-                  <b-icon-pencil-square v-if="annotator.allowed_to_annotate" title="Annotator is allowed to annotate"
-                                            variant="success"></b-icon-pencil-square>
-                  <b-icon-pencil-square v-else title="Annotator not allowed to annotate"
-                                            variant="secondary"></b-icon-pencil-square>
+      <template #cell(trainingscoretrainingcompleted)="data">
+        <div :title="data.item.training_completed | datetime" :class="{stageActive:isAtTrainingStage(data.item)}">
+          {{ data.item.training_score }} / {{ project.training_documents }}
+        </div>
+      </template>
 
+      <template #cell(testscoretestcompleted)="data" v-if="project.has_test_stage">
+        <div :title="data.item.test_completed | datetime" :class="{stageActive:isAtTestStage(data.item)}">
+          {{ data.item.test_score }} / {{ project.test_documents }}
+        </div>
+      </template>
 
-                </div>
-                <div>
-                  <b-icon-dash-circle-fill v-if="annotator.rejected" rotate="-45" variant="danger"
-                                           title="Annotator rejected"></b-icon-dash-circle-fill>
-                  <b-icon-dash-circle-fill v-else rotate="-45" variant="secondary"
-                                           title="Annotator not rejected"></b-icon-dash-circle-fill>
-                </div>
+      <template #cell(username)="data">
 
+        <b-button-group>
+          <b-button
+              :variant="getMakeAnnotatorBtnVariant(data.item)"
+              size="sm"
+              @click="allowAnnotation(data.value)"
+              :title="getMakeAnnotatorBtnTitle(data.item)"
+              :disabled="getMakeAnnotatorBtnDisabled(data.item)"
+          >
+            <b-icon-pencil-square></b-icon-pencil-square>
+            Make annotator
+          </b-button>
+          <b-button
+              :variant="getMakeAnnotatorActiveBtnVariant(data.item)"
+              size="sm"
+              @click="makeAnnotatorActive(data.value)"
+              :title="getMakeAnnotatorActiveBtnTitle(data.item)"
+              :disabled="getMakeAnnotatorActiveBtnDisabled(data.item)"
+          >
+            <b-icon-person-check-fill></b-icon-person-check-fill>
+            Make active
+          </b-button>
+          <b-button size="sm"
+                    @click="removeAnnotator(data.value)"
+                    :variant="getAnnotatorCompleteBtnVariant(data.item)"
 
-              </div>
-
-            </div>
-
-            <b-row class="d-flex">
-              <b-col :class="{stageActive:isAtTrainingStage(annotator)}">
-                <div style="font-weight: bold">
-                  Training
-                </div>
-                <div v-if="project.has_training_stage">
-                  <div class="d-flex" title="Completed time">
-                    <div class="mr-1">
-                      <b-icon-clock></b-icon-clock>
-                    </div>
-                    <div>
-                      <span v-if="annotator.training_completed">
-                        {{ annotator.training_completed | datetime }}
-                      </span>
-                      <span v-else>-</span>
-                    </div>
-                  </div>
-                  <div class="d-flex" title="Score">
-                    <div class="mr-1">
-                      <b-icon-check-square-fill></b-icon-check-square-fill>
-                    </div>
-                    <div>
-                      {{ annotator.training_score }}/{{project.training_documents}}
-                    </div>
-                  </div>
-                </div>
-                <div v-else>
-                  <b-icon-x-square-fill></b-icon-x-square-fill>
-                  Stage disabled
-                </div>
-              </b-col>
-              <b-col :class="{stageActive:isAtTestStage(annotator)}">
-                <div style="font-weight: bold">
-                  Test
-                </div>
-                <div v-if="project.has_test_stage">
-                  <div class="d-flex" title="Completed time">
-                    <div class="mr-1">
-                      <b-icon-clock></b-icon-clock>
-                    </div>
-                    <div>
-                      <span v-if="annotator.test_completed">
-                        {{ annotator.test_completed | datetime }}
-                      </span>
-                      <span v-else>-</span>
-                    </div>
-                  </div>
-                  <div class="d-flex" title="Score">
-                    <div class="mr-1">
-                      <b-icon-check-square-fill></b-icon-check-square-fill>
-                    </div>
-                    <div>
-                      {{ annotator.test_score }}/{{project.test_documents}}
-                    </div>
-                  </div>
-                </div>
-                <div v-else>
-                  <b-icon-x-square-fill></b-icon-x-square-fill>
-                  Stage disabled
-                </div>
-              </b-col>
-              <b-col :class="getAnnotationStageBackgroundClass(annotator)">
-                <div style="font-weight: bold">
-                  Annotation
-                  <b-icon-exclamation-triangle-fill variant="warning" v-if="getAnnotationStageWarning(annotator)"
-                    :title="getAnnotationStageWarning(annotator)">
-                  </b-icon-exclamation-triangle-fill>
-                </div>
-                <div class="d-flex" title="Completed time">
-                    <div class="mr-1">
-                      <b-icon-clock></b-icon-clock>
-                    </div>
-                    <div>
-                      <span v-if="annotator.annotations_completed">
-                        {{ annotator.annotations_completed | datetime }}
-                      </span>
-                      <span v-else>-</span>
-                    </div>
-                  </div>
-              </b-col>
-              <b-col>
-                <b-button-group vertical>
-                  <b-button
-                      :variant="getMakeAnnotatorBtnVariant(annotator)"
-                      size="sm"
-                      @click="allowAnnotation(annotator.username)"
-                      :title="getMakeAnnotatorBtnTitle(annotator)"
-                      :disabled="getMakeAnnotatorBtnDisabled(annotator)"
-                  >
-                    <b-icon-pencil-square></b-icon-pencil-square>
-                    Make annotator
-                  </b-button>
-                  <b-button
-                      :variant="getMakeAnnotatorActiveBtnVariant(annotator)"
-                      size="sm"
-                      @click="makeAnnotatorActive(annotator.username)"
-                      :title="getMakeAnnotatorActiveBtnTitle(annotator)"
-                      :disabled="getMakeAnnotatorActiveBtnDisabled(annotator)"
-                  >
-                    <b-icon-person-check-fill></b-icon-person-check-fill>
-                    Make active
-                  </b-button>
-                  <b-button size="sm"
-                            @click="removeAnnotator(annotator.username)"
-                            :variant="getAnnotatorCompleteBtnVariant(annotator)"
-
-                            :title="getAnnotatorCompleteBtnTitle(annotator)"
-                            :disabled="getAnnotatorCompleteBtnDisabled(annotator)">
-                    <b-icon icon="person-x-fill" aria-hidden="true"></b-icon>
-                    Complete
-                  </b-button>
-                  <b-button size="sm"
-                            :variant="getAnnotatorRejectBtnVariant(annotator)"
-                            :title="getAnnotatorRejectBtnTitle(annotator)"
-                            :disabled="getAnnotatorRejectBtnDisabled(annotator)"
-                            @click="rejectAnnotator(annotator.username)">
-                    <b-icon-dash-circle rotate="-45"></b-icon-dash-circle>
-                    Reject
-                  </b-button>
-                </b-button-group>
-
-              </b-col>
-            </b-row>
-          </b-list-group-item>
-        </b-list-group>
-    </div>
+                    :title="getAnnotatorCompleteBtnTitle(data.item)"
+                    :disabled="getAnnotatorCompleteBtnDisabled(data.item)">
+            <b-icon icon="person-x-fill" aria-hidden="true"></b-icon>
+            Complete
+          </b-button>
+          <b-button size="sm"
+                    :variant="getAnnotatorRejectBtnVariant(data.item)"
+                    :title="getAnnotatorRejectBtnTitle(data.item)"
+                    :disabled="getAnnotatorRejectBtnDisabled(data.item)"
+                    @click="rejectAnnotator(data.value)">
+            <b-icon-dash-circle rotate="-45"></b-icon-dash-circle>
+            Reject
+          </b-button>
+        </b-button-group>
+      </template>
+    
+    </b-table>
 
 
       <!-- Modal - Add Annotators -->
@@ -240,7 +158,6 @@ import {mapActions, mapState} from "vuex";
 import {toastError} from "@/utils";
 
 export default {
-  name: "Annotators",
   data() {
     return {
       possibleAnnotators: [],
@@ -252,6 +169,16 @@ export default {
       perPage: 10,
       loading: false,
       showAddAnnotators: false,
+      defaultTableFields: [
+        'selected',
+        {key:'usernameemail', label: 'User'},
+        {key: 'username', label: 'Status & Actions'}
+      ],
+      optionalTableFields: {
+        training: {key:'trainingscoretrainingcompleted', label: "Training"},
+        test: {key:'testscoretestcompleted', label: "Test"},
+      },
+      selected: []  
     }
   },
   props: {
@@ -471,7 +398,20 @@ export default {
     },
     toggleShowAddAnnotators(){
       this.showAddAnnotators = !this.showAddAnnotators;
-    }    
+    },
+    onRowSelected(items){
+      this.selected = items;
+    },
+    getTableFields(){
+      let fields =  JSON.parse(JSON.stringify(this.defaultTableFields));
+      if (this.project.has_test_stage) {
+        fields.splice(2,0,this.optionalTableFields.test)
+      }
+      if (this.project.has_training_stage) {
+        fields.splice(2,0,this.optionalTableFields.training)
+      }
+      return fields
+    }
   },
   computed: {
     possibleAnnotatorsFiltered() {
