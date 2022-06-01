@@ -13,14 +13,13 @@
         </b-col>
       </b-row>
 
-      <DeleteModal title="Leaving project"
+      <DeleteModal :title="'Leaving project ' + annotationTask.project_name"
                    v-model="showLeaveProjectModal"
                    operation-string="Leave project"
                    @delete="leaveProjectHandler">
-        Some message
+        Are you sure you want to leave this project?
 
       </DeleteModal>
-
 
 
       <b-card class="mb-4">
@@ -39,20 +38,20 @@
 
       </b-card>
 
-      <div v-if="annotationTask.annotation_id">
-        <b-row class="mt-4">
-          <b-col>
-            <h2>
+      <div v-if="annotationTask.annotation_id" :class="getAnnotationContainerBgClass()">
+        <b-row>
+          <b-col cols="9">
+            <h2 :class="getAnnotationSectionHeaderClass()">
               Annotate a document
             </h2>
+
+            <b-badge v-if="annotationTask.document_type !== 'Annotation'"
+                     class="ml-2 " variant="dark" pill style="font-size: 1.2em">
+              {{ annotationTask.document_type }} stage
+            </b-badge>
+
           </b-col>
           <b-col class="text-right">
-            <b-badge variant="primary"
-                     v-if="(annotationTask.document_type == DocumentType.Training) || annotationTask.document_type == DocumentType.Test"
-                     :title="'You are currently in the annotator ' + annotationTask.document_type + ' stage'"
-                     class="mr-2">
-              Stage: Annotator {{ annotationTask.document_type }}
-            </b-badge>
             <b-badge :title="'Currently annotating document ID: '+annotationTask.document_field_id" class="mr-2">
               #{{ annotationTask.document_field_id }}
             </b-badge>
@@ -69,9 +68,32 @@
             </b-badge>
           </b-col>
         </b-row>
-        <b-card class="mb-4">
 
-
+        <b-card class="text-center" v-if="showStageIntroCard">
+          <div v-if="annotationTask.document_type === 'Training'">
+            <h3>Starting training stage</h3>
+            <p>
+              To familiarise you with the annotation process of this project, you will be annotating some
+              example documents. Expected annotation results for each label will be provided.
+            </p>
+          </div>
+          <div v-else-if="annotationTask.document_type === 'Test'">
+            <h3>Starting test stage</h3>
+            <p>
+              In this stage, you will be tested to ensure that you can annotate documents in accordance with
+              the annotation guideline.
+            </p>
+          </div>
+          <div v-else>
+            <h3>Starting annotation</h3>
+            <p>
+              You're about to start annotating documents. Please make sure you've read the annotator guideline
+              to make sure you know what's expected from your annotations.
+            </p>
+          </div>
+          <b-button variant="primary" @click="showStageIntroCard = false">Start annotating</b-button>
+        </b-card>
+        <b-card v-else>
           <AnnotationRenderer :config="annotationTask.project_config"
                               :document="annotationTask.document_data"
                               :document_type="annotationTask.document_type"
@@ -80,8 +102,8 @@
                               @submit="submitHandler"
                               @reject="rejectHandler"
           ></AnnotationRenderer>
-
         </b-card>
+
       </div>
       <div v-else>
         <h2>Waiting for approval to perform annotation</h2>
@@ -89,16 +111,27 @@
           You require approval from the project manager to proceed with the annotation task.
         </b-card>
       </div>
-
     </div>
-    <div v-else>
+    <div class="mt-4" v-else-if="showThankyouCard">
+      <h1>Thank you for participating!</h1>
+      <b-card>
+        <p>
+          Thank you, all of your annotation tasks for the project have been completed!
+        </p>
+        <p>
+          It's now possible to participate in annotating for other projects. Inform a project manager of your
+          username if you wish to do so.
+        </p>
+      </b-card>
+    </div>
+    <div class="mt-4" v-else>
       <h1>Nothing to annotate!</h1>
-      <p>
-        Thank you for participating. Notify the project manger of your username in order to be added to an
-        annotation project.
-      </p>
-
-
+      <b-card>
+        <p>
+          Thank you for participating. Notify the project manger of your username in order to be added to an
+          annotation project.
+        </p>
+      </b-card>
     </div>
 
   </b-container>
@@ -123,11 +156,30 @@ export default {
       annotationTask: null,
       DocumentType,
       showLeaveProjectModal: false,
+      showStageIntroCard: false,
+      showThankyouCard: false,
     }
   },
   computed: {},
   methods: {
     ...mapActions(["getUserAnnotationTask", "completeUserAnnotationTask", "rejectUserAnnotationTask", "annotatorLeaveProject"]),
+    getAnnotationContainerBgClass() {
+      return {
+        "mt-4": true,
+        "p-2": true,
+        trainingAnnotateBg: this.annotationTask.document_type === "Training",
+        testAnnotateBg: this.annotationTask.document_type === "Test",
+        annotateBg: this.annotationTask.document_type === "Annotation",
+      }
+
+    },
+    getAnnotationSectionHeaderClass() {
+      return {
+        lightHeader: this.annotationTask.document_type === "Training" || this.annotationTask.document_type === "Test",
+        darkHeader: this.annotationTask.document_type === "Annotation"
+      }
+
+    },
     async submitHandler(value, time) {
       try {
         await this.completeUserAnnotationTask({
@@ -163,13 +215,43 @@ export default {
     },
     async getAnnotationTask() {
       try {
+
+        const previousTask = this.annotationTask
+
         this.annotationTask = await this.getUserAnnotationTask()
 
+        // Check that the user has not completed any task in this stage,
+        // show intro card
+        if (this.annotationTask) {
+          if (this.annotationTask.annotation_id) {
+            if (this.annotationTask.document_type === "Training" &&
+                this.annotationTask.annotator_completed_training_tasks < 1) {
+              this.showStageIntroCard = true
+            }
+
+            if (this.annotationTask.document_type === "Test" &&
+                this.annotationTask.annotator_completed_test_tasks < 1) {
+              this.showStageIntroCard = true
+            }
+
+            if (this.annotationTask.document_type === "Annotation" &&
+                this.annotationTask.annotator_completed_tasks < 1) {
+              this.showStageIntroCard = true
+            }
+          }
+        }
+
+        // Show a thankyou message if we've just completed all annotation tasks
+        if (previousTask && !this.annotationTask) {
+          this.showThankyouCard = true
+        }
+
       } catch (e) {
+        console.log("Still showing error for some reason")
         toastError("Could not get annotation task", e, this)
       }
     },
-    async leaveProjectHandler(){
+    async leaveProjectHandler() {
       try {
         await this.annotatorLeaveProject()
       } catch (e) {
@@ -192,5 +274,32 @@ export default {
 </script>
 
 <style scoped>
+
+.trainingAnnotateBg {
+  background-image: linear-gradient(#02ac53, white);
+
+}
+
+.testAnnotateBg {
+  background-image: linear-gradient(#e56e11, white);
+
+}
+
+.lightHeader {
+  color: white;
+  display: inline-block;
+}
+
+.darkHeader {
+  color: black;
+  display: inline-block;
+}
+
+
+.annotateBg {
+  background-image: none;
+  background: white;
+
+}
 
 </style>
