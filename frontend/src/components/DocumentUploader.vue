@@ -39,6 +39,7 @@ import DocumentUploaderItem from "@/components/DocumentUploaderItem";
 const csv = require("csvtojson")
 const JSZip = require("jszip")
 import JSONL from 'jsonl-parse-stringify'
+import {DocumentType} from '@/enum/DocumentTypes'
 
 export default {
   name: "DocumentUploader",
@@ -46,14 +47,19 @@ export default {
   data() {
     return {
       selectedFiles: null,
-      selectedFilesStats: []
+      selectedFilesStats: [],
+      DocumentType
     }
   },
   props: {
     value: {
       default: false
     },
-    projectId: {}
+    projectId: {},
+    documentType:{
+      type: String,
+      default: DocumentType.Annotation
+    }
   },
   computed: {
     modalShow: {
@@ -66,7 +72,7 @@ export default {
     },
   },
   methods: {
-    ...mapActions(["addProjectDocument"]),
+    ...mapActions(["addProjectDocument", "addProjectTestDocument", "addProjectTrainingDocument"]),
     async documentUploadHandler() {
 
       try {
@@ -126,7 +132,8 @@ export default {
             //Set this way to make map reactive
             this.$set(fileStat, "uploadedDocs", uploadedDocs)
 
-            await this.addProjectDocument({projectId: this.projectId, document: document})
+            await this.uploadDocument(this.projectId, document)
+
           }
         }
 
@@ -155,7 +162,7 @@ export default {
             //Set this way to make map reactive
             this.$set(fileStat, "uploadedDocs", uploadedDocs)
 
-            await this.addProjectDocument({projectId: this.projectId, document: document})
+            await this.uploadDocument(this.projectId, document)
           }
         }
 
@@ -184,7 +191,7 @@ export default {
             //Set this way to make map reactive
             this.$set(fileStat, "uploadedDocs", uploadedDocs)
 
-            await this.addProjectDocument({projectId: this.projectId, document: document})
+            await this.uploadDocument(this.projectId, document)
           }
         }
 
@@ -226,6 +233,18 @@ export default {
         console.error("Could not parse uploaded file")
         console.error(e)
         toastError("Could not parse uploaded file " + fileStat.name, e, this)
+      }
+
+    },
+    async uploadDocument(projectId, docContents){
+      switch (this.documentType){
+        case DocumentType.Test:
+          return await this.addProjectTestDocument({projectId: projectId, document: docContents})
+        case DocumentType.Training:
+          return await this.addProjectTrainingDocument({projectId: projectId, document: docContents})
+        default:
+          return await this.addProjectDocument({projectId: projectId, document: docContents})
+
       }
 
     }

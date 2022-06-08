@@ -25,8 +25,8 @@
           <b-nav-item to="/register" right>Register</b-nav-item>
         </b-navbar-nav>
 
-        <b-navbar-nav  class="ml-auto" v-else>
-          <b-nav-item-dropdown right>
+        <b-navbar-nav  class="ml-auto" v-else >
+          <b-nav-item-dropdown right class="user-profile-menu">
             <template #button-content>
               <b-icon icon="person-circle"></b-icon> {{ user.username }}
             </template>
@@ -37,7 +37,6 @@
       </b-navbar>
     </div>
 
-    <router-view/>
   </div>
 </template>
 <script>

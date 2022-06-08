@@ -1,0 +1,52 @@
+[
+  {
+    "id": "1",
+    "text": "Training document 1",
+    "gold": {
+      "sentiment": {
+        "value": "positive",
+        "explanation": "Example explanation 1"
+      }
+    }
+  },
+  {
+    "id": "2",
+    "text": "Training document 2",
+    "gold": {
+      "sentiment": {
+        "value": "positive",
+        "explanation": "Example explanation 2"
+      }
+    }
+  },
+  {
+    "id": "3",
+    "text": "Training document 3",
+    "gold": {
+      "sentiment": {
+        "value": "positive",
+        "explanation": "Example explanation 3"
+      }
+    }
+  },
+  {
+    "id": "4",
+    "text": "Training document 4",
+    "gold": {
+      "sentiment": {
+        "value": "positive",
+        "explanation": "Example explanation 4"
+      }
+    }
+  },
+  {
+    "id": "5",
+    "text": "Training document 5",
+    "gold": {
+      "sentiment": {
+        "value": "positive",
+        "explanation": "Example explanation 5"
+      }
+    }
+  }
+]

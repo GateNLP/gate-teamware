@@ -1,0 +1,102 @@
+[
+  {
+    "id": "1",
+    "text": "Test document 1",
+    "gold": {
+      "sentiment": {
+        "value": "positive",
+        "explanation": "Example explanation 1"
+      }
+    }
+  },
+  {
+    "id": "2",
+    "text": "Test document 2",
+    "gold": {
+      "sentiment": {
+        "value": "positive",
+        "explanation": "Example explanation 2"
+      }
+    }
+  },
+  {
+    "id": "3",
+    "text": "Test document 3",
+    "gold": {
+      "sentiment": {
+        "value": "positive",
+        "explanation": "Example explanation 3"
+      }
+    }
+  },
+  {
+    "id": "4",
+    "text": "Test document 4",
+    "gold": {
+      "sentiment": {
+        "value": "positive",
+        "explanation": "Example explanation 4"
+      }
+    }
+  },
+  {
+    "id": "5",
+    "text": "Test document 5",
+    "gold": {
+      "sentiment": {
+        "value": "positive",
+        "explanation": "Example explanation 5"
+      }
+    }
+  },
+  {
+    "id": "6",
+    "text": "Test document 6",
+    "gold": {
+      "sentiment": {
+        "value": "positive",
+        "explanation": "Example explanation 6"
+      }
+    }
+  },
+  {
+    "id": "7",
+    "text": "Test document 7",
+    "gold": {
+      "sentiment": {
+        "value": "positive",
+        "explanation": "Example explanation 7"
+      }
+    }
+  },
+  {
+    "id": "8",
+    "text": "Test document 8",
+    "gold": {
+      "sentiment": {
+        "value": "positive",
+        "explanation": "Example explanation 8"
+      }
+    }
+  },
+  {
+    "id": "9",
+    "text": "Test document 9",
+    "gold": {
+      "sentiment": {
+        "value": "positive",
+        "explanation": "Example explanation 9"
+      }
+    }
+  },
+  {
+    "id": "10",
+    "text": "Test document 10",
+    "gold": {
+      "sentiment": {
+        "value": "positive",
+        "explanation": "Example explanation 10"
+      }
+    }
+  }
+]

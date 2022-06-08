@@ -24,9 +24,9 @@
       <b-icon-card-checklist></b-icon-card-checklist>
       {{ project.completed_tasks + project.pending_tasks }}/{{ project.total_tasks }}
     </b-badge>
-    <b-badge variant="info" class="mr-2" title="Number of documents">
+    <b-badge variant="info" class="mr-2" title="Number of documents/ training documents/ test documents">
       <b-icon-file-earmark-fill></b-icon-file-earmark-fill>
-      {{ project.documents }}
+      {{ project.documents }}/{{ project.training_documents }}/{{ project.test_documents }}
     </b-badge>
     <b-badge variant="primary" class="mr-2"
              title="Number of current annotators. Annotators are removed from the project when they have completed all annotation tasks in their quota.">

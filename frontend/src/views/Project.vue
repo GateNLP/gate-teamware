@@ -49,10 +49,10 @@
         <ProjectConfiguration :project="local_project" @updated="fetchProject()"></ProjectConfiguration>
       </b-tab>
       <b-tab title="Documents & Annotations">
-        <ProjectDocuments :project="local_project" @updated="fetchProject()"></ProjectDocuments>
+        <ProjectDocumentsManager :project="local_project" @updated="fetchProject()"></ProjectDocumentsManager>
       </b-tab>
       <b-tab title="Annotators" :disabled="!local_project.is_configured">
-        <Annotators :projectID="projectId" @updated="fetchProject()"></Annotators>
+        <Annotators :project="local_project" @updated="fetchProject()"></Annotators>
       </b-tab>
 
       <b-tab title="Statistics">
@@ -65,21 +65,17 @@
 <script>
 import _ from "lodash"
 import {mapActions, mapState} from "vuex";
-import VTable from "@/components/VTable";
-import AnnotationRenderer from "@/components/AnnotationRenderer";
+
 import Annotators from "@/components/Annotators";
-import JsonEditor from "@/components/JsonEditor";
-import VJsoneditor from "v-jsoneditor";
+
 import {readFileAsync, toastError, toastSuccess} from "@/utils";
-import DocumentsList from "@/components/DocumentsList";
-import MarkdownEditor from "@/components/MarkdownEditor";
+
 import ProjectIcon from "@/components/ProjectIcon";
 import ProjectStatusBadges from "@/components/ProjectStatusBadges";
-import DocumentUploader from "@/components/DocumentUploader";
-import DocumentExporter from "@/components/DocumentExporter";
+
 import AnnotationStatistics from "@/components/AnnotationStatistics";
 import ProjectConfiguration from "@/components/ProjectConfiguration";
-import ProjectDocuments from "@/components/ProjectDocuments";
+import ProjectDocumentsManager from "@/components/ProjectDocumentsManager";
 import DeleteModal from "@/components/DeleteModal";
 
 export default {
@@ -89,7 +85,7 @@ export default {
   },
   components: {
     DeleteModal,
-    ProjectDocuments,
+    ProjectDocumentsManager,
     ProjectConfiguration,
     ProjectStatusBadges,
     ProjectIcon,

@@ -16,7 +16,8 @@ export async function readFileAsync(file){
 
 }
 
-const toastDelay = 2000  //ms of delay
+const toastDelay = 5000  //ms of delay
+const toastFailedDelay = 15000  //ms of delay
 let defaultVueOrComponentInstance = null
 
 /**
@@ -33,11 +34,12 @@ export function initToast(vueOrComponentInstance){
  * @param message Message body
  * @param variant The colour variant of the toast
  * @param delay ms delay until notification is hidden
+ * @param noAutoHide Toast will not hide automatically if set to true
  * @param vueOrComponentInstance The component that's used to display the toast, if null then the
  * component provided in initToast will be used instead
  * @returns {Promise<void>}
  */
-export async function showToast(title, message, variant, delay = 2000, vueOrComponentInstance=null){
+export async function showToast(title, message, variant, delay = 2000, noAutoHide = false, vueOrComponentInstance=null){
     let toastRoot = defaultVueOrComponentInstance
     if(vueOrComponentInstance)
         toastRoot = defaultVueOrComponentInstance
@@ -46,6 +48,7 @@ export async function showToast(title, message, variant, delay = 2000, vueOrComp
         toaster: 'b-toaster-top-right',
         variant: variant,
         autoHideDelay: delay,
+        noAutoHide: noAutoHide,
         })
 }
 
@@ -58,7 +61,7 @@ export async function showToast(title, message, variant, delay = 2000, vueOrComp
  * @returns {Promise<void>}
  */
 export async function toastSuccess(title, message, vueOrComponentInstance = null){
-    await showToast(title, message, "success", toastDelay, vueOrComponentInstance)
+    await showToast(title, message, "success", toastDelay, false, vueOrComponentInstance)
 }
 
 /**
@@ -74,7 +77,7 @@ export async function toastError(title, errorObj, vueOrComponentInstance = null)
         // Diverts to login page if it's an authentication error
         vueOrComponentInstance.$router.push("/login")
     }else{
-        await showToast(title, errorObj.message, "danger", toastDelay, vueOrComponentInstance)
+        await showToast(title, errorObj.message, "danger", toastFailedDelay, true, vueOrComponentInstance)
     }
 }
 
@@ -87,5 +90,5 @@ export async function toastError(title, errorObj, vueOrComponentInstance = null)
  * @returns {Promise<void>}
  */
 export async function toastInfo(title, message, vueOrComponentInstance = null){
-    await showToast(title, message, "info", toastDelay, vueOrComponentInstance)
+    await showToast(title, message, "info", toastDelay, false, vueOrComponentInstance)
 }

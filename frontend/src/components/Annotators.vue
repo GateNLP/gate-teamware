@@ -31,12 +31,164 @@
         <br>
 
         <b-list-group id="projectAnnotators">
-          <b-list-group-item href="#" v-for="annotator in projectAnnotatorsPaginated" v-bind:key="annotator.id"
-                             @click="removeAnnotator(annotator.username)"
-                             class="d-flex justify-content-between align-items-center"
-                             v-b-tooltip.hover :title="annotator.email">
-            {{ annotator.username }}
-            <b-icon icon="person-x-fill" aria-hidden="true" variant="danger"></b-icon>
+          <b-list-group-item href="#" v-for="annotator in projectAnnotatorsPaginated" v-bind:key="annotator.id">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div>
+                <span :title="annotator.email"><strong>{{ annotator.username }}</strong></span>
+              </div>
+              <div class="d-flex align-items-end">
+
+                <div class="mr-2">
+                  <b-icon-check-square-fill v-if="annotator.status == 0" title="Annotator is active in project"
+                                            variant="success"></b-icon-check-square-fill>
+                  <b-icon-check-square-fill v-else title="Annotator not active in project"
+                                            variant="secondary"></b-icon-check-square-fill>
+
+
+                </div>
+                <div class="mr-2">
+                  <b-icon-pencil-square v-if="annotator.allowed_to_annotate" title="Annotator is allowed to annotate"
+                                            variant="success"></b-icon-pencil-square>
+                  <b-icon-pencil-square v-else title="Annotator not allowed to annotate"
+                                            variant="secondary"></b-icon-pencil-square>
+
+
+                </div>
+                <div>
+                  <b-icon-dash-circle-fill v-if="annotator.rejected" rotate="-45" variant="danger"
+                                           title="Annotator rejected"></b-icon-dash-circle-fill>
+                  <b-icon-dash-circle-fill v-else rotate="-45" variant="secondary"
+                                           title="Annotator not rejected"></b-icon-dash-circle-fill>
+                </div>
+
+
+              </div>
+
+            </div>
+
+            <b-row class="d-flex">
+              <b-col :class="{stageActive:isAtTrainingStage(annotator)}">
+                <div style="font-weight: bold">
+                  Training
+                </div>
+                <div v-if="project.has_training_stage">
+                  <div class="d-flex" title="Completed time">
+                    <div class="mr-1">
+                      <b-icon-clock></b-icon-clock>
+                    </div>
+                    <div>
+                      <span v-if="annotator.training_completed">
+                        {{ annotator.training_completed | datetime }}
+                      </span>
+                      <span v-else>-</span>
+                    </div>
+                  </div>
+                  <div class="d-flex" title="Score">
+                    <div class="mr-1">
+                      <b-icon-check-square-fill></b-icon-check-square-fill>
+                    </div>
+                    <div>
+                      {{ annotator.training_score }}/{{project.training_documents}}
+                    </div>
+                  </div>
+                </div>
+                <div v-else>
+                  <b-icon-x-square-fill></b-icon-x-square-fill>
+                  Stage disabled
+                </div>
+              </b-col>
+              <b-col :class="{stageActive:isAtTestStage(annotator)}">
+                <div style="font-weight: bold">
+                  Test
+                </div>
+                <div v-if="project.has_test_stage">
+                  <div class="d-flex" title="Completed time">
+                    <div class="mr-1">
+                      <b-icon-clock></b-icon-clock>
+                    </div>
+                    <div>
+                      <span v-if="annotator.test_completed">
+                        {{ annotator.test_completed | datetime }}
+                      </span>
+                      <span v-else>-</span>
+                    </div>
+                  </div>
+                  <div class="d-flex" title="Score">
+                    <div class="mr-1">
+                      <b-icon-check-square-fill></b-icon-check-square-fill>
+                    </div>
+                    <div>
+                      {{ annotator.test_score }}/{{project.test_documents}}
+                    </div>
+                  </div>
+                </div>
+                <div v-else>
+                  <b-icon-x-square-fill></b-icon-x-square-fill>
+                  Stage disabled
+                </div>
+              </b-col>
+              <b-col :class="getAnnotationStageBackgroundClass(annotator)">
+                <div style="font-weight: bold">
+                  Annotation
+                  <b-icon-exclamation-triangle-fill variant="warning" v-if="getAnnotationStageWarning(annotator)"
+                    :title="getAnnotationStageWarning(annotator)">
+                  </b-icon-exclamation-triangle-fill>
+                </div>
+                <div class="d-flex" title="Completed time">
+                    <div class="mr-1">
+                      <b-icon-clock></b-icon-clock>
+                    </div>
+                    <div>
+                      <span v-if="annotator.annotations_completed">
+                        {{ annotator.annotations_completed | datetime }}
+                      </span>
+                      <span v-else>-</span>
+                    </div>
+                  </div>
+              </b-col>
+              <b-col>
+                <b-button-group vertical>
+                  <b-button
+                      :variant="getMakeAnnotatorBtnVariant(annotator)"
+                      size="sm"
+                      @click="allowAnnotation(annotator.username)"
+                      :title="getMakeAnnotatorBtnTitle(annotator)"
+                      :disabled="getMakeAnnotatorBtnDisabled(annotator)"
+                  >
+                    <b-icon-pencil-square></b-icon-pencil-square>
+                    Make annotator
+                  </b-button>
+                  <b-button
+                      :variant="getMakeAnnotatorActiveBtnVariant(annotator)"
+                      size="sm"
+                      @click="makeAnnotatorActive(annotator.username)"
+                      :title="getMakeAnnotatorActiveBtnTitle(annotator)"
+                      :disabled="getMakeAnnotatorActiveBtnDisabled(annotator)"
+                  >
+                    <b-icon-person-check-fill></b-icon-person-check-fill>
+                    Make active
+                  </b-button>
+                  <b-button size="sm"
+                            @click="removeAnnotator(annotator.username)"
+                            :variant="getAnnotatorCompleteBtnVariant(annotator)"
+
+                            :title="getAnnotatorCompleteBtnTitle(annotator)"
+                            :disabled="getAnnotatorCompleteBtnDisabled(annotator)">
+                    <b-icon icon="person-x-fill" aria-hidden="true"></b-icon>
+                    Complete
+                  </b-button>
+                  <b-button size="sm"
+                            :variant="getAnnotatorRejectBtnVariant(annotator)"
+                            :title="getAnnotatorRejectBtnTitle(annotator)"
+                            :disabled="getAnnotatorRejectBtnDisabled(annotator)"
+                            @click="rejectAnnotator(annotator.username)">
+                    <b-icon-dash-circle rotate="-45"></b-icon-dash-circle>
+                    Reject
+                  </b-button>
+                </b-button-group>
+
+              </b-col>
+            </b-row>
           </b-list-group-item>
         </b-list-group>
 
@@ -86,6 +238,7 @@
 <script>
 import _ from "lodash"
 import {mapActions, mapState} from "vuex";
+import {toastError} from "@/utils";
 
 export default {
   name: "Annotators",
@@ -102,31 +255,199 @@ export default {
     }
   },
   props: {
-    projectID: {
-      type: String,
+    project: {
+      type: Object,
       default: null,
     }
   },
   methods: {
-    ...mapActions(["getPossibleAnnotators", "addProjectAnnotator", "removeProjectAnnotator", "getProjectAnnotators"]),
+    ...mapActions(["getPossibleAnnotators", "addProjectAnnotator", "removeProjectAnnotator", "getProjectAnnotators",
+      "projectAnnotatorAllowAnnotation", "rejectProjectAnnotator", "makeProjectAnnotatorActive"]),
+
+    isAtTrainingStage(annotator){
+      return annotator.status == 0 &&
+          !this.isAtAnnotationStage(annotator) &&
+          !annotator.training_completed &&
+          this.project.has_training_stage
+
+    },
+    isAtTestStage(annotator){
+      return annotator.status == 0 &&
+          !this.isAtTrainingStage(annotator) &&
+          !this.isAtAnnotationStage(annotator) &&
+          !annotator.test_completed &&
+          this.project.has_test_stage
+    },
+    isAtAnnotationStage(annotator){
+      return annotator.status == 0 && annotator.allowed_to_annotate
+    },
+    getAnnotationStageWarning(annotator){
+      if(!this.isAtTrainingStage(annotator) &&
+      !this.isAtTestStage(annotator) &&
+      !this.isAtAnnotationStage(annotator) &&
+      annotator.status == 0){
+        return "Annotator waiting for permission to annotate."
+      }
+
+      return null
+
+    },
+    getAnnotationStageBackgroundClass(annotator){
+      if(this.isAtAnnotationStage(annotator)){
+        return {stageActive: true}
+      }
+      else if(this.getAnnotationStageWarning(annotator)){
+        return {stageWarning: true}
+      }
+
+      return {}
+    },
+    getMakeAnnotatorBtnVariant(annotator) {
+      if(annotator.status != 0)
+        return "secondary"
+
+      if (annotator.allowed_to_annotate)
+        return "secondary"
+      else
+        return "primary"
+    },
+    getMakeAnnotatorBtnTitle(annotator) {
+      if(annotator.status != 0)
+        return "Annotator is not active in this project."
+
+      if (annotator.allowed_to_annotate)
+        return "Annotator already allowed to annotate."
+      else
+        return "Allow annotator to annotate data. Training and testing stages are skipped if not already completed."
+
+    },
+    getMakeAnnotatorBtnDisabled(annotator) {
+      if(annotator.status != 0)
+        return true
+
+      if (annotator.allowed_to_annotate)
+        return true
+      else
+        return false
+    },
+    getMakeAnnotatorActiveBtnVariant(annotator){
+      if(annotator.status == 0)
+        return "secondary"
+      else
+        return "primary"
+
+    },
+    getMakeAnnotatorActiveBtnTitle(annotator){
+      if(annotator.status == 0)
+        return "Annotator already active in the project."
+      else
+        return "Makes the annotator active in the project."
+
+    },
+    getMakeAnnotatorActiveBtnDisabled(annotator){
+      return annotator.status == 0
+
+    },
+    getAnnotatorCompleteBtnVariant(annotator) {
+      if(annotator.status == 0)
+        return "warning"
+      else
+        return "secondary"
+
+    },
+    getAnnotatorCompleteBtnTitle(annotator) {
+      if (annotator.status == 0)
+        return "Mark annotator as having completed annotation of the project and will be transferred to the available annotator pool."
+      else
+        return "Annotator not active in project"
+
+    },
+    getAnnotatorCompleteBtnDisabled(annotator) {
+      return annotator.status != 0
+    },
+    getAnnotatorRejectBtnVariant(annotator) {
+      if(annotator.status == 0)
+        return "danger"
+      else
+        return "secondary"
+
+    },
+    getAnnotatorRejectBtnTitle(annotator) {
+      if (annotator.status == 0)
+        return "Mark annotator as having completed annotation of the project and will be transferred to the available annotator pool."
+      else
+        return "Annotator not active in project"
+
+    },
+    getAnnotatorRejectBtnDisabled(annotator) {
+      return annotator.status != 0
+    },
     async updateAnnotators() {
 
-      this.possibleAnnotators = await this.getPossibleAnnotators();
-      this.projectAnnotators = await this.getProjectAnnotators(this.projectID);
+      this.possibleAnnotators = await this.getPossibleAnnotators(this.project.id);
+      this.projectAnnotators = await this.getProjectAnnotators(this.project.id);
 
     },
     async addAnnotator(username) {
       this.setLoading(true)
-      await this.addProjectAnnotator({projectID: this.projectID, username: username});
-      await this.updateAnnotators();
-      this.$emit("updated")
+      try {
+        await this.addProjectAnnotator({projectID: this.project.id, username: username});
+        await this.updateAnnotators();
+        this.$emit("updated")
+      } catch (e) {
+        toastError("Could not add annotator", e, this)
+      }
+
+      this.setLoading(false)
+    },
+    async makeAnnotatorActive(username) {
+      this.setLoading(true)
+      try {
+        await this.makeProjectAnnotatorActive({projectID: this.project.id, username: username});
+        await this.updateAnnotators();
+        this.$emit("updated")
+      } catch (e) {
+        toastError("Could not make annotator active", e, this)
+      }
+
       this.setLoading(false)
     },
     async removeAnnotator(username) {
       this.setLoading(true)
-      await this.removeProjectAnnotator({projectID: this.projectID, username: username});
-      await this.updateAnnotators();
-      this.$emit("updated")
+
+      try {
+        await this.removeProjectAnnotator({projectID: this.project.id, username: username});
+        await this.updateAnnotators();
+        this.$emit("updated")
+      } catch (e) {
+        toastError("Could not remove annotator", e, this)
+      }
+
+      this.setLoading(false)
+    },
+    async rejectAnnotator(username) {
+      this.setLoading(true)
+      try {
+        await this.rejectProjectAnnotator({projectID: this.project.id, username: username});
+        await this.updateAnnotators();
+        this.$emit("updated")
+
+      } catch (e) {
+        toastError("Could not reject annotator", e, this)
+      }
+
+      this.setLoading(false)
+    },
+    async allowAnnotation(username) {
+      this.setLoading(true)
+      try {
+        await this.projectAnnotatorAllowAnnotation({projectID: this.project.id, username: username});
+        await this.updateAnnotators();
+        this.$emit("updated")
+      } catch (e) {
+        toastError("Could not make this user an annotator", e, this)
+      }
+
       this.setLoading(false)
     },
     searchAnnotators(annotators, searchString) {
@@ -134,18 +455,20 @@ export default {
       const result = _.filter(annotators, ({username, email}) => !!username.match(regEx) || !!email.match(regEx));
       return result
     },
-    async refreshAnnotatorsHandler(){
+    async refreshAnnotatorsHandler() {
       this.setLoading(true)
-      await this.updateAnnotators()
-      this.$emit("updated")
+      try {
+        await this.updateAnnotators()
+        this.$emit("updated")
+      } catch (e) {
+        toastError("Could not update annotator list", e, this)
+      }
+
       this.setLoading(false)
     },
     async setLoading(isLoading) {
       this.loading = isLoading
     },
-  },
-  mounted() {
-    this.updateAnnotators();
   },
   computed: {
     possibleAnnotatorsFiltered() {
@@ -180,10 +503,24 @@ export default {
       }
     },
 
+  },
+  watch: {
+    project: {
+      handler(newValue) {
+        if (newValue) {
+          this.updateAnnotators()
+        }
+      }
+    }
   }
 }
 </script>
 
 <style scoped>
-
+.stageActive {
+  background: #c0fdea;
+}
+.stageWarning {
+  background: #fac980;
+}
 </style>

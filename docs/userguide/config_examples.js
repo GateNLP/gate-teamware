@@ -50,6 +50,20 @@ export default {
             "text": "{{{text}}}"
         }
     ],
+    configDisplayHtmlNoHtml: [
+        {
+            "name": "htmldisplay",
+            "type": "html",
+            "text": "No HTML: {{text}} <br/> HTML: {{{text}}}"
+        }
+    ],
+    configDisplayCustomFieldnames: [
+        {
+            "name": "htmldisplay",
+            "type": "html",
+            "text": "Custom field: {{customField}} <br/> Another custom field: {{{anotherCustomField}}} <br/> Subfield: {{{subfield.subfieldContent}}}"
+        }
+    ],
     configTextInput: [
         {
             "name": "mylabel",
@@ -126,6 +140,13 @@ export default {
 
 
     doc1: {text: "Sometext with <strong>html</strong>"},
+    doc2: {
+        customField: "Content of custom field.",
+        anotherCustomField: "Content of another custom field.",
+        subfield: {
+            subfieldContent: "Content of a subfield."
+        }
+    },
 
 
 }

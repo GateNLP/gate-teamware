@@ -246,9 +246,40 @@ Checks that the current user has logged in.
 
 
 
-### get_user_annotations() <Badge text="login" type="tip" title="Requires user to be logged in"/>
+### get_user_annotated_projects() <Badge text="login" type="tip" title="Requires user to be logged in"/>
 
 
+::: tip Description
+Gets a list of projects that the user has annotated
+:::
+
+
+
+
+
+
+
+
+### get_user_annotations_in_project(project_id,current_page,page_size) <Badge text="login" type="tip" title="Requires user to be logged in"/>
+
+
+::: tip Description
+Gets a list of documents in a project where the user has performed annotations in.
+    :param project_id: The id of the project to query
+    :param current_page: A 1-indexed page count
+    :param page_size: The maximum number of items to return per query
+    :returns: Dictionary of items and total count after filter is applied {&quot;items&quot;: [], &quot;total_count&quot;: int}
+:::
+
+
+
+#### Parameters
+
+* project_id
+
+* current_page
+
+* page_size
 
 
 
@@ -259,6 +290,21 @@ Checks that the current user has logged in.
 ### create_project() <Badge text="manager" type="warning" title="Requires manager permission"/>
 
 
+
+
+
+
+
+
+
+### delete_project(project_id) <Badge text="manager" type="warning" title="Requires manager permission"/>
+
+
+
+
+#### Parameters
+
+* project_id
 
 
 
@@ -343,7 +389,29 @@ Checks that the current user has logged in.
 
 
 
-### get_projects() <Badge text="manager" type="warning" title="Requires manager permission"/>
+### get_projects(current_page,page_size,filters) <Badge text="manager" type="warning" title="Requires manager permission"/>
+
+
+::: tip Description
+Gets the list of projects. Query result can be limited by using current_page and page_size and sorted
+    by using filters.
+
+    :param current_page: A 1-indexed page count
+    :param page_size: The maximum number of items to return per query
+    :param filters: Filter option used to search project, currently only string is used to search
+    for project title
+    :returns: Dictionary of items and total count after filter is applied {&quot;items&quot;: [], &quot;total_count&quot;: int}
+:::
+
+
+
+#### Parameters
+
+* current_page
+
+* page_size
+
+* filters
 
 
 
@@ -351,16 +419,98 @@ Checks that the current user has logged in.
 
 
 
+### get_project_documents(project_id,current_page,page_size,filters) <Badge text="manager" type="warning" title="Requires manager permission"/>
 
 
-### get_project_documents(project_id) <Badge text="manager" type="warning" title="Requires manager permission"/>
+::: tip Description
+Gets the list of documents and its annotations. Query result can be limited by using current_page and page_size
+    and sorted by using filters
 
+    :param project_id: The id of the project that the documents belong to, is a required variable
+    :param current_page: A 1-indexed page count
+    :param page_size: The maximum number of items to return per query
+    :param filters: Filter currently only searches for ID of documents
+    for project title
+    :returns: Dictionary of items and total count after filter is applied {&quot;items&quot;: [], &quot;total_count&quot;: int}
+:::
 
 
 
 #### Parameters
 
 * project_id
+
+* current_page
+
+* page_size
+
+* filters
+
+
+
+
+
+
+
+### get_project_test_documents(project_id,current_page,page_size,filters) <Badge text="manager" type="warning" title="Requires manager permission"/>
+
+
+::: tip Description
+Gets the list of documents and its annotations. Query result can be limited by using current_page and page_size
+    and sorted by using filters
+
+    :param project_id: The id of the project that the documents belong to, is a required variable
+    :param current_page: A 1-indexed page count
+    :param page_size: The maximum number of items to return per query
+    :param filters: Filter currently only searches for ID of documents
+    for project title
+    :returns: Dictionary of items and total count after filter is applied {&quot;items&quot;: [], &quot;total_count&quot;: int}
+:::
+
+
+
+#### Parameters
+
+* project_id
+
+* current_page
+
+* page_size
+
+* filters
+
+
+
+
+
+
+
+### get_project_training_documents(project_id,current_page,page_size,filters) <Badge text="manager" type="warning" title="Requires manager permission"/>
+
+
+::: tip Description
+Gets the list of documents and its annotations. Query result can be limited by using current_page and page_size
+    and sorted by using filters
+
+    :param project_id: The id of the project that the documents belong to, is a required variable
+    :param current_page: A 1-indexed page count
+    :param page_size: The maximum number of items to return per query
+    :param filters: Filter currently only searches for ID of documents
+    for project title
+    :returns: Dictionary of items and total count after filter is applied {&quot;items&quot;: [], &quot;total_count&quot;: int}
+:::
+
+
+
+#### Parameters
+
+* project_id
+
+* current_page
+
+* page_size
+
+* filters
 
 
 
@@ -369,6 +519,40 @@ Checks that the current user has logged in.
 
 
 ### add_project_document(project_id,document_data) <Badge text="manager" type="warning" title="Requires manager permission"/>
+
+
+
+
+#### Parameters
+
+* project_id
+
+* document_data
+
+
+
+
+
+
+
+### add_project_test_document(project_id,document_data) <Badge text="manager" type="warning" title="Requires manager permission"/>
+
+
+
+
+#### Parameters
+
+* project_id
+
+* document_data
+
+
+
+
+
+
+
+### add_project_training_document(project_id,document_data) <Badge text="manager" type="warning" title="Requires manager permission"/>
 
 
 
@@ -438,9 +622,14 @@ Serialize project annotations as GATENLP format JSON using the python-gatenlp in
 
 
 
-### get_possible_annotators() <Badge text="manager" type="warning" title="Requires manager permission"/>
+### get_possible_annotators(proj_id) <Badge text="manager" type="warning" title="Requires manager permission"/>
 
 
+
+
+#### Parameters
+
+* proj_id
 
 
 
@@ -480,6 +669,40 @@ Serialize project annotations as GATENLP format JSON using the python-gatenlp in
 
 
 
+### make_project_annotator_active(proj_id,username) <Badge text="manager" type="warning" title="Requires manager permission"/>
+
+
+
+
+#### Parameters
+
+* proj_id
+
+* username
+
+
+
+
+
+
+
+### project_annotator_allow_annotation(proj_id,username) <Badge text="manager" type="warning" title="Requires manager permission"/>
+
+
+
+
+#### Parameters
+
+* proj_id
+
+* username
+
+
+
+
+
+
+
 ### remove_project_annotator(proj_id,username) <Badge text="manager" type="warning" title="Requires manager permission"/>
 
 
@@ -490,6 +713,38 @@ Serialize project annotations as GATENLP format JSON using the python-gatenlp in
 * proj_id
 
 * username
+
+
+
+
+
+
+
+### reject_project_annotator(proj_id,username) <Badge text="manager" type="warning" title="Requires manager permission"/>
+
+
+
+
+#### Parameters
+
+* proj_id
+
+* username
+
+
+
+
+
+
+
+### get_annotation_timings(proj_id) <Badge text="manager" type="warning" title="Requires manager permission"/>
+
+
+
+
+#### Parameters
+
+* proj_id
 
 
 
@@ -511,7 +766,7 @@ Gets the annotator&#x27;s current task
 
 
 
-### complete_annotation_task(annotation_id,annotation_data) <Badge text="login" type="tip" title="Requires user to be logged in"/>
+### complete_annotation_task(annotation_id,annotation_data,elapsed_time) <Badge text="login" type="tip" title="Requires user to be logged in"/>
 
 
 ::: tip Description
@@ -525,6 +780,8 @@ Complete the annotator&#x27;s current task, with option to get the next task
 * annotation_id
 
 * annotation_data
+
+* elapsed_time
 
 
 
@@ -570,6 +827,20 @@ Complete the annotator&#x27;s current task, with option to get the next task
 #### Parameters
 
 * annotation_id
+
+
+
+
+
+
+
+### annotator_leave_project() <Badge text="login" type="tip" title="Requires user to be logged in"/>
+
+
+::: tip Description
+Allow annotator to leave their currently associated project.
+:::
+
 
 
 

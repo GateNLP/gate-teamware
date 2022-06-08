@@ -179,3 +179,4 @@ webpack-stats\.json
 # database backups
 *.sql
 *.sql.gz
+.env.test
