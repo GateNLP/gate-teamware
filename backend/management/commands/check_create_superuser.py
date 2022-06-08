@@ -16,8 +16,8 @@ class Command(BaseCommand):
             password = os.environ.get("SUPERUSER_PASSWORD")
             email = os.environ.get("SUPERUSER_EMAIL")
 
-            if not get_user_model().objects.filter(username=username).exists():
-                user = get_user_model().objects.create_user(username=username, password=password, email=email)
+            if not User.objects.filter(username=username).exists():
+                user = User.objects.create_superuser(username=username, password=password, email=email)
                 _generate_user_activation(user)
 
                 self.stdout.write(f'No superusers found in database.\nSuperuser created with username {username}')
