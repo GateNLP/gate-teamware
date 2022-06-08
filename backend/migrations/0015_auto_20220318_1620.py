@@ -33,15 +33,10 @@ def _migrate_project_annotators(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('backend', '0014_annotation_time_to_complete'),
+        ('backend', '0014a_change_user_annotates_to_old'),
     ]
 
     operations = [
-        migrations.RenameField(
-            model_name='serviceuser',
-            old_name='annotates',
-            new_name='annotates_old',
-        ),
         migrations.AddField(
             model_name='project',
             name='can_annotate_after_passing_test',
@@ -82,8 +77,4 @@ class Migration(migrations.Migration):
             field=models.ManyToManyField(related_name='annotates', through='backend.AnnotatorProject', to=settings.AUTH_USER_MODEL),
         ),
         migrations.RunPython(_migrate_project_annotators, reverse_code=migrations.RunPython.noop),
-        migrations.RemoveField(
-            model_name='serviceuser',
-            name='annotates_old',
-        ),
     ]
