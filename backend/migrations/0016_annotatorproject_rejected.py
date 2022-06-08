@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('backend', '0015_auto_20220318_1620'),
+        ('backend', '0015a_remove_annotates_old'),
     ]
 
     operations = [
