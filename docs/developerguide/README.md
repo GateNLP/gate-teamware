@@ -3,9 +3,10 @@
 ## Architecture
 ```
 ├── .github/workflows/    # github actions workflow files
-├── teamware/      # Django project
+├── teamware/             # Django project
 │   └── settings/
 ├── backend/              # Django app
+├── charts/               # Helm charts for Kubernetes
 ├── cypress/              # integration test configurations
 ├── docs/                 # documentation
 ├── examples/             # example data files
@@ -15,12 +16,11 @@
 # Top level directory contains scripts for management and deployment,
 # main project package.json, python requirements, docker configs
 ├── build-images.sh
-├── count_superusers.py
 ├── deploy.sh
 ├── create-django-db.sh
 ├── docker-compose.yml
 ├── Dockerfile
-├── generate-env.sh
+├── generate-docker-env.sh
 ├── manage.py
 ├── migrate-integration.sh
 ├── package.json
@@ -100,7 +100,7 @@ To run separately:
 ## Deployment using Docker
 Deployment is via [docker-compose](https://docs.docker.com/compose/), using [NGINX](https://www.nginx.com/) to serve static content, a separate [postgreSQL](https://hub.docker.com/_/postgres) service containing the database and a database backup service (see `docker-compose.yml` for details).
 
-1. Run `./generate-env.sh` to create a `.env` file containing randomly generated secrets which are mounted as environment variables into the container.
+1. Run `./generate-docker-env.sh` to create a `.env` file containing randomly generated secrets which are mounted as environment variables into the container. See [below](#env-config) for details.
 
 2. Then build the images via:
   ```bash
@@ -116,8 +116,17 @@ Deployment is via [docker-compose](https://docs.docker.com/compose/), using [NGI
 
 To bring the stack down, run `docker-compose down`, using the `-v` flag to destroy the database volume (be careful with this).
 
+### Configuration using environment variables (.env file)<a id="env-config"></a>
 
-## Backups
+To allow the app to be easily configured between instances especially inside containers, many of the app's configuration can be done through environment variables.
+
+Run `./generate-docker-env.sh` to generate a `.env` file with all configurable environment parameters.
+
+To set values for your own deployment, add values to the variables in `.env`, most existing values will be kept after running `generate-docker-env.sh`, see comments in `.env` for specific details. Anything that is left blank will be filled with a default value. Passwords and keys are filled with auto-generated random values.
+
+Existing `.env` files are copied into a new file named `saved-env.<DATE-TIME>` by `generate-docker-env.sh`.
+
+### Backups
 
 In a docker-compose based deployment, backups of the database are managed by the service `pgbackups` which uses the [`prodrigestivill/postgres-backup-local:12`](https://hub.docker.com/r/prodrigestivill/postgres-backup-local) image.
 By default, backups are taken of the database daily, and the `docker-compose.yml` contains settings for the number of backups kept under the options for the `pgbackups` service.
@@ -149,6 +158,12 @@ This will first launch the database container, then via Django's `dbshell` comma
 5. The database *should* be restored.
 
 
+## Deployment using Kubernetes
+Helm charts and instructions for deploying teamware via Kubernetes are available in the `charts/` folder.
+
+*More documentation to follow*
+
+
 ## Configuration
 
 ### Django settings files
@@ -156,18 +171,10 @@ This will first launch the database container, then via Django's `dbshell` comma
 Django settings are located in `teamware/settings` folder. The app will use `base.py` setting by default
 and this must be overridden depending on use.
 
-### Configuration using environment variables (.env file)
-
-To allow the app to be easily configured between instances especially inside containers, many of the app's configuration can be done through environment variables.
-
-Run `./generate-env.sh` to generate a `.env` file with all configurable environment parameters.
-
-
-
 ### Database
 A SQLite3 database is used during development and during integration testing.
 
-For staging and production, postgreSQL is used, running from a `postgres-12` docker container. Settings are found in `teamware/settings/base.py` and `deployment.py` as well as being set as environment variables by `./generate-env.sh` and passed to the container as configured in `docker-compose.yml`.
+For staging and production, postgreSQL is used, running from a `postgres-12` docker container. Settings are found in `teamware/settings/base.py` and `deployment.py` as well as being set as environment variables by `./generate-docker-env.sh` and passed to the container as configured in `docker-compose.yml`.
 
 
 ### Sending E-mail 

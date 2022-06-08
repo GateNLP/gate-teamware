@@ -6,6 +6,19 @@
 hostName: "example.gate.ac.uk"
 publicUrl: ""
 
+superuser:
+  # Email address for the default superuser account.  This account is created
+  # by the migration job only in the case where there are no superuser accounts
+  # already in the database
+  email: teamware-admin@example.com
+  # Username for the default superuser
+  username: admin
+  # Initial password for the default superuser, ignored if existingSecret is set
+  password: "admin"
+  # Name of an existing secret containing the initial superuser password as the
+  # "password" key.
+  existingSecret: ""
+
 # Docker registry prefix from which the backend and staticFiles images will be
 # pulled - if specified, this value _must_ end with a forward slash, e.g.
 # imageRegistry: "ghcr.io/gatenlp/"
