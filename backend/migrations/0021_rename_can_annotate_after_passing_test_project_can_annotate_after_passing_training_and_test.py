@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('backend', '0020_auto_20220330_2021'),
+        ('backend', '0020a_training_score_not_null'),
     ]
 
     operations = [
