@@ -7,16 +7,18 @@ DEPLOY_ENV=$1
 DJANGO_SETTINGS_MODULE=teamware.settings.deployment
 export DJANGO_SETTINGS_MODULE
 
+source .env
+
 case $DEPLOY_ENV in
 
   production|prod)
-    DJANGO_ALLOWED_HOSTS=annotate.gate.ac.uk
+    DJANGO_ALLOWED_HOSTS=$TEAMWARE_HOST_URL_PRODUCTION
     export DJANGO_ALLOWED_HOSTS
     echo "Deploying with DJANGO_ALLOWED_HOSTS: $DJANGO_ALLOWED_HOSTS"
     ;;
 
   staging|stag)
-    DJANGO_ALLOWED_HOSTS=annotate-test.gate.ac.uk
+    DJANGO_ALLOWED_HOSTS=$TEAMWARE_HOST_URL_STAGING
     export DJANGO_ALLOWED_HOSTS
     echo "Deploying with DJANGO_ALLOWED_HOSTS: $DJANGO_ALLOWED_HOSTS"
     ;;
