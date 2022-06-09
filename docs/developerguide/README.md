@@ -55,7 +55,7 @@ python libraries and nodejs which is used to install javascript libraries.
   ```
 * Install nodejs, postgresql and openssl in the conda environment
   ```bash
-  (teamware)$ conda install -y -c anaconda postgresql
+  (teamware)$ conda install -y -c conda-forge postgresql=14.*
   (teamware)$ conda install -y -c conda-forge nodejs=14.*
   ```
 * Install nodejs dependencies
