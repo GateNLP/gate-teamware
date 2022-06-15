@@ -63,6 +63,28 @@ python libraries and nodejs which is used to install javascript libraries.
   (teamware)$ npm install
   ```
 
+Set up a new postgreSQL database and user for development:
+```
+# Create a new directory for the db data and initialise
+mkdir -p pgsql/data
+initdb -p pgsql/data
+
+# Launch postgres in the background
+postgres -p 5432 -D pgsql/data &
+
+# Create a DB user, you'll be prompted to input password, "password" is the default in teamware/settings/base.py for development
+createuser -p 5432 -P user --createdb
+
+# Create a rumours_db with rumours as user
+createdb -p 5433 -O user annotations_db
+
+# Migrate & create database tables
+python manage.py migrate
+
+# create a new superuser - when prompted enter a username and password for the db superuser
+python manage.py createsuperuser
+```
+
 ## Updating packages
 To update packages after a merge, run the following commands:
 
