@@ -116,8 +116,13 @@ class Project(models.Model):
     owner = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, related_name="owns")
     annotations_per_doc = models.IntegerField(default=3)
     annotator_max_annotation = models.FloatField(default=0.6)
+    # Allow annotators to reject document
     allow_document_reject = models.BooleanField(default=True)
+    # Allow annotators to change their annotation after it's been submitted
+    allow_annotation_change = models.BooleanField(default=True)
+    # Time it takes for user annotation to timeout (minutes)
     annotation_timeout = models.IntegerField(default=60)
+    # Stores a document that's used for previewing in the AnnotationRenderer
     document_input_preview = models.JSONField(default=default_document_input_preview)
     document_id_field = models.TextField(default="name")
     annotators = models.ManyToManyField(get_user_model(), through='AnnotatorProject', related_name="annotates")
@@ -135,6 +140,7 @@ class Project(models.Model):
         "annotations_per_doc",
         "annotator_max_annotation",
         "allow_document_reject",
+        "allow_annotation_change",
         "annotation_timeout",
         "document_input_preview",
         "document_id_field",
@@ -839,6 +845,7 @@ class Document(models.Model):
         return doc_dict
 
 
+
 class Annotation(models.Model):
     """
     Model to represent a single annotation.
@@ -917,8 +924,24 @@ class Annotation(models.Model):
     def user_allowed_to_annotate(self, user):
         return self.user.id == user.id
 
-    def get_listing(self):
-        return {
+    def change_annotation(self, new_data, by_user=None, new_time=timezone.now()):
+        """Adds current data to a history object, makes the new data the current data."""
+        if self.status != Annotation.COMPLETED:
+            raise RuntimeError("Annotation must be completed before it can be changed.")
+
+        if by_user is None:
+            by_user = self.user
+
+        AnnotationChangeHistory.objects.create(data=self.data,
+                                               time=self.status_time,
+                                               annotation=self,
+                                               changed_by=by_user)
+        self.data = new_data
+        self.status_time = new_time
+        self.save()
+
+    def get_listing(self, include_data=False, include_history=False):
+        output = {
             "id": self.pk,
             "annotated_by": self.user.username,
             "created": self.created,
@@ -928,6 +951,14 @@ class Annotation(models.Model):
             "aborted": self.status_time if self.status == Annotation.ABORTED else None,
             "times_out_at": self.times_out_at
         }
+
+        if include_data:
+            output["data"] = self.data
+
+        if include_history:
+            output["history"] = [history.get_listing() for history in self.change_history.all()]
+
+        return output
 
     @staticmethod
     def check_for_timed_out_annotations(current_time=timezone.now()):
@@ -952,3 +983,20 @@ class Annotation(models.Model):
 
         for annotation in pending_annotations:
             annotation.abort_annotation()
+
+class AnnotationChangeHistory(models.Model):
+    """
+    Logs the changes in annotation when an annotator makes a change after initial submission
+    """
+    data = models.JSONField(default=dict)
+    time = models.DateTimeField(default=timezone.now)
+    annotation = models.ForeignKey(Annotation, on_delete=models.CASCADE, related_name="change_history", null=False)
+    changed_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, related_name="changed_annotations", null=False)
+
+    def get_listing(self):
+        return {
+            "data": self.data,
+            "time": self.time,
+            "changed_by": self.changed_by.username,
+        }
+

@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <h3>My Account</h3>
+    <h1>My Account</h1>
     <b-row class="mt-3">
       <b-col>
         <b>Username:</b> {{ user.username }}
@@ -90,22 +90,6 @@
 
     <AccountActivationGenerator></AccountActivationGenerator>
 
-    <b-row class="my-3">
-      <b-col>
-        <h3>My Annotations</h3>
-
-        <div v-if="annotation_projects">
-          <div v-for="project in annotation_projects">
-            <UserAnnotatedProject :project="project"></UserAnnotatedProject>
-          </div>
-        </div>
-        <div v-else>
-          No annotations yet
-        </div>
-
-      </b-col>
-    </b-row>
-
   </div>
 </template>
 <script>
@@ -116,9 +100,9 @@ import ProjectIcon from "@/components/ProjectIcon";
 import UserAnnotatedProject from "@/components/UserAnnotatedProject";
 
 export default {
-  name: "UserProfile",
-  title: "User Profile",
-  components: {UserAnnotatedProject, ProjectIcon, AccountActivationGenerator},
+  name: "UserAccount",
+  title: "My Account",
+  components: {AccountActivationGenerator},
   data() {
     return {
       error: "",
@@ -137,7 +121,6 @@ export default {
         confirmpassword: null,
       },
       activationEmailSent: false,
-      annotation_projects: [],
 
     }
   },
@@ -146,7 +129,7 @@ export default {
   },
   methods: {
     ...mapActions(["getUser", "changeEmail", "changePassword",
-      "setUserReceiveMailNotification", "getUserAnnotatedProjects", "generateUserActivation", "testMakeToast"]),
+      "setUserReceiveMailNotification", "generateUserActivation"]),
     async EmailSubmitHandler() {
       try{
         await this.changeEmail(this.form);
@@ -179,7 +162,6 @@ export default {
   },
   async mounted() {
     this.user = await this.getUser();
-    this.annotation_projects = await this.getUserAnnotatedProjects();
   },
   watch: {
     form: {

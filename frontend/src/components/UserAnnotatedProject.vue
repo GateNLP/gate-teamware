@@ -11,7 +11,7 @@
         :show-menu-bar="false"
         :show-filters="false"
         @fetch="fetchDocumentsHandler"
-
+        ref="docsList"
     ></DocumentsList>
 
   </b-card>
@@ -57,6 +57,14 @@ export default {
       }
 
 
+    }
+  },
+  watch: {
+    project: {
+      handler(newProject){
+        this.$refs["docsList"].fetchDocuments()
+
+      }
     }
   }
 }

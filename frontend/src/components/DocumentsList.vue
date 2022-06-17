@@ -135,8 +135,8 @@
               class="mt-2"
               :fetch-function="getDocumentContent"
               :fetch-param="doc.id"
-              show-text="Show document data"
-              hide-text="Hide document data">
+              show-text="Show document contents"
+              hide-text="Hide document contents">
           </AsyncJsonDisplay>
 
 
@@ -419,7 +419,6 @@ export default {
       if(doEmitEvent)
         this.emitSelectionList()
     },
-
   },
   watch: {
     currentPage:{
