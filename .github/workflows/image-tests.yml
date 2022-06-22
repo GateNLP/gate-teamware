@@ -17,14 +17,16 @@ jobs:
       - name: Generate env
         shell: bash
         run: |
+          export MAIN_IMAGE=teamware-test
+          export IMAGE_REGISTRY=''
           ./generate-docker-env.sh
       
-      - uses: docker-practice/actions-setup-docker@master
-      - run: |
-          docker build -t annotate-test:latest --target test .
-          
-          # Run backend tests
-          docker run --rm --entrypoint npm annotate-test:latest run test:backend
 
-          # Run frontend tests
-          docker run --rm --entrypoint npm annotate-test:latest run test:frontend
+      - name: Run the backend and frontend tests in containers
+        run: docker build -t teamware-test:latest --target test .
+
+          docker-compose up -d
+          
+          docker run --rm --entrypoint npm teamware-test:latest run test:pytest
+
+          docker run --rm --entrypoint npm teamware-test:latest run test:frontend

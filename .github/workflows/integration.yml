@@ -1,0 +1,65 @@
+name: Run integration testing
+on:
+  push:
+    branches:
+      - master
+      - dev
+  pull_request:
+    branches:
+      - master
+      - dev
+
+env:
+  DB_HOST: localhost
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -l {0}
+    services:
+      postgres:
+        image: postgres:14-alpine
+        env:
+          # optional (defaults to `postgres`)
+          POSTGRES_DB: annotations_integration_db
+          # required
+          POSTGRES_PASSWORD: password
+          # optional (defaults to `5432`)
+          POSTGRES_PORT: 5432
+          # optional (defaults to `postgres`)
+          POSTGRES_USER: user
+        ports:
+          # maps tcp port 5432 on service container to the host
+          - 5432:5432
+        # set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          miniconda-version: "latest"
+          auto-update-conda: true
+          python-version: 3.9
+      - name: Install pip requirements
+        run: pip install -r requirements.txt -r requirements-dev.txt
+      - name: Install postgresql conda packages
+        run: conda install -y -c conda-forge postgresql=14.*
+
+      - name: Use Node.js v14
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+
+      - name: Install npm packages
+        run: npm install
+
+      - name: Run integration tests
+        run: npm run test:ci_integration
