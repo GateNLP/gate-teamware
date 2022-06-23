@@ -14,19 +14,23 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Generate env
-        shell: bash
-        run: |
-          export MAIN_IMAGE=teamware-test
-          export IMAGE_REGISTRY=''
-          ./generate-docker-env.sh
-      
-
       - name: Run the backend and frontend tests in containers
-        run: docker build -t teamware-test:latest --target test .
-
-          docker-compose up -d
+        run: |
+          export MAIN_IMAGE=teamware-main
+          export STATIC_IMAGE=teamware-static
           
-          docker run --rm --entrypoint npm teamware-test:latest run test:pytest
+          ./generate-docker-env.sh
 
-          docker run --rm --entrypoint npm teamware-test:latest run test:frontend
+          # Remove container registry address
+          sed -i 's/ghcr.io\/gatenlp\///g' .env
+
+          cat .env
+
+          docker build -t teamware-main:latest --target test .
+
+          docker-compose up -d backend
+          docker-compose up -d db
+          
+          docker-compose exec web npm run test:pytest
+
+          docker-compose exec web npm run test:frontend
