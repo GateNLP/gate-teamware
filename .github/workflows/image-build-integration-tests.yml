@@ -39,7 +39,7 @@ jobs:
       - uses: docker-practice/actions-setup-docker@master
       - run: |
           ./build-images.sh
-
+          
       - uses: actions/setup-node@v1
         with:
           node-version: 14
