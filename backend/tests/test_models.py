@@ -88,6 +88,42 @@ class TestUserModel(TestCase):
 
 
 
+    def test_delete_user_with_annotations(self):
+        user = get_user_model().objects.create(username="test1")
+        project = Project.objects.create(owner=user)
+        Annotation.objects.create(user=user,
+                                  document=Document.objects.create(project=project),
+                                  status=Annotation.PENDING)
+        Annotation.objects.create(user=user,
+                                  document=Document.objects.create(project=project),
+                                  status=Annotation.COMPLETED)
+        Annotation.objects.create(user=user,
+                                  document=Document.objects.create(project=project),
+                                  status=Annotation.REJECTED)
+        Annotation.objects.create(user=user,
+                                  document=Document.objects.create(project=project),
+                                  status=Annotation.TIMED_OUT)
+        Annotation.objects.create(user=user,
+                                  document=Document.objects.create(project=project),
+                                  status=Annotation.ABORTED)
+
+        user.refresh_from_db()
+
+        # 5 annotations for the user
+        self.assertEqual(5, user.annotations.all().count())
+        # 5 annotations in the entire system
+        self.assertEqual(5, Annotation.objects.all().count())
+
+        # Delete user, the pending annotation should be removed
+        user.delete()
+
+        self.assertEqual(4, Annotation.objects.all().count())
+        self.assertEqual(0, Annotation.objects.filter(status=Annotation.PENDING).count())  # No pending annotation
+        self.assertEqual(1, Annotation.objects.filter(status=Annotation.COMPLETED).count())
+        self.assertEqual(1, Annotation.objects.filter(status=Annotation.REJECTED).count())
+        self.assertEqual(1, Annotation.objects.filter(status=Annotation.TIMED_OUT).count())
+        self.assertEqual(1, Annotation.objects.filter(status=Annotation.ABORTED).count())
+
 
 
 class TestDocumentModel(ModelTestCase):

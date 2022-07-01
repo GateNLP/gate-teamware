@@ -66,6 +66,12 @@ def is_authenticated(request):
 @rpc_method
 def login(request, payload):
     context = {}
+    if "username" not in payload:
+        raise RuntimeError("No username provided")
+
+    if "password" not in payload:
+        raise RuntimeError("No password provided")
+
     user = authenticate(username=payload["username"], password=payload["password"])
     if user is not None:
         djlogin(request, user)

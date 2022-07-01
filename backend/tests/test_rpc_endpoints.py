@@ -18,8 +18,9 @@ from backend.rpc import create_project, update_project, add_project_document, ad
     clone_project, delete_project, get_projects, get_project_documents, get_user_annotated_projects, \
     get_user_annotations_in_project, add_project_test_document, add_project_training_document, \
     get_project_training_documents, get_project_test_documents, project_annotator_allow_annotation, \
-    annotator_leave_project
+    annotator_leave_project, login
 from backend.rpcserver import rpc_method
+from backend.errors import AuthError
 
 
 from backend.tests.test_rpc_server import TestEndpoint
@@ -74,6 +75,24 @@ class TestUserAuth(TestCase):
                           {"jsonrpc": "2.0", "method": "logout", "id": 20},
                           content_type="application/json")
         self.assertEqual(response.status_code, 200)
+
+class TestAppCreatedUserAccountsCannotLogin(TestEndpoint):
+
+    def test_app_created_user_accounts_cannot_login(self):
+
+        # Create a user programmatically, without password
+        created_user = get_user_model().objects.create(username="doesnotexist")
+
+        # Default password is blank ""
+        self.assertEqual("", created_user.password)
+
+        with self.assertRaises(AuthError, msg="Should raise an error if logging in with None as password"):
+            login(self.get_request(), {"username": "doesnotexist", "password": None})
+
+        with self.assertRaises(AuthError, msg="Should raise an error if logging in with blank as password"):
+            login(self.get_request(), {"username": "doesnotexist", "password": ""})
+
+
 
 class TestUserRegistration(TestEndpoint):
 
