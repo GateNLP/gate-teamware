@@ -1,3 +1,4 @@
+from django.utils import timezone
 from django.db import connection
 from django.db.migrations.executor import MigrationExecutor
 from django.test.testcases import TransactionTestCase
@@ -93,4 +94,34 @@ class TestMigrationToAnnotatorProject_0015(MigrationTestCase):
 
         project = Project.objects.get(name=test_projectname)
         self.assertEqual(num_project_users, project.annotators.count(), f"Project must have {num_project_users} users")
+
+class TestMigrationToAnnotationChangeHistory_0024(MigrationTestCase):
+    migrate_from = [('backend', "0023_annotationchangehistory")]
+    migrate_to = [('backend', "0024_rename_data_annotation__data")]
+
+    def test_migration_to_0024(self):
+        # Setup code
+        User = self.old_apps.get_model('backend', "ServiceUser")
+        Project = self.old_apps.get_model('backend', "Project")
+        Document = self.old_apps.get_model('backend', "Document")
+        Annotation = self.old_apps.get_model('backend', "Annotation")
+
+        # Create annotations with contents for 10 projects with 10 documents, 1 annotation each
+        for i in range(10):
+            project = Project.objects.create()
+            for j in range(10):
+                document = Document.objects.create(project_id=project.id)
+                Annotation.objects.create(document_id=document.id, data={"label1": "value1"})
+
+        # Perform migration
+        self.migrate_to_dest()
+
+        Annotation = self.new_apps.get_model('backend', "Annotation")
+
+        for annotation in Annotation.objects.all():
+            if annotation._data:
+                self.assertDictEqual(annotation._data, annotation.change_history.last().data)
+
+
+
 

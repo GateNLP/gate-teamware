@@ -858,6 +858,49 @@ class TestAnnotationModel(ModelTestCase):
         num_timed_out = Annotation.check_for_timed_out_annotations(timeout_check_time + timedelta(hours=1))
         self.assertEqual(0, num_timed_out, "Must not be anymore annotations to timeout")
 
+    def test_change_annotation(self):
+
+        original_annotation = {"label1": "value1"}
+        changed_annotation = {"label1": "value2"}
+        changed_annotation2 = {"label1": "value3"}
+
+        project = Project.objects.create()
+        document = Document.objects.create(project=project)
+        annotator = get_user_model().objects.create(username="Testannotator")
+        annotator2 = get_user_model().objects.create(username="Testannotator2")
+        annotation = Annotation.objects.create(document=document, user=annotator)
+
+        with self.assertRaises(RuntimeError):
+            # Error should be raised if annotation not already completed
+            annotation.change_annotation(changed_annotation, annotator2)
+
+
+        # Complete the annotation
+        annotation.complete_annotation(original_annotation)
+        self.assertDictEqual(original_annotation, annotation.data, "Expects the original annotation")
+
+        # Change the annotation by setting the data property
+        annotation.data = changed_annotation
+        annotation.refresh_from_db()
+
+        self.assertDictEqual(changed_annotation, annotation.data, "Expects the first annotation change")
+        self.assertEqual(annotator,
+                         annotation.latest_annotation_history().changed_by,
+                         "Changed by the owner of the annotation object by default")
+
+        # Change the annotation using change_annotation method
+        annotation.change_annotation(changed_annotation2, annotator2)
+        self.assertDictEqual(changed_annotation2, annotation.data, "Expects the second annotation change")
+        self.assertEqual(annotator2,
+                         annotation.latest_annotation_history().changed_by,
+                         "Should be changed by annotator2")
+
+
+
+
+
+
+
 class TestDocumentAnnotationModelExport(TestCase):
 
     def setUp(self):

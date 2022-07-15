@@ -867,7 +867,20 @@ class Annotation(models.Model):
 
     user = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, related_name="annotations", null=True)
     document = models.ForeignKey(Document, on_delete=models.CASCADE, related_name="annotations")
-    data = models.JSONField(default=dict)
+    _data = models.JSONField(default=dict)
+
+    @property
+    def data(self):
+        ann_history = self.latest_annotation_history()
+        if ann_history:
+            return ann_history.data
+
+        return None
+
+    @data.setter
+    def data(self, value):
+        self._append_annotation_history(value)
+
     times_out_at = models.DateTimeField(default=None, null=True)
     created = models.DateTimeField(default=timezone.now)
     status = models.IntegerField(choices=ANNOTATION_STATUS, default=PENDING)
@@ -924,21 +937,31 @@ class Annotation(models.Model):
     def user_allowed_to_annotate(self, user):
         return self.user.id == user.id
 
-    def change_annotation(self, new_data, by_user=None, new_time=timezone.now()):
-        """Adds current data to a history object, makes the new data the current data."""
+    def change_annotation(self, data, by_user=None, time=timezone.now()):
         if self.status != Annotation.COMPLETED:
-            raise RuntimeError("Annotation must be completed before it can be changed.")
+            raise RuntimeError("The annotation must be completed before it can be changed")
 
+        self._append_annotation_history(data, by_user, time)
+
+    def _append_annotation_history(self, data, by_user=None, time=timezone.now()):
         if by_user is None:
             by_user = self.user
 
-        AnnotationChangeHistory.objects.create(data=self.data,
-                                               time=self.status_time,
+        AnnotationChangeHistory.objects.create(data=data,
+                                               time=time,
                                                annotation=self,
                                                changed_by=by_user)
-        self.data = new_data
-        self.status_time = new_time
-        self.save()
+
+
+    def latest_annotation_history(self):
+        """
+        Convenience function for getting the latest annotation data from the change history.
+        Returns None if there's no annotations.
+        """
+        try:
+            return self.change_history.last()
+        except models.ObjectDoesNotExist:
+            return None
 
     def get_listing(self, include_data=False, include_history=False):
         output = {
@@ -986,12 +1009,12 @@ class Annotation(models.Model):
 
 class AnnotationChangeHistory(models.Model):
     """
-    Logs the changes in annotation when an annotator makes a change after initial submission
+    Model to store the changes in annotation when an annotator makes a change after initial submission
     """
     data = models.JSONField(default=dict)
     time = models.DateTimeField(default=timezone.now)
     annotation = models.ForeignKey(Annotation, on_delete=models.CASCADE, related_name="change_history", null=False)
-    changed_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, related_name="changed_annotations", null=False)
+    changed_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, related_name="changed_annotations", null=True)
 
     def get_listing(self):
         return {
