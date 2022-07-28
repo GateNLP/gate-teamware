@@ -54,5 +54,5 @@ jobs:
           wait-on: 'http://localhost:8076'
           config: baseUrl=http://localhost:8076
         env:
-          CYPRESS_TESTENV: container
+          CYPRESS_TESTENV: ci
           # pass the Dashboard record key as an environment variable
