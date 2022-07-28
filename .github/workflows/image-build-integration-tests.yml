@@ -19,6 +19,7 @@ jobs:
         run: |
           export MAIN_IMAGE=teamware-main
           export STATIC_IMAGE=teamware-static
+          export DJANGO_DB_NAME=annotations_integration_db
           
           ./generate-docker-env.sh
 
@@ -45,9 +46,12 @@ jobs:
           node-version: 14
 
       - name: Run integration tests with cypress
-        uses: cypress-io/github-action@v2
+        uses: cypress-io/github-action@v4
         with:
           start: /bin/bash deploy.sh integration
-          wait-on: 'http://localhost:8076'
+          wait-on: 'http://localhost:8076, http://localhost:5432'
           config: baseUrl=http://localhost:8076
           env: TESTENV=container
+      
+      - shell: bash
+        run: docker-compose logs backend
