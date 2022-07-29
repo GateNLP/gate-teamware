@@ -99,6 +99,12 @@ class ServiceUser(AbstractUser):
 
         return self.annotations.filter(pk=annotation.pk).count() > 0
 
+    def is_manager_or_above(self):
+        if self.is_manager or self.is_staff or self.is_superuser:
+            return True
+        else:
+            return False
+
 
 def default_document_input_preview():
     return {"text": "<p>Some html text <strong>in bold</strong>.</p><p>Paragraph 2.</p>"}
@@ -760,7 +766,7 @@ class Document(models.Model):
 
     def get_listing(self, annotation_list=[]):
         """
-        Get minimal dictionary representation of document for rendering an object list
+        Get a dictionary representation of document for rendering
         """
         doc_out = {
             "id": self.pk,
@@ -772,7 +778,8 @@ class Document(models.Model):
             "pending": self.num_pending_annotations,
             "aborted": self.num_aborted_annotations,
             "doc_id": get_value_from_key_path(self.data, self.project.document_id_field),
-            "project_id": self.project.id
+            "project_id": self.project.id,
+            "data": self.data,
         }
 
         return doc_out
@@ -963,7 +970,10 @@ class Annotation(models.Model):
         except models.ObjectDoesNotExist:
             return None
 
-    def get_listing(self, include_data=False, include_history=False):
+    def get_listing(self):
+        """
+        Get a dictionary representation of the annotation for rendering.
+        """
         output = {
             "id": self.pk,
             "annotated_by": self.user.username,
@@ -972,14 +982,9 @@ class Annotation(models.Model):
             "rejected": self.status_time if self.status == Annotation.REJECTED else None,
             "timed_out": self.status_time if self.status == Annotation.TIMED_OUT else None,
             "aborted": self.status_time if self.status == Annotation.ABORTED else None,
-            "times_out_at": self.times_out_at
+            "times_out_at": self.times_out_at,
+            "change_list": [change_history.get_listing() for change_history in self.change_history.all()],
         }
-
-        if include_data:
-            output["data"] = self.data
-
-        if include_history:
-            output["history"] = [history.get_listing() for history in self.change_history.all()]
 
         return output
 
@@ -1018,6 +1023,7 @@ class AnnotationChangeHistory(models.Model):
 
     def get_listing(self):
         return {
+            "id": self.pk,
             "data": self.data,
             "time": self.time,
             "changed_by": self.changed_by.username,

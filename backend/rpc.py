@@ -24,7 +24,7 @@ from gatenlp import annotation_set
 
 from backend.errors import AuthError
 from backend.rpcserver import rpc_method, rpc_method_auth, rpc_method_manager, rpc_method_admin
-from backend.models import Project, Document, DocumentType, Annotation, AnnotatorProject
+from backend.models import Project, Document, DocumentType, Annotation, AnnotatorProject, AnnotationChangeHistory
 from backend.utils.misc import get_value_from_key_path, insert_value_to_key_path
 from backend.utils.serialize import ModelSerializer
 
@@ -793,23 +793,41 @@ def reject_annotation_task(request, annotation_id):
         if annotation:
             annotation.reject_annotation()
 
+@rpc_method_auth
+def change_annotation(request, annotation_id, new_data):
+    """Adds annotation data to history"""
+    annotation = Annotation.objects.get(pk=annotation_id)
+    if annotation.user_allowed_to_annotate(request.user) or request.user.is_manager_or_above():
+        annotation.change_annotation(new_data, request.user)
+
 
 @rpc_method_auth
-def get_document_content(request, document_id):
+def get_document(request, document_id):
     doc = Document.objects.get(pk=document_id)
     if request.user.is_associated_with_document(doc):
-        return doc.data
+        return doc.get_listing(annotation_list=[anno.get_listing() for anno in doc.annotations.all()])
     else:
         raise PermissionError("No permission to access the document")
 
 
 @rpc_method_auth
-def get_annotation_content(request, annotation_id):
+def get_annotation(request, annotation_id):
     annotation = Annotation.objects.get(pk=annotation_id)
     if request.user.is_associated_with_annotation(annotation):
-        return annotation.data
+        return annotation.get_listing()
     else:
         raise PermissionError("No permission to access the annotation")
+
+@rpc_method_auth
+def delete_annotation_change_history(request, annotation_change_history_id):
+    annotation_change_history = AnnotationChangeHistory.objects.get(pk=annotation_change_history_id)
+    if request.user.is_associated_with_annotation(annotation_change_history.annotation):
+        if annotation_change_history.annotation.change_history.all().count() > 1:
+            annotation_change_history.delete()
+        else:
+            raise RuntimeError("Must have at least a single annotation change history for a completed annotation.")
+    else:
+        raise PermissionError("No permission to access the annotation history")
 
 @rpc_method_auth
 def annotator_leave_project(request):
