@@ -780,6 +780,7 @@ class Document(models.Model):
             "doc_id": get_value_from_key_path(self.data, self.project.document_id_field),
             "project_id": self.project.id,
             "data": self.data,
+            "doc_type": self.doc_type_str,
         }
 
         return doc_out
@@ -886,6 +887,7 @@ class Annotation(models.Model):
 
     @data.setter
     def data(self, value):
+        # The setter's value actually wraps the input inside a tuple for some reason
         self._append_annotation_history(value)
 
     times_out_at = models.DateTimeField(default=None, null=True)
@@ -960,13 +962,17 @@ class Annotation(models.Model):
                                                changed_by=by_user)
 
 
+
+
+
     def latest_annotation_history(self):
         """
         Convenience function for getting the latest annotation data from the change history.
         Returns None if there's no annotations.
         """
         try:
-            return self.change_history.last()
+            last_item = self.change_history.last()
+            return last_item
         except models.ObjectDoesNotExist:
             return None
 

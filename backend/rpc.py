@@ -333,7 +333,8 @@ def get_user_annotations_in_project(request, project_id, current_page=1, page_si
 
 
     project = Project.objects.get(pk=project_id)
-    user_annotated_docs = project.documents.filter(annotations__user_id=user.pk).distinct()
+    user_annotated_docs = project.documents.filter(doc_type=DocumentType.ANNOTATION,
+                                                   annotations__user_id=user.pk).distinct()
     total_count = user_annotated_docs.count()
 
     if user_annotated_docs.count() < 1:
@@ -603,11 +604,12 @@ def add_project_training_document(request, project_id, document_data):
         return _add_project_document(project_id, document_data=document_data, doc_type=DocumentType.TRAINING)
 
 @rpc_method_manager
-def add_document_annotation(request, doc_id, annotation):
+def add_document_annotation(request, doc_id, annotation_data):
 
     with transaction.atomic():
         document = Document.objects.get(pk=doc_id)
-        annotation = Annotation.objects.create(document=document, data=annotation, user=request.user)
+        annotation = Annotation.objects.create(document=document, user=request.user)
+        annotation.data = annotation_data
         return annotation.pk
 
 
@@ -799,6 +801,10 @@ def reject_annotation_task(request, annotation_id):
 def change_annotation(request, annotation_id, new_data):
     """Adds annotation data to history"""
     annotation = Annotation.objects.get(pk=annotation_id)
+
+    if annotation.document.doc_type is not DocumentType.ANNOTATION:
+        raise RuntimeError("It not possible to change annotations created for testing or training documents.")
+
     if annotation.user_allowed_to_annotate(request.user) or request.user.is_manager_or_above():
         annotation.change_annotation(new_data, request.user)
 
