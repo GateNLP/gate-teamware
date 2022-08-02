@@ -306,6 +306,8 @@ def get_user_annotated_projects(request):
         projects_list.append({
             "id": project.pk,
             "name": project.name,
+            "allow_annotation_change": project.allow_annotation_change,
+            "configuration": project.configuration,
         })
 
     return projects_list
@@ -818,7 +820,7 @@ def get_annotation(request, annotation_id):
     else:
         raise PermissionError("No permission to access the annotation")
 
-@rpc_method_auth
+@rpc_method_manager
 def delete_annotation_change_history(request, annotation_change_history_id):
     annotation_change_history = AnnotationChangeHistory.objects.get(pk=annotation_change_history_id)
     if request.user.is_associated_with_annotation(annotation_change_history.annotation):

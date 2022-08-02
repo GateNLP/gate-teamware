@@ -6,6 +6,7 @@
                    :is-loading="loading"
                    :allow-annotation-edit="project.allow_annotation_change"
                    :project-config="project.configuration"
+                   :allow-annotation-change-delete="true"
                    @fetch="refreshDocumentsHandler"
                    @fetch-annotation="refreshAnnotationHandler"
                    @upload="showDocumentUploadModal = true"

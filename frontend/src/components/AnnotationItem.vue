@@ -63,6 +63,12 @@
     <div class="mt-2" v-if="allowAnnotationEdit && editingAnnotation">
       <!-- Annotation editing -->
       <b-card>
+        <template #header>
+          <h4>Change annotation</h4>
+          <p>
+            Re-annotate the document using the form below.
+          </p>
+        </template>
         <AnnotationRenderer :config="projectConfig"
                           :document="document.data"
                           :allow_cancel="true"
@@ -78,8 +84,8 @@
       <!-- Annotation display -->
       <div v-if="annotation.completed && annotation.change_list.length > 0">
         <div v-if="showHistory">
+          <!-- Shows entire history list -->
           <div v-for="change in annotation.change_list" class="mt-2 mb-2 p-2 data-bg">
-            <vue-json-pretty :data="change.data"></vue-json-pretty>
             <b-row>
               <b-col title="Changed by">
                 <b-icon-person-fill></b-icon-person-fill>
@@ -89,20 +95,31 @@
                 <b-icon-clock></b-icon-clock>
                 {{ change.time | datetime }}
               </b-col>
-            </b-row>
-            <b-row>
-              <b-col>
-                <b-button @click="deleteAnnotationChangeHistoryHandler(change.id)">Delete change</b-button>
+              <b-col class="text-right">
+                <b-button  v-if="allowChangeDelete" @click="deleteAnnotationChangeHistoryHandler(change.id)"
+                          size="sm" title="Delete this change history" variant="danger" squared>
+                  <b-icon-x></b-icon-x>
+                </b-button>
               </b-col>
             </b-row>
+
+            <DeleteModal title="Delete this annotation change?"
+                         v-model="showDeleteModal"
+                         :delete-locking="false"
+                         @delete="confirmDeleteAnnotationChangeHistoryHandler"
+            ></DeleteModal>
+
+            <vue-json-pretty :data="change.data"></vue-json-pretty>
           </div>
 
         </div>
         <div v-else class="mt-2 mb-2 p-2 data-bg">
-          <!-- Shows the last item-->
+          <!-- Shows the last (latest) item-->
           <vue-json-pretty :data="annotation.change_list[annotation.change_list.length - 1].data"></vue-json-pretty>
         </div>
+
         <div v-if="annotation.change_list.length > 1" class="text-right">
+          <!-- Button to show/hide change history -->
           <a href="#" @click.prevent="showHistory = false" v-if="showHistory">Hide change history
             <b-icon-chevron-contract></b-icon-chevron-contract>
           </a>
@@ -110,8 +127,9 @@
             <b-icon-chevron-expand></b-icon-chevron-expand>
           </a>
         </div>
+
       </div>
-      <div class="mt-2">
+      <div class="mt-2" v-if="allowAnnotationEdit">
         <b-button variant="primary" @click="editingAnnotation = true">Change annotation</b-button>
       </div>
 
@@ -128,22 +146,25 @@ import AnnotationRenderer from "@/components/AnnotationRenderer";
 import VueJsonPretty from 'vue-json-pretty';
 import 'vue-json-pretty/lib/styles.css';
 import {mapActions} from "vuex";
-import {toastError} from "@/utils";
+import {toastError, toastSuccess} from "@/utils";
+import DeleteModal from "@/components/DeleteModal";
 
 /**
  * Shows an individual Annotation item and its change history
  *
  * Events
- * annotation-changed(annotationId) - Triggered when the annotation has changed (re-annotation)
+ * annotation-changed(annotationId) - Triggered when the annotation has changed (re-annotation, or delete annotation history)
  * selection-changed(annotation, document) - Triggered when the user presses on the toggle icon on the top left
  */
 export default {
   name: "AnnotationItem",
-  components: {AnnotationRenderer, VueJsonPretty},
+  components: {DeleteModal, AnnotationRenderer, VueJsonPretty},
   data() {
     return {
       showHistory: false,
       editingAnnotation: false,
+      showDeleteModal: false,
+      annotationChangeHistoryIdToDelete: null,
     }
   },
   props: {
@@ -161,6 +182,9 @@ export default {
     },
     selected: {
       default: false,
+    },
+    allowChangeDelete: {
+      default: false,
     }
   },
   methods: {
@@ -169,20 +193,27 @@ export default {
       this.$emit("selection-changed", this.annotation, this.document)
     },
     async deleteAnnotationChangeHistoryHandler(id){
+      this.showDeleteModal = true
+      this.annotationChangeHistoryIdToDelete = id
+
+    },
+    async confirmDeleteAnnotationChangeHistoryHandler(){
+
       try{
-        await this.deleteAnnotationChangeHistory(id)
+        await this.deleteAnnotationChangeHistory(this.annotationChangeHistoryIdToDelete)
         this.$emit("annotation-changed", this.annotation.id)
+        toastSuccess("Delete confirmed", "The annotation change has been deleted.")
 
       } catch (e) {
         toastError("Could not reload annotation", e, this)
       }
-
 
     },
     async annotationChangeSubmitHandler(newAnnotation, elapsedTime) {
       try{
         await this.changeAnnotation({annotationID: this.annotation.id, newData: newAnnotation})
         this.$emit("annotation-changed", this.annotation.id)
+        toastSuccess("Annotation changed", "The annotation has been successfully changed.")
 
       } catch (e) {
         toastError("Could not reload annotation", e, this)

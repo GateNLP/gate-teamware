@@ -149,7 +149,9 @@
                               :project-config="projectConfig"
                               :allow-annotation-edit="allowAnnotationEdit"
                               :selected="isAnnotationSelected(anno)"
+                              :allow-change-delete="allowAnnotationChangeDelete"
                               @annotation-changed="fetchAnnotation"
+                              @selection-changed="toggleAnnotation"
               >
               </AnnotationItem>
             </BMedia>
@@ -185,6 +187,14 @@ import AnnotationItem from "@/components/AnnotationItem";
  *
  * It's the responsibility of the parent component to respond to the `fetch` event to retrieve new
  * data when the page selection changes.
+ *
+ * Properties
+ * documents:array - An array of documents to be displayed
+ * isLoading:bool - Toggle showing loading status, cannot interact with the component when loading
+ * showMenuBar:bool - Shows the menu bar for performing operations related to documents, e.g. delete, export, etc.
+ * showFilters:bool - Show the filtering bar for searching/sorting documents
+ * allowAnnotationEdit:bool - Whether to allow user to edit the annotation (make a change in annotation history)
+ * allowAnnotationChangeDelete:bool - Whether to allow user to delete an annotation's change history
  *
  * Events
  * fetch(currentPage, pageSize) - The component emits a `fetch` event when page selection changes or refresh
@@ -238,6 +248,9 @@ export default {
 
     allowAnnotationEdit: {
       default: false,
+    },
+    allowAnnotationChangeDelete: {
+      default: false
     },
     /**
      * Used for when user requests to edit annotation
