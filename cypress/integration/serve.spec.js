@@ -26,7 +26,7 @@ describe('Site serve test', () => {
         if (Cypress.env('TESTENV') == 'container') {
             cy.exec('docker-compose exec -T backend ./migrate-integration.sh')
         } else {
-            cy.exec('npm run migrate:integration')
+            cy.exec('npm run migrate:integration -- -n=create_db_users', {log:true})
         }
 
     })
@@ -94,17 +94,17 @@ describe('Site serve test', () => {
         loggedOutCheck()
     })
 
-    describe("Test user profile page", () => {
+    describe("Test user account page", () => {
 
         beforeEach(()=>{
             cy.login(annotatorUsername, password)
             cy.visit("/")
             cy.contains(annotatorUsername).click()
-            cy.contains("Profile").click()
+            cy.contains("Account").click()
 
         })
 
-        it("Check profile page items", () => {
+        it("Check account page items", () => {
 
             cy.contains("Username").parent().contains(annotatorUsername)
             cy.contains("User Role").parent().contains("annotator")
@@ -230,8 +230,8 @@ describe('Site serve test', () => {
 
         //Check annotation exists in user profile
         cy.get(".navbar").contains(adminUsername).click()
-        cy.contains("Profile").click()
-        cy.contains(newProjectName)
+        cy.contains("My annotations").click()
+        cy.contains(newProjectName).click()
         cy.get("[data-role='annotation-display-container']").first().contains(adminUsername)
     })
 
@@ -478,8 +478,8 @@ describe('Site serve test', () => {
 
         //Check annotation exists in user profile
         cy.get(".navbar").contains(adminUsername).click()
-        cy.contains("Profile").click()
-        cy.contains(newProjectName)
+        cy.contains("My annotations").click()
+        cy.contains(newProjectName).click()
         cy.get("[data-role='annotation-display-container']").first().contains(adminUsername)
     })
 

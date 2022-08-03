@@ -6,7 +6,7 @@ describe('User Registration Test', () => {
             cy.exec('docker-compose exec -T backend ./migrate-integration.sh')
         }
         else{
-            cy.exec('npm run migrate:integration')
+            cy.exec('npm run migrate:integration -- -n=create_db_users', {log:true})
         }
     })
 

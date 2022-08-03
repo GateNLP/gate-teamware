@@ -97,7 +97,8 @@
               </b-col>
               <b-col class="text-right">
                 <b-button  v-if="allowChangeDelete" @click="deleteAnnotationChangeHistoryHandler(change.id)"
-                          size="sm" title="Delete this change history" variant="danger" squared>
+                          size="sm" title="Delete this change history" variant="danger" squared
+                          data-role="annotation-change-delete">
                   <b-icon-x></b-icon-x>
                 </b-button>
               </b-col>
