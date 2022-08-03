@@ -13,7 +13,7 @@ describe('User Registration Test', () => {
     beforeEach(()=>{
         // Run setup if needed
         if (Cypress.env('TESTENV') == 'container') {
-            cy.exec('docker-compose exec -T backend ./migrate-integration.sh')
+            cy.exec('docker-compose exec -T backend ./migrate-integration.sh -n=create_db_users_with_project_and_annotation')
         }
         else{
             cy.exec('npm run migrate:integration -- -n=create_db_users_with_project_and_annotation', {log:true})
