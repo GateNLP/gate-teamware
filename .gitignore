@@ -96,6 +96,9 @@ local_settings.py
 *.sqlite3
 *.sqlite3-journal
 
+# Postgres data
+pgsql/
+
 # Flask stuff:
 instance/
 .webassets-cache

@@ -4,6 +4,8 @@ describe('User Interface Permissions Test', () => {
         // Run setup if needed
         if (Cypress.env('TESTENV') == 'container') {
             cy.exec('docker-compose exec -T backend ./migrate-integration.sh -n=create_db_users')
+        } else if (Cypress.env('TESTENV') == 'ci') {
+            cy.exec('DJANGO_SETTINGS_MODULE=teamware.settings.deployment docker-compose exec -T backend ./migrate-integration.sh -n=create_db_users')
         }
         else{
             console.log("Printing test")

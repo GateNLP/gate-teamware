@@ -14,17 +14,44 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Generate env
-        shell: bash
-        run: |
-          ./generate-docker-env.sh
-      
-      - uses: docker-practice/actions-setup-docker@master
-      - run: |
-          docker build -t annotate-test:latest --target test .
-          
-          # Run backend tests
-          docker run --rm --entrypoint npm annotate-test:latest run test:backend
+      - name: Set up Docker cache
+        uses: satackey/action-docker-layer-caching@v0.0.11
+        continue-on-error: true
+        with:
+          key: unit-test-docker-cache-{hash}
+          restore-keys: |
+            unit-test-docker-cache-
 
-          # Run frontend tests
-          docker run --rm --entrypoint npm annotate-test:latest run test:frontend
+      - name: Run the backend and frontend tests in containers
+        run: |
+          export MAIN_IMAGE=teamware-main
+          export STATIC_IMAGE=teamware-static
+          
+          ./generate-docker-env.sh
+
+          # Remove container registry address
+          sed -i 's/ghcr.io\/gatenlp\///g' .env
+
+          # Display the environment variable file for the logs
+          cat .env
+
+          # Build the test image with npm and pytest installed
+          docker build -t teamware-main:latest --target test .
+
+          # Export the environment variables
+          source .env
+
+          # Launch the database container
+          docker-compose up -d db
+
+          # Hacky method of waiting for postgres to be up and running
+          sleep 10
+          
+          # Allow Django to create databases for the testing
+          docker-compose exec -T db psql -v ON_ERROR_STOP=1 --username postgres -c 'ALTER USER '"$DB_USERNAME"' CREATEDB;'
+          
+          # Run the backend tests
+          docker-compose run --rm --entrypoint npm backend run test:pytest
+
+          # Run the frontend tests
+          docker-compose run --rm --entrypoint npm backend run test:frontend

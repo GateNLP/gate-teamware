@@ -575,8 +575,11 @@ class TestDocument(TestEndpoint):
         num_train_docs_per_project = 10
         num_test_docs_per_project = 15
         num_annotations_per_doc = 5
+
+        project_ids = []
         for i in range(num_projects):
             project = Project.objects.create(name=f"Project {i}", owner=self.get_default_user())
+            project_ids.append(project.id)
 
             # Annotation docs
             for j in range(num_docs_per_project):
@@ -595,8 +598,10 @@ class TestDocument(TestEndpoint):
                 for k in range(num_annotations_per_doc):
                     annotation = Annotation.objects.create(document=doc, user=self.get_default_user())
 
+        test_project_id = project_ids[0]
+
         # Gets all docs in a project
-        result = get_project_documents(self.get_loggedin_request(), 1)
+        result = get_project_documents(self.get_loggedin_request(), test_project_id)
         self.assertEqual(len(result["items"]), num_docs_per_project)
         self.assertEqual(result["total_count"], num_docs_per_project)
 
@@ -604,12 +609,12 @@ class TestDocument(TestEndpoint):
         page_size = 5
         num_pages = 4
         for i in range(num_pages):
-            result = get_project_documents(self.get_loggedin_request(), 1, i+1, page_size)
+            result = get_project_documents(self.get_loggedin_request(), test_project_id, i+1, page_size)
             self.assertEqual(len(result["items"]), page_size)
             self.assertEqual(result["total_count"], num_docs_per_project)
 
         # Gets all training docs in a project
-        result = get_project_training_documents(self.get_loggedin_request(), 1)
+        result = get_project_training_documents(self.get_loggedin_request(), test_project_id)
         self.assertEqual(len(result["items"]), num_train_docs_per_project)
         self.assertEqual(result["total_count"], num_train_docs_per_project)
 
@@ -617,12 +622,12 @@ class TestDocument(TestEndpoint):
         page_size = 5
         num_pages = 2
         for i in range(num_pages):
-            result = get_project_training_documents(self.get_loggedin_request(), 1, i + 1, page_size)
+            result = get_project_training_documents(self.get_loggedin_request(), test_project_id, i + 1, page_size)
             self.assertEqual(len(result["items"]), page_size)
             self.assertEqual(result["total_count"], num_train_docs_per_project)
 
         # Gets all test docs in a project
-        result = get_project_test_documents(self.get_loggedin_request(), 1)
+        result = get_project_test_documents(self.get_loggedin_request(), test_project_id)
         self.assertEqual(len(result["items"]), num_test_docs_per_project)
         self.assertEqual(result["total_count"], num_test_docs_per_project)
 
@@ -630,7 +635,7 @@ class TestDocument(TestEndpoint):
         page_size = 5
         num_pages = 3
         for i in range(num_pages):
-            result = get_project_test_documents(self.get_loggedin_request(), 1, i + 1, page_size)
+            result = get_project_test_documents(self.get_loggedin_request(), test_project_id, i + 1, page_size)
             self.assertEqual(len(result["items"]), page_size)
             self.assertEqual(result["total_count"], num_test_docs_per_project)
 
@@ -816,7 +821,7 @@ class TestUserManagement(TestEndpoint):
         user.is_staff = True
         user.save()
 
-        get_user_model().objects.create(username="ann1")
+        self.ann1 = get_user_model().objects.create(username="ann1")
         get_user_model().objects.create(username="ann2")
         get_user_model().objects.create(username="ann3")
 
@@ -841,7 +846,7 @@ class TestUserManagement(TestEndpoint):
         c = self.get_loggedin_client()
 
         data = {
-            "id": 2,
+            "id": self.ann1.id,
             "username": "ann1",
             "email": "ann1@test.com",
             "is_manager": True,
