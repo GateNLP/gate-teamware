@@ -8,7 +8,7 @@
     
     <meta name="description" content="Documentation for GATE Teamware">
     
-    <link rel="preload" href="/gate-teamware/assets/css/0.styles.7a366795.css" as="style"><link rel="preload" href="/gate-teamware/assets/js/app.adcfa597.js" as="script"><link rel="preload" href="/gate-teamware/assets/js/2.5e1dd66f.js" as="script"><link rel="preload" href="/gate-teamware/assets/js/10.2e15939a.js" as="script"><link rel="prefetch" href="/gate-teamware/assets/js/11.63120e5b.js"><link rel="prefetch" href="/gate-teamware/assets/js/12.5b610c72.js"><link rel="prefetch" href="/gate-teamware/assets/js/13.56ae77e8.js"><link rel="prefetch" href="/gate-teamware/assets/js/14.4c36211d.js"><link rel="prefetch" href="/gate-teamware/assets/js/15.b45ee475.js"><link rel="prefetch" href="/gate-teamware/assets/js/16.e8b19a04.js"><link rel="prefetch" href="/gate-teamware/assets/js/17.a42f3d52.js"><link rel="prefetch" href="/gate-teamware/assets/js/18.c55c4847.js"><link rel="prefetch" href="/gate-teamware/assets/js/3.ebd2742e.js"><link rel="prefetch" href="/gate-teamware/assets/js/4.88c5e916.js"><link rel="prefetch" href="/gate-teamware/assets/js/5.0ca6a843.js"><link rel="prefetch" href="/gate-teamware/assets/js/6.6f161a76.js"><link rel="prefetch" href="/gate-teamware/assets/js/7.544268b0.js"><link rel="prefetch" href="/gate-teamware/assets/js/8.79bfda75.js"><link rel="prefetch" href="/gate-teamware/assets/js/9.c28f1efd.js">
+    <link rel="preload" href="/gate-teamware/assets/css/0.styles.7a366795.css" as="style"><link rel="preload" href="/gate-teamware/assets/js/app.5a0a1c39.js" as="script"><link rel="preload" href="/gate-teamware/assets/js/2.5e1dd66f.js" as="script"><link rel="preload" href="/gate-teamware/assets/js/10.6bbf8972.js" as="script"><link rel="prefetch" href="/gate-teamware/assets/js/11.63120e5b.js"><link rel="prefetch" href="/gate-teamware/assets/js/12.5b610c72.js"><link rel="prefetch" href="/gate-teamware/assets/js/13.56ae77e8.js"><link rel="prefetch" href="/gate-teamware/assets/js/14.4c36211d.js"><link rel="prefetch" href="/gate-teamware/assets/js/15.b45ee475.js"><link rel="prefetch" href="/gate-teamware/assets/js/16.e8b19a04.js"><link rel="prefetch" href="/gate-teamware/assets/js/17.a42f3d52.js"><link rel="prefetch" href="/gate-teamware/assets/js/18.c55c4847.js"><link rel="prefetch" href="/gate-teamware/assets/js/3.ebd2742e.js"><link rel="prefetch" href="/gate-teamware/assets/js/4.88c5e916.js"><link rel="prefetch" href="/gate-teamware/assets/js/5.0ca6a843.js"><link rel="prefetch" href="/gate-teamware/assets/js/6.6f161a76.js"><link rel="prefetch" href="/gate-teamware/assets/js/7.544268b0.js"><link rel="prefetch" href="/gate-teamware/assets/js/8.79bfda75.js"><link rel="prefetch" href="/gate-teamware/assets/js/9.c28f1efd.js">
     <link rel="stylesheet" href="/gate-teamware/assets/css/0.styles.7a366795.css">
   </head>
   <body>
@@ -47,10 +47,28 @@ python libraries and nodejs which is used to install javascript libraries.</p> <
 <span class="token comment"># or</span>
 $ conda activate teamware
 </code></pre></div></li> <li>Install python dependencies in conda environment using pip<div class="language-bash extra-class"><pre class="language-bash"><code><span class="token punctuation">(</span>teamware<span class="token punctuation">)</span>$ pip <span class="token function">install</span> -r requirements.txt -r requirements-dev.txt
-</code></pre></div></li> <li>Install nodejs, postgresql and openssl in the conda environment<div class="language-bash extra-class"><pre class="language-bash"><code><span class="token punctuation">(</span>teamware<span class="token punctuation">)</span>$ conda <span class="token function">install</span> -y -c anaconda postgresql
+</code></pre></div></li> <li>Install nodejs, postgresql and openssl in the conda environment<div class="language-bash extra-class"><pre class="language-bash"><code><span class="token punctuation">(</span>teamware<span class="token punctuation">)</span>$ conda <span class="token function">install</span> -y -c conda-forge <span class="token assign-left variable">postgresql</span><span class="token operator">=</span><span class="token number">14</span>.*
 <span class="token punctuation">(</span>teamware<span class="token punctuation">)</span>$ conda <span class="token function">install</span> -y -c conda-forge <span class="token assign-left variable">nodejs</span><span class="token operator">=</span><span class="token number">14</span>.*
 </code></pre></div></li> <li>Install nodejs dependencies<div class="language-bash extra-class"><pre class="language-bash"><code><span class="token punctuation">(</span>teamware<span class="token punctuation">)</span>$ <span class="token function">npm</span> <span class="token function">install</span>
-</code></pre></div></li></ul> <h2 id="updating-packages"><a href="#updating-packages" class="header-anchor">#</a> Updating packages</h2> <p>To update packages after a merge, run the following commands:</p> <div class="language-bash extra-class"><pre class="language-bash"><code><span class="token comment"># Activate the conda environment</span>
+</code></pre></div></li></ul> <p>Set up a new postgreSQL database and user for development:</p> <div class="language- extra-class"><pre class="language-text"><code># Create a new directory for the db data and initialise
+mkdir -p pgsql/data
+initdb -p pgsql/data
+
+# Launch postgres in the background
+postgres -p 5432 -D pgsql/data &amp;
+
+# Create a DB user, you'll be prompted to input password, &quot;password&quot; is the default in teamware/settings/base.py for development
+createuser -p 5432 -P user --createdb
+
+# Create a rumours_db with rumours as user
+createdb -p 5432 -O user annotations_db
+
+# Migrate &amp; create database tables
+python manage.py migrate
+
+# create a new superuser - when prompted enter a username and password for the db superuser
+python manage.py createsuperuser
+</code></pre></div><h2 id="updating-packages"><a href="#updating-packages" class="header-anchor">#</a> Updating packages</h2> <p>To update packages after a merge, run the following commands:</p> <div class="language-bash extra-class"><pre class="language-bash"><code><span class="token comment"># Activate the conda environment</span>
 <span class="token builtin class-name">source</span> activate teamware
 <span class="token comment"># Update any packages changed in the python requirements.txt and requirements-dev.txt files</span>
 pip <span class="token function">install</span> -r requirements.txt -r requirements-dev.txt
@@ -95,6 +113,6 @@ created through Google's cloud console.</p> <ul><li>More information on the Gmai
       </a>
       →
     </span></p></div> </main></div><div class="global-ui"></div></div>
-    <script src="/gate-teamware/assets/js/app.adcfa597.js" defer></script><script src="/gate-teamware/assets/js/2.5e1dd66f.js" defer></script><script src="/gate-teamware/assets/js/10.2e15939a.js" defer></script>
+    <script src="/gate-teamware/assets/js/app.5a0a1c39.js" defer></script><script src="/gate-teamware/assets/js/2.5e1dd66f.js" defer></script><script src="/gate-teamware/assets/js/10.6bbf8972.js" defer></script>
   </body>
 </html>
