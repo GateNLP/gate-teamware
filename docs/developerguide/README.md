@@ -76,7 +76,7 @@ postgres -p 5432 -D pgsql/data &
 createuser -p 5432 -P user --createdb
 
 # Create a rumours_db with rumours as user
-createdb -p 5433 -O user annotations_db
+createdb -p 5432 -O user annotations_db
 
 # Migrate & create database tables
 python manage.py migrate
