@@ -2,12 +2,12 @@
 
 set -e
 
+source .env
+
 DEPLOY_ENV=$1
 
 DJANGO_SETTINGS_MODULE=teamware.settings.deployment
 export DJANGO_SETTINGS_MODULE
-
-source .env
 
 case $DEPLOY_ENV in
 
