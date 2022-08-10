@@ -23,7 +23,7 @@ jobs:
         image: postgres:14-alpine
         env:
           # optional (defaults to `postgres`)
-          POSTGRES_DB: annotations_db
+          POSTGRES_DB: teamware_db
           # required
           POSTGRES_PASSWORD: password
           # optional (defaults to `5432`)

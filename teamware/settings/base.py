@@ -93,7 +93,7 @@ WSGI_APPLICATION = 'teamware.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get("DJANGO_DB_NAME", "annotations_db"),
+        'NAME': os.environ.get("DJANGO_DB_NAME", "teamware_db"),
         "USER": os.environ.get("DB_USERNAME", "user"),
         "PASSWORD": os.environ.get("DB_PASSWORD", "password"),
         "HOST": os.environ.get("DB_HOST", "127.0.0.1"),

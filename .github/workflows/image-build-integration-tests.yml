@@ -12,7 +12,7 @@ on:
 env:
   MAIN_IMAGE: teamware-main
   STATIC_IMAGE: teamware-static
-  DJANGO_DB_NAME: annotations_integration_db
+  DJANGO_DB_NAME: teamware_integration_db
 
 jobs:
   build:
