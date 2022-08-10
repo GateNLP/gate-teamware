@@ -61,7 +61,7 @@ describe('User Interface Permissions Test', () => {
         cy.contains('Projects').click()
         cy.contains('Create project').click()
         cy.contains('Project')
-        cy.get('input[name="project_name"]').type(projNameChange)
+        cy.get('input[name="project_name"]').clear().type(projNameChange)
         cy.contains('Save').click()
         cy.contains('Projects').click()
         cy.contains(projNameChange)
