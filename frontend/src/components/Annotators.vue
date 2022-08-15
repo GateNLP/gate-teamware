@@ -41,6 +41,9 @@
       hover
       selectable
       select-mode="multi"
+      :sort-by.sync="tableSortBy"
+      :sort-desc.sync="tableSortDesc"
+      :sort-compare="sortBTable"
       :items="projectAnnotatorsPaginated"
       :busy="loading"
       :fields="getTableFields()"
@@ -173,14 +176,16 @@ export default {
       perPage: 10,
       loading: false,
       showAddAnnotators: false,
+      tableSortBy: 'usernameemail',
+      tableSortDesc: false,
       defaultTableFields: [
         'selected',
-        {key:'usernameemail', label: 'User'},
+        {key:'usernameemail', label: 'User', sortable: true},
         {key: 'username', label: 'Status & Actions'}
       ],
       optionalTableFields: {
-        training: {key:'trainingscoretrainingcompleted', label: "Training"},
-        test: {key:'testscoretestcompleted', label: "Test"},
+        training: {key:'trainingscoretrainingcompleted', label: "Training", sortable: true},
+        test: {key:'testscoretestcompleted', label: "Test", sortable: true},
       },
       selected: []  
     }
@@ -415,6 +420,24 @@ export default {
         fields.splice(2,0,this.optionalTableFields.training)
       }
       return fields
+    },
+    sortBTable(aRow, bRow, key, sortDesc, formatter, compareOptions, compareLocale){
+      if (key == 'usernameemail') {
+        const a = aRow.username
+        const b = bRow.username
+
+        return a.localeCompare(b, compareLocale, compareOptions)
+      }else if(key == 'trainingscoretrainingcompleted'){
+        const a = aRow.training_score
+        const b = bRow.training_score
+        return a < b ? -1 : a > b ? 1 : 0 
+      }else if(key == 'testscoretestcompleted'){
+        const a = aRow.test_score
+        const b = bRow.test_score
+        return a < b ? -1 : a > b ? 1 : 0 
+      }else{
+        return null // fall back to built-in sort-compare fcn
+      }
     },
     trainingTestTooltip(data, phase){
       if (phase == "Training" && data.item.training_completed){
