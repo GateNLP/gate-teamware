@@ -132,7 +132,7 @@ describe('User Registration Test', () => {
             cy.wrap(container).get("[data-role='annotation-change-delete']").first().click({force:true})
 
         })
-        cy.wait(150)
+        cy.wait(1000)
         cy.get(".modal-dialog .btn-danger").contains("Delete").click({force: true})
         cy.get("[data-role='annotation-display-container']").first().then(container => {
             cy.wrap(container).contains('"sentiment": "positive"').should("not.exist")

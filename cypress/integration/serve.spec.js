@@ -482,6 +482,7 @@ describe('Site serve test', () => {
         cy.get(".navbar").contains(adminUsername).click()
         cy.contains("My annotations").click()
         cy.contains(newProjectName).click()
+        cy.wait(500)
         cy.get("[data-role='annotation-display-container']").first().contains(adminUsername)
     })
 
