@@ -27,7 +27,7 @@ describe('Annotation Change Test', () => {
         cy.visit("/")
         cy.get(".navbar").contains(annotatorUsername).click()
         cy.contains("My annotations").click()
-        cy.contains("Test project").click()
+        cy.get(".list-group-item").contains("Test project").click()
 
 
         cy.get("[data-role='annotation-display-container']").first().then(container => {
@@ -74,6 +74,7 @@ describe('Annotation Change Test', () => {
             cy.wrap(container).contains("Change annotation").click()
             cy.wrap(container).contains("Negative").click()
             cy.wrap(container).contains("Submit").click()
+            cy.wait(1000)
 
             cy.wrap(container).contains("Change annotation").click()
             cy.wrap(container).contains("Neutral").click()
@@ -134,7 +135,7 @@ describe('Annotation Change Test', () => {
         })
         cy.wait(1000)
         cy.get(".modal-dialog .btn-danger").contains("Delete").click({force: true})
-        cy.get(".modal-dialog").should("not.be.visible")
+        cy.get(".modal-dialog").should("not.exist")
         cy.get("[data-role='annotation-display-container']").first().then(container => {
             cy.wrap(container).contains('"sentiment": "positive"').should("not.exist")
             cy.wrap(container).contains('"sentiment": "negative"')
