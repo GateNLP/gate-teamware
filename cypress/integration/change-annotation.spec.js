@@ -134,6 +134,7 @@ describe('Annotation Change Test', () => {
         })
         cy.wait(1000)
         cy.get(".modal-dialog .btn-danger").contains("Delete").click({force: true})
+        cy.get(".modal-dialog").should("not.be.visible")
         cy.get("[data-role='annotation-display-container']").first().then(container => {
             cy.wrap(container).contains('"sentiment": "positive"').should("not.exist")
             cy.wrap(container).contains('"sentiment": "negative"')
