@@ -1,4 +1,4 @@
-describe('User Registration Test', () => {
+describe('Annotation Change Test', () => {
 
     let annotatorUsername = "annotator"
     let annotatorEmail = "annotator@test.com"
