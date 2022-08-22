@@ -81,6 +81,21 @@
         </div>
       </template>
 
+      <template #cell(annotations)="data">
+        {{ data.item.annotations }} / {{ project.documents }}
+      </template>
+
+      <template #cell()="data">
+        <span v-if="data.item.rejected">Rejected</span>
+        <span v-else-if="data.item.annotations_completed">Completed</span>
+        <span v-else-if="isAtTrainingStage(data.item)">Training</span>
+        <span v-else-if="isAtTestStage(data.item)">Testing</span>
+        <span v-else-if="isAtAnnotationStage(data.item)">Annotating</span>
+        <span v-else-if="isAwaitingApproval(data.item)" title="Awaiting approval to annotate">Waiting</span>
+        <span v-else>Unknown</span>
+      </template>
+
+      <!-- Actions -->
       <template #cell(username)="data">
 
         <b-button-group>
@@ -181,7 +196,9 @@ export default {
       defaultTableFields: [
         'selected',
         {key:'usernameemail', label: 'User', sortable: true},
-        {key: 'username', label: 'Status & Actions'}
+        {key: 'annotations', label: '# Annotations', sortable: true},
+        {key: 'status', label: 'Status', sortable: true},
+        {key: 'username', label: 'Actions'}
       ],
       optionalTableFields: {
         training: {key:'trainingscoretrainingcompleted', label: "Training", sortable: true},
@@ -205,7 +222,6 @@ export default {
           !this.isAtAnnotationStage(annotator) &&
           !annotator.training_completed &&
           this.project.has_training_stage
-
     },
     isAtTestStage(annotator){
       return annotator.status == 0 &&
@@ -216,6 +232,31 @@ export default {
     },
     isAtAnnotationStage(annotator){
       return annotator.status == 0 && annotator.allowed_to_annotate
+    },
+    isAwaitingApproval(annotator){
+      if (annotator.status == 1 || annotator.rejected || annotator.allowed_to_annotate){
+        return false
+      }else if(!this.project.has_training_stage && !this.project.has_test_stage){
+        return false
+      }else if(this.project.has_training_stage && this.project.has_test_stage){
+        if (annotator.training_completed && annotator.test_completed && !annotator.allowed_to_annotate){
+          return true
+        }else{
+          return false
+        }
+      }else if(this.project.has_training_stage && !this.project.has_test_stage){
+        if (annotator.training_completed && !annotator.allowed_to_annotate){
+          return true
+        }else{
+          return false
+        }
+      }else if(!this.project.has_training_stage && this.project.has_test_stage){
+        if (annotator.test_completed && !annotator.allowed_to_annotate){
+          return true
+        }else{
+          return false
+        }
+      }
     },
     getAnnotationStageWarning(annotator){
       if(!this.isAtTrainingStage(annotator) &&

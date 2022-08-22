@@ -666,12 +666,20 @@ class AnnotatorProject(models.Model):
 
     @property
     def num_annotations(self):
-        # Is this better as a prop method or as a normal property?
-        pass
+        """Number of annotations completed by this annotator in this project"""
+        count = 0
+        for d in self.project.documents.filter(doc_type=DocumentType.ANNOTATION):
+            count += d.annotations.filter(user=self.annotator).count()
+        return count
 
     def set_status(self, status):
         self.status = status
         self.save()
+
+    def get_stats(self):
+        return {
+            "annotations": self.num_annotations,
+        }
 
 
 class Document(models.Model):

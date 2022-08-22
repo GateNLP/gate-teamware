@@ -660,7 +660,8 @@ def get_project_annotators(request, proj_id):
     for ap in project_annotators:
         output.append({
             **serializer.serialize(ap.annotator, {"id", "username", "email"}),
-            **serializer.serialize(ap, exclude_fields={"annotator", "project"})
+            **serializer.serialize(ap, exclude_fields={"annotator", "project"}),
+            **ap.get_stats()
         })
     return output
 
