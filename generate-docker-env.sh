@@ -45,7 +45,7 @@ cat > .env <<EOF
 
 # Database details
 PG_SUPERUSER_PASSWORD=${PG_SUPERUSER_PASSWORD:-$(openssl rand -base64 16)} # default: auto-generated
-DJANGO_DB_NAME=${DJANGO_DB_NAME:-annotations_db}
+DJANGO_DB_NAME=${DJANGO_DB_NAME:-teamware_db}
 DB_USERNAME=${DB_USERNAME:-gate}
 DB_PASSWORD=${DB_PASSWORD:-$(openssl rand -base64 16)} # default: auto-generated
 

@@ -194,7 +194,7 @@ email:
 postgresql:
   architecture: standalone
   auth:
-    database: annotations_db
+    database: teamware_db
     username: gate
     existingSecret: postgres-credentials
 

@@ -57,3 +57,28 @@ e.g.
 helm upgrade --install gate-teamware ./gate-teamware/ \
        --namespace teamware-prod --values prod-values.yaml
 ```
+
+## Changelog
+
+### Version 0.2.0
+
+**Breaking changes**
+
+- default postgresql database name changed from `annotations_db` to `teamware_db` - if you are upgrading an existing installation rather than installing fresh you must either:
+  - explicitly override `postgresql.auth.database=annotations_db` in order to remain compatible with your existing database, or
+  - ensure you have a recent backup of the database, uninstall the chart completely, delete the old postgresql PV and PVC, do a fresh install of the chart to create the database under its new name, then restore the most recent backup to the new `teamware_db` database.
+    - The [postgres-restore-s3 tool](https://github.com/schickling/dockerfiles/tree/master/postgres-restore-s3) may be useful for this, but the chart cannot configure this automatically as it requires credentials that are able to _read_ from your backup bucket, and ideally the credentials provisioned for the backup CronJob should only provide _write_ access.
+
+### Version 0.1.1
+
+No breaking changes.
+
+Minor changes:
+
+- Reduced log verbosity for the static files pod by not logging k8s health check probes.
+
+### Version 0.1.0
+
+Initial Helm chart.
+
+
