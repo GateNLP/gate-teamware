@@ -153,6 +153,7 @@ export default {
   components: {DeleteModal, CollapseText, MarkdownRenderer, AnnotationRenderer},
   data() {
     return {
+      currentTaskIndex: 0,
       annotationTask: null,
       DocumentType,
       showLeaveProjectModal: false,
@@ -160,7 +161,16 @@ export default {
       showThankyouCard: false,
     }
   },
-  computed: {},
+  computed: {
+    currentAnnotationTask(){
+      if( "task_history" in this.annotationTask){
+
+      }
+      else{
+        return this.annotationTask
+      }
+    }
+  },
   methods: {
     ...mapActions(["getUserAnnotationTask", "completeUserAnnotationTask", "rejectUserAnnotationTask", "annotatorLeaveProject"]),
     getAnnotationContainerBgClass() {

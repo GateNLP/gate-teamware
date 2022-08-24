@@ -928,6 +928,38 @@ class TestAnnotationModel(ModelTestCase):
                          "Should be changed by annotator2")
 
 
+    def test_get_annotations_for_user_in_project(self):
+        num_projects = 10
+        num_annotators = 12
+        num_annotations_for_annotator = 15
+
+        projects = [Project.objects.create() for i in range(num_projects)]
+        annotators = [get_user_model().objects.create(username=f"Testannotator{i}") for i in range(num_annotators)]
+        doc_types = [DocumentType.ANNOTATION, DocumentType.TRAINING, DocumentType.TEST]
+
+        # Create annotations for all annotators
+        for project in projects:
+            for annotator in annotators:
+                for i in range(num_annotations_for_annotator):
+                    for doc_type in doc_types:
+                        doc = Document.objects.create(project=project, doc_type=doc_type)
+                        Annotation.objects.create(user=annotator, document=doc, status=Annotation.COMPLETED)
+
+
+        # Check for all annotators and projects
+        for project in projects:
+            for annotator in annotators:
+                self.assertEqual(num_annotations_for_annotator,
+                                 len(Annotation.get_annotations_for_user_in_project(annotator.pk, project.pk)))
+                self.assertEqual(num_annotations_for_annotator,
+                                 len(Annotation.get_annotations_for_user_in_project(annotator.pk,
+                                                                                    project.pk,
+                                                                                    DocumentType.TEST)))
+                self.assertEqual(num_annotations_for_annotator,
+                             len(Annotation.get_annotations_for_user_in_project(annotator.pk,
+                                                                                project.pk,
+                                                                                DocumentType.TRAINING)))
+
 
 
 

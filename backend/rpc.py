@@ -735,13 +735,27 @@ def get_annotation_timings(request, proj_id):
 
     return annotation_timings
 
+@rpc_method_manager
+def delete_annotation_change_history(request, annotation_change_history_id):
+    annotation_change_history = AnnotationChangeHistory.objects.get(pk=annotation_change_history_id)
+    if request.user.is_associated_with_annotation(annotation_change_history.annotation):
+        if annotation_change_history.annotation.change_history.all().count() > 1:
+            annotation_change_history.delete()
+        else:
+            raise RuntimeError("Must have at least a single annotation change history for a completed annotation.")
+    else:
+        raise PermissionError("No permission to access the annotation history")
+
 ###############################
 ### Annotator methods       ###
 ###############################
 
 @rpc_method_auth
 def get_annotation_task(request):
-    """ Gets the annotator's current task """
+    """
+    Gets the annotator's current task
+
+     """
 
     with transaction.atomic():
 
@@ -760,6 +774,23 @@ def get_annotation_task(request):
         return project.get_annotator_task(user)
 
 
+@rpc_method_auth
+def get_annotation_task_with_id(request, annotation_id):
+    """
+    Get annotation task dictionary for a specific annotation (annotation_id)
+    """
+
+    with transaction.atomic():
+        user = request.user
+        annotation = Annotation.objects.get(pk=annotation_id)
+        if not annotation.user_allowed_to_annotate(user):
+            raise PermissionError(
+                f"User {user.username} trying to complete annotation id {annotation_id} that doesn't belong to them")
+
+        if annotation.document and annotation.document.project:
+            return annotation.document.project.get_annotation_task_dict(annotation, include_task_history_in_project=False)
+        else:
+            raise RuntimeError(f"Could not get the annotation task with id {annotation_id}")
 
 
 @rpc_method_auth
@@ -811,6 +842,7 @@ def change_annotation(request, annotation_id, new_data):
 
 @rpc_method_auth
 def get_document(request, document_id):
+    """ Obsolete: to be deleted"""
     doc = Document.objects.get(pk=document_id)
     if request.user.is_associated_with_document(doc):
         return doc.get_listing(annotation_list=[anno.get_listing() for anno in doc.annotations.all()])
@@ -820,22 +852,14 @@ def get_document(request, document_id):
 
 @rpc_method_auth
 def get_annotation(request, annotation_id):
+    """ Obsolete: to be deleted"""
     annotation = Annotation.objects.get(pk=annotation_id)
     if request.user.is_associated_with_annotation(annotation):
         return annotation.get_listing()
     else:
         raise PermissionError("No permission to access the annotation")
 
-@rpc_method_manager
-def delete_annotation_change_history(request, annotation_change_history_id):
-    annotation_change_history = AnnotationChangeHistory.objects.get(pk=annotation_change_history_id)
-    if request.user.is_associated_with_annotation(annotation_change_history.annotation):
-        if annotation_change_history.annotation.change_history.all().count() > 1:
-            annotation_change_history.delete()
-        else:
-            raise RuntimeError("Must have at least a single annotation change history for a completed annotation.")
-    else:
-        raise PermissionError("No permission to access the annotation history")
+
 
 @rpc_method_auth
 def annotator_leave_project(request):
