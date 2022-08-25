@@ -391,7 +391,7 @@ export default {
       return false
     },
     getMakeAnnotatorActiveBtnVariant(annotator){
-      if(annotator.status == 0)
+      if(annotator.status == 0 || annotator.annotations_completed)
         return "secondary"
       else
         return "primary"
@@ -402,15 +402,17 @@ export default {
         return "secondary"
       }
       for (let annotator of annotators){
-        if(annotator.status == 0)
+        if(annotator.status == 0 || annotator.annotations_completed)
           return "secondary"
       }
       return "primary"
     },
     getMakeAnnotatorActiveBtnTitle(annotator){
-      if(annotator.status == 0)
+      if(annotator.status == 0){
         return "Annotator already active in the project."
-      else
+      }else if(annotator.annotations_completed){
+        return "Annotations completed: " + annotator.annotations_completed
+      }else
         return "Makes the annotator active in the project."
 
     },
