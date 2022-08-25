@@ -85,7 +85,7 @@
         {{ data.item.annotations }} / {{ project.documents }}
       </template>
 
-      <template #cell()="data">
+      <template #cell(status)="data">
         <span v-if="data.item.rejected">Rejected</span>
         <span v-else-if="data.item.annotations_completed">Completed</span>
         <span v-else-if="isAtTrainingStage(data.item)">Training</span>
@@ -463,10 +463,9 @@ export default {
       return fields
     },
     sortBTable(aRow, bRow, key, sortDesc, formatter, compareOptions, compareLocale){
-      if (key == 'usernameemail') {
+      if (key == 'usernameemail' || 'sorted') {
         const a = aRow.username
         const b = bRow.username
-
         return a.localeCompare(b, compareLocale, compareOptions)
       }else if(key == 'trainingscoretrainingcompleted'){
         const a = aRow.training_score
@@ -475,6 +474,10 @@ export default {
       }else if(key == 'testscoretestcompleted'){
         const a = aRow.test_score
         const b = bRow.test_score
+        return a < b ? -1 : a > b ? 1 : 0
+      }else if(key == 'annotations'){
+        const a = aRow.annotations
+        const b = bRow.annotations
         return a < b ? -1 : a > b ? 1 : 0 
       }else{
         return null // fall back to built-in sort-compare fcn
