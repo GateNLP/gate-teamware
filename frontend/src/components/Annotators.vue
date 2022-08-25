@@ -86,13 +86,7 @@
       </template>
 
       <template #cell(status)="data">
-        <span v-if="data.item.rejected">Rejected</span>
-        <span v-else-if="data.item.annotations_completed">Completed</span>
-        <span v-else-if="isAtTrainingStage(data.item)">Training</span>
-        <span v-else-if="isAtTestStage(data.item)">Testing</span>
-        <span v-else-if="isAtAnnotationStage(data.item)">Annotating</span>
-        <span v-else-if="isAwaitingApproval(data.item)" title="Awaiting approval to annotate">Waiting</span>
-        <span v-else>Unknown</span>
+        <span>{{ getAnnotatorStatus(data.item) }}</span>
       </template>
 
       <!-- Actions -->
@@ -322,8 +316,11 @@ export default {
 
     },
     getMakeAnnotatorActiveBtnDisabled(annotator){
-      return annotator.status == 0
-
+      if (annotator.annotations_completed){
+        return false
+      }else{
+        return annotator.status == 0
+      }
     },
     getAnnotatorCompleteBtnVariant(annotator) {
       if(annotator.status == 0)
@@ -341,6 +338,23 @@ export default {
     },
     getAnnotatorCompleteBtnDisabled(annotator) {
       return annotator.status != 0
+    },
+    getAnnotatorStatus(annotator){
+      if (annotator.rejected){
+        return 'Rejected'
+      }else if(this.isAwaitingApproval(annotator)){
+        return 'Waiting'
+      }else if(this.isAtTrainingStage(annotator)){
+        return 'Training'
+      }else if(this.isAtTestStage(annotator)){
+        return 'Testing'
+      }else if(this.isAtAnnotationStage(annotator)){
+        return 'Annotating'
+      }else if(annotator.annotations_completed){
+        return 'Completed'
+      }else{
+        return 'Unknown'
+      }
     },
     getAnnotatorRejectBtnVariant(annotator) {
       if(annotator.status == 0)
