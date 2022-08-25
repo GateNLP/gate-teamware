@@ -119,7 +119,7 @@
       </template>
 
       <template #cell(trainingscoretrainingcompleted)="data">
-        <div :title="trainingTestTooltip(data, 'Training')" :class="{stageActive:isAtTrainingStage(data.item)}">
+        <div :title="trainingTestTooltip(data, 'Training')">
           <b-icon-check-square-fill v-if="data.item.training_completed !== null"></b-icon-check-square-fill>
           <b-icon-square v-else></b-icon-square>
           {{ data.item.training_score }} / {{ project.training_documents }}
@@ -127,7 +127,7 @@
       </template>
 
       <template #cell(testscoretestcompleted)="data" v-if="project.has_test_stage">
-        <div :title="trainingTestTooltip(data, 'Testing')" :class="{stageActive:isAtTestStage(data.item)}">
+        <div :title="trainingTestTooltip(data, 'Testing')">
           <b-icon-check-square-fill v-if="data.item.test_completed !== null"></b-icon-check-square-fill>
           <b-icon-square v-else></b-icon-square>
           {{ data.item.test_score }} / {{ project.test_documents }}
