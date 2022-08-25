@@ -82,7 +82,7 @@
       </template>
 
       <template #cell(annotations)="data">
-        {{ data.item.annotations }} / {{ project.documents }}
+        <p class="text-center">{{ data.item.annotations }} / {{ project.documents }}</p>
       </template>
 
       <template #cell(status)="data">
