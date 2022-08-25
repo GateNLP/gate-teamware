@@ -37,10 +37,63 @@
         ></b-pagination>
     </div>
 
+    <!-- Batch actions -->
+    <div class="row">
+      <b-button size="sm" @click="selectAllRows" variant="primary">
+        <span aria-hidden="true"><b-icon-check-square></b-icon-check-square></span>
+          Select all
+      </b-button>
+      <b-button size="sm" @click="clearSelected" variant="primary">
+        <span aria-hidden="true"><b-icon-square></b-icon-square></span>
+          Clear selected
+      </b-button>
+
+      <b-button-group>
+        <b-button
+            :variant="getBatchMakeAnnotatorBtnVariant(selected)"
+            size="sm"
+            @click="batchAllowAnnotation(selected)"
+            :title="getBatchMakeAnnotatorBtnTitle(selected)"
+            :disabled="getBatchMakeAnnotatorBtnDisabled(selected)"
+        >
+          <b-icon-pencil-square></b-icon-pencil-square>
+          Make annotator
+        </b-button>
+        <b-button
+            :variant="getBatchMakeAnnotatorActiveBtnVariant(selected)"
+            size="sm"
+            @click="batchMakeAnnotatorActive(selected)"
+            :title="getBatchMakeAnnotatorActiveBtnTitle(selected)"
+            :disabled="getBatchMakeAnnotatorActiveBtnDisabled(selected)"
+        >
+          <b-icon-person-check-fill></b-icon-person-check-fill>
+          Make active
+        </b-button>
+        <b-button size="sm"
+                  @click="batchRemoveAnnotator(selected)"
+                  :variant="getBatchAnnotatorCompleteBtnVariant(selected)"
+                  :title="getBatchAnnotatorCompleteBtnTitle(selected)"
+                  :disabled="getBatchAnnotatorCompleteBtnDisabled(selected)">
+          <b-icon icon="person-x-fill" aria-hidden="true"></b-icon>
+          Complete
+        </b-button>
+        <b-button size="sm"
+                  :variant="getBatchAnnotatorRejectBtnVariant(selected)"
+                  :title="getBatchAnnotatorRejectBtnTitle(selected)"
+                  :disabled="getBatchAnnotatorRejectBtnDisabled(selected)"
+                  @click="batchRejectAnnotator(selected)">
+          <b-icon-dash-circle rotate="-45"></b-icon-dash-circle>
+          Reject
+        </b-button>
+      </b-button-group>
+    </div>
+
+    <!-- Project Annotators Table -->
     <b-table
       hover
       selectable
       select-mode="multi"
+      ref="projectAnnotatorTable"
       :sort-by.sync="tableSortBy"
       :sort-desc.sync="tableSortDesc"
       :sort-compare="sortBTable"
@@ -282,6 +335,19 @@ export default {
       else
         return "primary"
     },
+    getBatchMakeAnnotatorBtnVariant(annotators){
+      if (annotators.length < 1){
+        return "secondary"
+      }
+      for (let annotator of annotators){
+        if(annotator.status != 0)
+          return "secondary"
+
+        if (annotator.allowed_to_annotate)
+          return "secondary"
+      }
+      return "primary"
+    },
     getMakeAnnotatorBtnTitle(annotator) {
       if(annotator.status != 0)
         return "Annotator is not active in this project."
@@ -292,6 +358,17 @@ export default {
         return "Allow annotator to annotate data. Training and testing stages are skipped if not already completed."
 
     },
+    getBatchMakeAnnotatorBtnTitle(annotators){
+      if (annotators.length < 1){
+        return "Select at least one user to make annotator"
+      }
+
+      for (let annotator of annotators){
+        if(annotator.status != 0 || annotator.allowed_to_annotate)
+          return "Invalid or redundant operation for one or more selected annotators."
+      }
+      return "Make selected annotators active in project."
+    },
     getMakeAnnotatorBtnDisabled(annotator) {
       if(annotator.status != 0)
         return true
@@ -301,12 +378,34 @@ export default {
       else
         return false
     },
+    getBatchMakeAnnotatorBtnDisabled(annotators){
+      if (annotators.length < 1){
+        return true
+      }
+
+      for (let annotator of annotators){
+        if (annotator.status != 0 || annotator.allowed_to_annotate){
+          return true
+        }
+      }
+      return false
+    },
     getMakeAnnotatorActiveBtnVariant(annotator){
       if(annotator.status == 0)
         return "secondary"
       else
         return "primary"
 
+    },
+    getBatchMakeAnnotatorActiveBtnVariant(annotators){
+      if (annotators.length < 1){
+        return "secondary"
+      }
+      for (let annotator of annotators){
+        if(annotator.status == 0)
+          return "secondary"
+      }
+      return "primary"
     },
     getMakeAnnotatorActiveBtnTitle(annotator){
       if(annotator.status == 0)
@@ -315,11 +414,39 @@ export default {
         return "Makes the annotator active in the project."
 
     },
+    getBatchMakeAnnotatorActiveBtnTitle(annotators){
+      if (annotators.length < 1){
+        return "Select at least one annotator to make active"
+      }
+
+      for (let annotator of annotators){
+        if(annotator.status == 0 || annotator.allowed_to_annotate)
+          return "Invalid or redundant operation for one or more selected annotators."
+      }
+      return "Make selected annotators active in project."
+    },
     getMakeAnnotatorActiveBtnDisabled(annotator){
-      if (annotator.annotations_completed){
+      if (annotator.rejected){
         return false
+      }else if (annotator.annotations_completed){
+        return true
+      }else if (annotator.status == 0){
+        return true
       }else{
-        return annotator.status == 0
+        return false
+      }
+    },
+    getBatchMakeAnnotatorActiveBtnDisabled(annotators){
+      if (annotators.length < 1){
+        return true
+      }else if (annotators.every( (annotator) => annotator.rejected)){
+        return false
+      }else if (annotators.every( (annotator) => annotator.annotations_completed)){
+        return true
+      }else if (annotators.every( (annotator) => annotator.status == 0 )){
+        return true
+      }else{
+        return false
       }
     },
     getAnnotatorCompleteBtnVariant(annotator) {
@@ -329,6 +456,15 @@ export default {
         return "secondary"
 
     },
+    getBatchAnnotatorCompleteBtnVariant(annotators){
+      if (annotators.length < 1){
+        return "secondary"
+      }else if (annotators.every( (annotator) => annotator.status == 0 )){
+        return "warning"
+      }else{
+        return "secondary"
+      }
+    },
     getAnnotatorCompleteBtnTitle(annotator) {
       if (annotator.status == 0)
         return "Mark annotator as having completed annotation of the project and will be transferred to the available annotator pool."
@@ -336,8 +472,28 @@ export default {
         return "Annotator not active in project"
 
     },
+    getBatchAnnotatorCompleteBtnTitle(annotators){
+      if (annotators.length < 1){
+        return "Select at least one annotator to make active"
+      }
+      
+      if (annotators.every( (annotator) => annotator.status == 0 )){
+        return "Mark annotators as having completed annotation of the project. Annotators will be transferred to the available annotator pool."
+      }else{
+        return "Invalid or redundant operation for one or more selected annotators."
+      }
+    },
     getAnnotatorCompleteBtnDisabled(annotator) {
       return annotator.status != 0
+    },
+    getBatchAnnotatorCompleteBtnDisabled(annotators){
+      if (annotators.length < 1){
+        return true
+      }else if (annotators.every( (annotator) => annotator.status == 0 )){
+        return false
+      }else{
+        return true
+      }
     },
     getAnnotatorStatus(annotator){
       if (annotator.rejected){
@@ -363,15 +519,44 @@ export default {
         return "secondary"
 
     },
+    getBatchAnnotatorRejectBtnVariant(annotators){
+      if (annotators.length < 1){
+        return "secondary"
+      }else if (annotators.every( (annotator) => annotator.status == 0 )){
+        return "danger"
+      }else{
+        return "secondary"
+      }
+    },
     getAnnotatorRejectBtnTitle(annotator) {
       if (annotator.status == 0)
-        return "Mark annotator as having completed annotation of the project and will be transferred to the available annotator pool."
+        return "Mark annotator as having rejected from annotation of the project and will be transferred to the available annotator pool."
       else
         return "Annotator not active in project"
 
     },
+    getBatchAnnotatorRejectBtnTitle(annotators){
+      if (annotators.length < 1){
+        return "Select at least one annotator to make active"
+      }
+      
+      if (annotators.every( (annotator) => annotator.status == 0 )){
+        return "Mark annotators as rejected from annotation of the project. Annotators will be transferred to the available annotator pool."
+      }else{
+        return "Invalid or redundant operation for one or more selected annotators."
+      }
+    },
     getAnnotatorRejectBtnDisabled(annotator) {
       return annotator.status != 0
+    },
+    getBatchAnnotatorRejectBtnDisabled(annotators){
+      if (annotators.length < 1){
+        return true
+      }else if (annotators.every( (annotator) => annotator.status == 0 )){
+        return false
+      }else{
+        return true
+      }
     },
     async updateAnnotators() {
 
@@ -403,6 +588,11 @@ export default {
 
       this.setLoading(false)
     },
+    async batchMakeAnnotatorActive(annotators){
+      for (let annotator of annotators){
+        this.makeAnnotatorActive(annotator.username);
+      }
+    },
     async removeAnnotator(username) {
       this.setLoading(true)
 
@@ -415,6 +605,11 @@ export default {
       }
 
       this.setLoading(false)
+    },
+    async batchRemoveAnnotator(annotators){
+      for (let annotator of annotators){
+        this.removeAnnotator(annotator.username);
+      }
     },
     async rejectAnnotator(username) {
       this.setLoading(true)
@@ -429,6 +624,11 @@ export default {
 
       this.setLoading(false)
     },
+    async batchRejectAnnotator(annotators){
+      for (let annotator of annotators){
+        this.rejectAnnotator(annotator.username);
+      }
+    },
     async allowAnnotation(username) {
       this.setLoading(true)
       try {
@@ -440,6 +640,11 @@ export default {
       }
 
       this.setLoading(false)
+    },
+    async batchAllowAnnotation(annotators){
+      for (let annotator of annotators){
+        this.allowAnnotation(annotator.username);
+      }
     },
     searchAnnotators(annotators, searchString) {
       const regEx = new RegExp(searchString);
@@ -475,6 +680,12 @@ export default {
         fields.splice(2,0,this.optionalTableFields.training)
       }
       return fields
+    },
+    selectAllRows() {
+      this.$refs.projectAnnotatorTable.selectAllRows()
+    },
+    clearSelected() {
+      this.$refs.projectAnnotatorTable.clearSelected()
     },
     sortBTable(aRow, bRow, key, sortDesc, formatter, compareOptions, compareLocale){
       if (key == 'usernameemail' || 'sorted') {
