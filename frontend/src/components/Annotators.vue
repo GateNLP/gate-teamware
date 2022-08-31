@@ -127,7 +127,7 @@
       </template>
 
       <template #cell(testscoretestcompleted)="data" v-if="project.has_test_stage">
-        <div :title="trainingTestTooltip(data, 'Testing')">
+        <div :title="trainingTestTooltip(data, 'Testing')"  :class="testScoreColor(data)">
           <b-icon-check-square-fill v-if="data.item.test_completed !== null"></b-icon-check-square-fill>
           <b-icon-square v-else></b-icon-square>
           {{ data.item.test_score }} / {{ project.test_documents }}
@@ -710,11 +710,33 @@ export default {
         return null // fall back to built-in sort-compare fcn
       }
     },
+    testScoreColor(data){
+      let test_proportion = data.item.test_score / this.project.test_documents;
+      if (!data.item.test_completed){
+        return "bg-transparent"
+      }else if (test_proportion < this.project.min_test_pass_threshold){
+        return "text-danger"
+      }else if (test_proportion == test_proportion){
+        return "bg-warning"
+      }else{
+        return "text-success"
+      }
+    },
     trainingTestTooltip(data, phase){
       if (phase == "Training" && data.item.training_completed){
         return "Completed: " + this.$options.filters.datetime(data.item.training_completed);
       } else if (phase == "Testing" && data.item.test_completed){
-        return "Completed: " + this.$options.filters.datetime(data.item.test_completed);
+
+        let test_proportion = data.item.test_score / this.project.test_documents;
+
+        let tooltip = "Completed: " + this.$options.filters.datetime(data.item.test_completed);
+
+        if (test_proportion < this.project.min_test_pass_threshold){
+            tooltip += "\nTest proportion of " + test_proportion + " below threshold of " + this.project.min_test_pass_threshold;
+          }
+
+        return tooltip
+
       } else if (phase == "Testing" && !data.item.training_completed && this.project.has_training_stage){
         return "Testing not started"
       } else {
