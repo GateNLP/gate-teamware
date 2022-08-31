@@ -753,9 +753,9 @@ def delete_annotation_change_history(request, annotation_change_history_id):
 @rpc_method_auth
 def get_annotation_task(request):
     """
-    Gets the annotator's current task
-
-     """
+    Gets the annotator's current task, returns a dictionary about the annotation task that contains all the information
+    needed to render the Annotate view.
+    """
 
     with transaction.atomic():
 
@@ -777,7 +777,7 @@ def get_annotation_task(request):
 @rpc_method_auth
 def get_annotation_task_with_id(request, annotation_id):
     """
-    Get annotation task dictionary for a specific annotation (annotation_id)
+    Get annotation task dictionary for a specific annotation_id, must belong to the annotator (or is a manager or above)
     """
 
     with transaction.atomic():
@@ -788,14 +788,17 @@ def get_annotation_task_with_id(request, annotation_id):
                 f"User {user.username} trying to complete annotation id {annotation_id} that doesn't belong to them")
 
         if annotation.document and annotation.document.project:
-            return annotation.document.project.get_annotation_task_dict(annotation, include_task_history_in_project=False)
+            return annotation.document.project.get_annotation_task_dict(annotation,
+                                                                        include_task_history_in_project=False)
         else:
             raise RuntimeError(f"Could not get the annotation task with id {annotation_id}")
 
 
 @rpc_method_auth
 def complete_annotation_task(request, annotation_id, annotation_data, elapsed_time=None):
-    """ Complete the annotator's current task, with option to get the next task """
+    """
+    Complete the annotator's current task
+    """
 
     with transaction.atomic():
 
@@ -813,7 +816,9 @@ def complete_annotation_task(request, annotation_id, annotation_data, elapsed_ti
 
 @rpc_method_auth
 def reject_annotation_task(request, annotation_id):
-    """  """
+    """
+    Reject the annotator's current task
+    """
 
     with transaction.atomic():
 
@@ -831,13 +836,18 @@ def reject_annotation_task(request, annotation_id):
 @rpc_method_auth
 def change_annotation(request, annotation_id, new_data):
     """Adds annotation data to history"""
-    annotation = Annotation.objects.get(pk=annotation_id)
+    try:
+        annotation = Annotation.objects.get(pk=annotation_id)
 
-    if annotation.document.doc_type is not DocumentType.ANNOTATION:
-        raise RuntimeError("It not possible to change annotations created for testing or training documents.")
+        if annotation.document.doc_type is not DocumentType.ANNOTATION:
+            raise RuntimeError("It not possible to change annotations created for testing or training documents.")
 
-    if annotation.user_allowed_to_annotate(request.user) or request.user.is_manager_or_above():
-        annotation.change_annotation(new_data, request.user)
+
+        if annotation.user_allowed_to_annotate(request.user) or request.user.is_manager_or_above():
+            annotation.change_annotation(new_data, request.user)
+    except Annotation.DoesNotExist:
+        raise RuntimeError(f"Annotation with ID {annotation_id} does not exist")
+
 
 
 @rpc_method_auth

@@ -34,10 +34,9 @@ def create_db_users():
     annotator.is_account_activated = True
     annotator.save()
 
-
 @test_fixture
-def create_db_users_with_project_and_annotation():
-    """Create default db users and also create a set of annotation."""
+def create_db_users_with_project():
+    """Create default db users and also create a project that belongs to an admin."""
     create_db_users()
     admin_user = get_user_model().objects.get(username="admin")
     manager_user = get_user_model().objects.get(username="manager")
@@ -76,6 +75,26 @@ def create_db_users_with_project_and_annotation():
             "text": f"Document text {i}"
         }
         document = Document.objects.create(project=project, data=doc_data)
+
+@test_fixture
+def create_db_users_with_project_admin_is_annotator():
+    create_db_users_with_project()
+    admin_user = get_user_model().objects.get(username="admin")
+    project = Project.objects.get(name="Test project")
+    project.add_annotator(admin_user)
+
+
+@test_fixture
+def create_db_users_with_project_and_annotation():
+    """Create default db users and also create a set of annotation."""
+    create_db_users_with_project()
+    admin_user = get_user_model().objects.get(username="admin")
+    manager_user = get_user_model().objects.get(username="manager")
+    annotator_user = get_user_model().objects.get(username="annotator")
+    users = [admin_user, manager_user, annotator_user]
+
+    documents = Document.objects.all()
+    for document in documents:
         for user in users:
             annotation = Annotation.objects.create(document=document, user=user,
                                                status=Annotation.COMPLETED, status_time=timezone.now())

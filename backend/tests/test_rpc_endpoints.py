@@ -18,7 +18,7 @@ from backend.rpc import create_project, update_project, add_project_document, ad
     clone_project, delete_project, get_projects, get_project_documents, get_user_annotated_projects, \
     get_user_annotations_in_project, add_project_test_document, add_project_training_document, \
     get_project_training_documents, get_project_test_documents, project_annotator_allow_annotation, \
-    annotator_leave_project, login, change_annotation, delete_annotation_change_history
+    annotator_leave_project, login, change_annotation, delete_annotation_change_history, get_annotation_task_with_id
 from backend.rpcserver import rpc_method
 from backend.errors import AuthError
 
@@ -949,6 +949,40 @@ class TestAnnotationTaskManager(TestEndpoint):
         ann1.refresh_from_db()
         task_context = get_annotation_task(ann1_request)
         self.assertIsNone(task_context)
+
+    def test_get_annotation_task_with_id(self):
+        # Create users and project, add them as annotators
+        manager = self.get_default_user()
+        manager_request = self.get_loggedin_request()
+
+        ann1 = get_user_model().objects.create(username="ann1")
+        ann1_request = self.get_request()
+        ann1_request.user = ann1
+
+        proj = Project.objects.create(owner=manager)
+
+        annotation_data = {
+            "test_label1": "test_value1",
+            "test_label2": "test_value2",
+        }
+
+        # Create documents and annotations
+        num_docs = 10
+
+        for i in range(num_docs):
+            doc = Document.objects.create(project=proj)
+            anno = Annotation.objects.create(document=doc, user=ann1, status=Annotation.COMPLETED)
+            anno.data = annotation_data
+
+        ann1.refresh_from_db()
+        all_annotations = ann1.annotations.all()
+        for annotation in all_annotations:
+            result = get_annotation_task_with_id(ann1_request, annotation.id)
+            self.assertEqual(annotation.id, result["annotation_id"])
+            self.assertEqual(annotation.document.id, result["document_id"])
+            self.assertEqual(annotation.document.project.id, result["project_id"])
+            self.assertDictEqual(annotation_data, result["annotation_data"])
+
 
     def test_allowed_to_annotate(self):
         """
