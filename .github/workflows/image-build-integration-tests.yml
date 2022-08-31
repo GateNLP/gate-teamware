@@ -53,6 +53,7 @@ jobs:
           start: /bin/bash deploy.sh production
           wait-on: 'http://localhost:8076'
           config: baseUrl=http://localhost:8076
+          record: true
         env:
           CYPRESS_TESTENV: ci
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
