@@ -690,7 +690,7 @@ export default {
       this.$refs.projectAnnotatorTable.clearSelected()
     },
     sortBTable(aRow, bRow, key, sortDesc, formatter, compareOptions, compareLocale){
-      if (key == 'usernameemail' || 'sorted') {
+      if (key == 'usernameemail' || 'status') {
         const a = aRow.username
         const b = bRow.username
         return a.localeCompare(b, compareLocale, compareOptions)
