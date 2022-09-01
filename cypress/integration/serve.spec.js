@@ -479,8 +479,8 @@ describe('Site serve test', () => {
         //Check annotation exists in user profile
         cy.get(".navbar").contains(adminUsername).click()
         cy.contains("My annotations").click()
-        cy.get(".list-group").contains(newProjectName).click()
-        cy.get("[data-role='annotation-display-container']").first().contains(adminUsername)
+        cy.get(".list-group", {timeout: 8000}).contains(newProjectName).click()
+        cy.get("[data-role='annotation-display-container']", {timeout: 8000}).first().contains(adminUsername)
     })
 
 
