@@ -227,13 +227,14 @@ describe('Site serve test', () => {
         cy.contains(projectsPageStr).click()
         cy.contains("New project name").click()
         cy.contains("Documents & Annotations").click()
-        cy.wait(500)
+        cy.wait(2000)
         cy.get("[data-role='annotation-display-container']").first().contains(adminUsername)
 
         //Check annotation exists in user profile
         cy.get(".navbar").contains(adminUsername).click()
         cy.contains("My annotations").click()
         cy.contains(newProjectName).click()
+        cy.wait(2000)
         cy.get("[data-role='annotation-display-container']").first().contains(adminUsername)
     })
 
