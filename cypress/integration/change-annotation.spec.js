@@ -35,7 +35,7 @@ describe('Annotation Change Test', () => {
             cy.wrap(container).contains("Change annotation").click()
             cy.wrap(container).contains("Negative").click()
             cy.wrap(container).contains("Submit").click()
-            cy.wait(1000)
+            cy.wait(1001)
             cy.wrap(container).contains("Change annotation").click()
             cy.wrap(container).contains("Neutral").click()
             cy.wrap(container).contains("Submit").click()
