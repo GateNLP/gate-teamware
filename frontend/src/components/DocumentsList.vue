@@ -131,13 +131,12 @@
 
           </div>
 
-          <AsyncJsonDisplay
-              class="mt-2"
-              :fetch-function="getDocumentContent"
-              :fetch-param="doc.id"
-              show-text="Show document data"
-              hide-text="Hide document data">
-          </AsyncJsonDisplay>
+
+          <div class="mt-2 mb-2 p-2 data-bg">
+            <vue-json-pretty :data="doc.data"></vue-json-pretty>
+          </div>
+
+
 
 
           <BCard v-for="anno in doc.annotations" :key="anno.id"
@@ -145,64 +144,16 @@
                  data-role="annotation-display-container">
 
             <BMedia>
-              <div class="mb-2">
-                <span @click="toggleAnnotation(anno, doc)" style="cursor: pointer" class="mr-1">
-                  <b-badge v-if="anno.completed" variant="success" :class="{ 'docBgSelected': isAnnotationSelected(anno)} " title="Annotation completed">
-                    <b-icon-pencil-fill :class="{ 'docIcon': true, 'docIconSelected': isAnnotationSelected(anno)}"></b-icon-pencil-fill>
-                  </b-badge>
-                  <b-badge v-else-if="anno.rejected" variant="danger" :class="{ 'docBgSelected': isAnnotationSelected(anno)} " title="Annotation rejected">
-                    <b-icon-x-square-fill :class="{ 'docIcon': true, 'docIconSelected': isAnnotationSelected(anno)}"></b-icon-x-square-fill>
-                  </b-badge>
-                  <b-badge v-else-if="anno.timed_out" variant="warning" :class="{ 'docBgSelected': isAnnotationSelected(anno)} " title="Annotation timed out">
-                    <b-icon-clock :class="{ 'docIcon': true, 'docIconSelected': isAnnotationSelected(anno)}"></b-icon-clock>
-                  </b-badge>
-                  <b-badge v-else-if="anno.aborted" variant="secondary" :class="{ 'docBgSelected': isAnnotationSelected(anno)} " title="Annotation aborted">
-                    <b-icon-stop-fill :class="{ 'docIcon': true, 'docIconSelected': isAnnotationSelected(anno)}"></b-icon-stop-fill>
-                  </b-badge>
-                  <b-badge v-else variant="primary" :class="{ 'docBgSelected': isAnnotationSelected(anno)} " title="Annotation still pending">
-                    <b-icon-play-fill :class="{ 'docIcon': true, 'docIconSelected': isAnnotationSelected(anno)}"></b-icon-play-fill>
-                  </b-badge>
-                </span>
-                <strong title="ID of the annotation object. Used internally by the application.">{{ anno.id }}</strong>
-              </div>
-              <div title="Annotated by">
-                <b-icon-person-fill></b-icon-person-fill>
-                {{ anno.annotated_by }}
-              </div>
-
-              <div>
-                <b-icon-clock></b-icon-clock>
-                Created: {{ anno.created | datetime }}
-              </div>
-              <div v-if="anno.completed">
-                <b-icon-clock></b-icon-clock>
-                Completed: {{ anno.completed | datetime }}
-              </div>
-              <div v-else-if="anno.rejected">
-                <b-icon-clock></b-icon-clock>
-                Rejected: {{ anno.rejected | datetime }}
-              </div>
-              <div v-else-if="anno.timed_out">
-                <b-icon-clock></b-icon-clock>
-                Time out: {{ anno.timed_out | datetime }}
-              </div>
-              <div v-else-if="anno.aborted">
-                <b-icon-clock></b-icon-clock>
-                Aborted at: {{ anno.aborted | datetime }}
-              </div>
-              <div v-else>
-                <b-icon-clock></b-icon-clock>
-                Will time out at: {{ anno.times_out_at | datetime }}
-              </div>
-
-              <AsyncJsonDisplay v-if="anno.completed"
-                                class="mt-2"
-                                :fetch-function="getAnnotationContent"
-                                :fetch-param="anno.id"
-                                show-text="Show annotation data"
-                                hide-text="Hide annotation data">
-
-              </AsyncJsonDisplay>
+              <AnnotationItem :annotation="anno"
+                              :document="doc"
+                              :project-config="projectConfig"
+                              :allow-annotation-edit="allowAnnotationEdit"
+                              :selected="isAnnotationSelected(anno)"
+                              :allow-change-delete="allowAnnotationChangeDelete"
+                              @annotation-changed="fetchAnnotation"
+                              @selection-changed="toggleAnnotation"
+              >
+              </AnnotationItem>
             </BMedia>
 
           </BCard>
@@ -228,12 +179,22 @@ import Search from "@/components/Search";
 import DeleteModal from "@/components/DeleteModal";
 import _ from "lodash"
 import {toastError, toastSuccess} from "@/utils";
+import AnnotationRenderer from "@/components/AnnotationRenderer";
+import AnnotationItem from "@/components/AnnotationItem";
 
 /**
  * Displays a list of documents, with builtin pagination.
  *
  * It's the responsibility of the parent component to respond to the `fetch` event to retrieve new
  * data when the page selection changes.
+ *
+ * Properties
+ * documents:array - An array of documents to be displayed
+ * isLoading:bool - Toggle showing loading status, cannot interact with the component when loading
+ * showMenuBar:bool - Shows the menu bar for performing operations related to documents, e.g. delete, export, etc.
+ * showFilters:bool - Show the filtering bar for searching/sorting documents
+ * allowAnnotationEdit:bool - Whether to allow user to edit the annotation (make a change in annotation history)
+ * allowAnnotationChangeDelete:bool - Whether to allow user to delete an annotation's change history
  *
  * Events
  * fetch(currentPage, pageSize) - The component emits a `fetch` event when page selection changes or refresh
@@ -245,7 +206,7 @@ import {toastError, toastSuccess} from "@/utils";
  */
 export default {
   name: "DocumentsList",
-  components: {Search, PaginationAsync, AsyncJsonDisplay, DeleteModal},
+  components: {AnnotationItem, AnnotationRenderer, Search, PaginationAsync, AsyncJsonDisplay, DeleteModal, VueJsonPretty},
   data() {
     return {
       searchStr: "",
@@ -279,11 +240,24 @@ export default {
       default: false,
     },
     showMenuBar: {
-      default: true
+      default: true,
     },
     showFilters: {
-      default: true
+      default: true,
     },
+
+    allowAnnotationEdit: {
+      default: false,
+    },
+    allowAnnotationChangeDelete: {
+      default: false
+    },
+    /**
+     * Used for when user requests to edit annotation
+     */
+    projectConfig: {
+      default: null,
+    }
   },
   computed: {
     loadingVariant() {
@@ -296,13 +270,16 @@ export default {
 
   },
   methods: {
-    ...mapActions(["getDocumentContent", "getAnnotationContent"]),
+    ...mapActions(["getDocumentContent", "getAnnotationContent", "changeAnnotation"]),
     pageSizeChangeHandler(newSize){
       this.itemsPerPage = newSize
       this.fetchDocuments()
     },
     fetchDocuments(){
       this.$emit("fetch", this.currentPage, this.itemsPerPage)
+    },
+    fetchAnnotation(annotationId){
+      this.$emit("fetch-annotation", annotationId)
     },
     deleteHandler(){
       this.$emit("delete", this.getSelectionList())
@@ -419,7 +396,6 @@ export default {
       if(doEmitEvent)
         this.emitSelectionList()
     },
-
   },
   watch: {
     currentPage:{

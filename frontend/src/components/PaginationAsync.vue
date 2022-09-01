@@ -3,7 +3,7 @@
     <div class="d-flex justify-content-between">
       <div></div>
       <BPagination v-model="currentPage" :total-rows="numItems" :per-page="itemsPerPageLocal"></BPagination>
-      <BSelect v-model="itemsPerPageLocal" :options="itemsPerPageOption" style="max-width: 6em" title="Items per page"></BSelect>
+      <BSelect v-model="itemsPerPageLocal" :options="itemsPerPageOption" style="max-width: 6em" data-role="num-documents-select" title="Items per page"></BSelect>
     </div>
 
 

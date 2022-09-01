@@ -45,13 +45,11 @@ class TestDownloadAnnotations(TestEndpoint):
             )
 
             for annotator in annotators:
-                Annotation.objects.create(user=annotator,
+                anno = Annotation.objects.create(user=annotator,
                                           document=document,
                                           status=Annotation.COMPLETED,
-                                          data={
-                                              "text1": "Value1",
-                                              "checkbox1": ["val1", "val2", "val3"]
-                                          })
+                                          )
+                anno.data = { "text1": "Value1", "checkbox1": ["val1", "val2", "val3"]}
 
     def test_json_export(self):
         client = self.get_loggedin_client()

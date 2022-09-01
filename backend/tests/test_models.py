@@ -7,7 +7,8 @@ from django.utils import timezone
 
 from backend.models import Project, Document, DocumentType, Annotation, AnnotatorProject
 from backend.utils.serialize import ModelSerializer
-
+# Import signal which is used for cleaning up user pending annotations
+import backend.signals
 
 class ModelTestCase(TestCase):
 
@@ -87,6 +88,42 @@ class TestUserModel(TestCase):
         self.assertEqual(user.active_project, None)
 
 
+
+    def test_delete_user_with_annotations(self):
+        user = get_user_model().objects.create(username="test1")
+        project = Project.objects.create(owner=user)
+        Annotation.objects.create(user=user,
+                                  document=Document.objects.create(project=project),
+                                  status=Annotation.PENDING)
+        Annotation.objects.create(user=user,
+                                  document=Document.objects.create(project=project),
+                                  status=Annotation.COMPLETED)
+        Annotation.objects.create(user=user,
+                                  document=Document.objects.create(project=project),
+                                  status=Annotation.REJECTED)
+        Annotation.objects.create(user=user,
+                                  document=Document.objects.create(project=project),
+                                  status=Annotation.TIMED_OUT)
+        Annotation.objects.create(user=user,
+                                  document=Document.objects.create(project=project),
+                                  status=Annotation.ABORTED)
+
+        user.refresh_from_db()
+
+        # 5 annotations for the user
+        self.assertEqual(5, user.annotations.all().count(), "User should have 5 annotations")
+        # 5 annotations in the entire system
+        self.assertEqual(5, Annotation.objects.all().count(), "Entire system should have 5 annotations")
+
+        # Delete user, the pending annotation should be removed
+        user.delete()
+
+        self.assertEqual(4, Annotation.objects.all().count(), "Entire system should have 4 annotations")
+        self.assertEqual(0, Annotation.objects.filter(status=Annotation.PENDING).count(), "S")  # No pending annotation
+        self.assertEqual(1, Annotation.objects.filter(status=Annotation.COMPLETED).count())
+        self.assertEqual(1, Annotation.objects.filter(status=Annotation.REJECTED).count())
+        self.assertEqual(1, Annotation.objects.filter(status=Annotation.TIMED_OUT).count())
+        self.assertEqual(1, Annotation.objects.filter(status=Annotation.ABORTED).count())
 
 
 
@@ -578,7 +615,8 @@ class TestProjectModel(ModelTestCase):
 
         # All incorrect
         for doc in self.test_docs:
-            Annotation.objects.create(user=annotator, document=doc, data=incorrect_data)
+            anno = Annotation.objects.create(user=annotator, document=doc)
+            anno.data = incorrect_data
 
         self.assertEqual(0, self.project.get_annotator_document_score(annotator, DocumentType.TEST))
 
@@ -589,7 +627,8 @@ class TestProjectModel(ModelTestCase):
                 "label1": doc.data["gold"]["label1"]["value"],
                 "label2": doc.data["gold"]["label2"]["value"],
             }
-            Annotation.objects.create(user=annotator2, document=doc, data=correct_annotation_data)
+            anno = Annotation.objects.create(user=annotator2, document=doc)
+            anno.data=correct_annotation_data
 
         self.assertEqual(self.num_test_docs, self.project.get_annotator_document_score(annotator2, DocumentType.TEST))
 
@@ -603,7 +642,8 @@ class TestProjectModel(ModelTestCase):
                 "label2": doc.data["gold"]["label2"]["value"],
             }
             data = correct_annotation_data if counter < num_correct else incorrect_data
-            Annotation.objects.create(user=annotator3, document=doc, data=data)
+            anno = Annotation.objects.create(user=annotator3, document=doc)
+            anno.data =data
             counter += 1
 
         self.assertEqual(num_correct, self.project.get_annotator_document_score(annotator3, DocumentType.TEST))
@@ -764,12 +804,40 @@ class TestAnnotationModel(ModelTestCase):
         self.check_model_fields(Annotation, {
             "user": models.ForeignKey,
             "document": models.ForeignKey,
-            "data": models.JSONField,
             "times_out_at": models.DateTimeField,
             "created": models.DateTimeField,
             "status": models.IntegerField,
             "status_time": models.DateTimeField,
         })
+
+    def test_model_data(self):
+        """Getting and setting data to the annotation model"""
+
+
+        project = Project.objects.create(name="Test")
+        document = Document.objects.create(project=project)
+        user = get_user_model().objects.create(username="test1")
+        annotation = Annotation.objects.create(document=document, user=user)
+
+        annotation_test_data = {
+            "id": 10,
+            "label": "Test annotation content"
+        }
+
+        annotation_test_data_changed = {
+            "id": 50,
+            "label": "Test annotation content 2"
+        }
+
+        annotation.data = annotation_test_data
+        self.assertDictEqual(annotation_test_data, annotation.data, "Contents of returned dict should be the same")
+
+        annotation.data = annotation_test_data_changed
+        self.assertDictEqual(annotation_test_data_changed, annotation.data, "Contents of returned dict should be the same")
+
+        anno_db_fetch = Annotation.objects.get(pk=annotation.id)
+        self.assertDictEqual(annotation_test_data_changed, anno_db_fetch.data, "Contents of returned dict should be the smae")
+
 
     def test_timeout_check(self):
         num_already_timedout = 12
@@ -822,6 +890,49 @@ class TestAnnotationModel(ModelTestCase):
         num_timed_out = Annotation.check_for_timed_out_annotations(timeout_check_time + timedelta(hours=1))
         self.assertEqual(0, num_timed_out, "Must not be anymore annotations to timeout")
 
+    def test_change_annotation(self):
+
+        original_annotation = {"label1": "value1"}
+        changed_annotation = {"label1": "value2"}
+        changed_annotation2 = {"label1": "value3"}
+
+        project = Project.objects.create()
+        document = Document.objects.create(project=project)
+        annotator = get_user_model().objects.create(username="Testannotator")
+        annotator2 = get_user_model().objects.create(username="Testannotator2")
+        annotation = Annotation.objects.create(document=document, user=annotator)
+
+        with self.assertRaises(RuntimeError):
+            # Error should be raised if annotation not already completed
+            annotation.change_annotation(changed_annotation, annotator2)
+
+
+        # Complete the annotation
+        annotation.complete_annotation(original_annotation)
+        self.assertDictEqual(original_annotation, annotation.data, "Expects the original annotation")
+
+        # Change the annotation by setting the data property
+        annotation.data = changed_annotation
+        annotation.refresh_from_db()
+
+        self.assertDictEqual(changed_annotation, annotation.data, "Expects the first annotation change")
+        self.assertEqual(annotator,
+                         annotation.latest_annotation_history().changed_by,
+                         "Changed by the owner of the annotation object by default")
+
+        # Change the annotation using change_annotation method
+        annotation.change_annotation(changed_annotation2, annotator2)
+        self.assertDictEqual(changed_annotation2, annotation.data, "Expects the second annotation change")
+        self.assertEqual(annotator2,
+                         annotation.latest_annotation_history().changed_by,
+                         "Should be changed by annotator2")
+
+
+
+
+
+
+
 class TestDocumentAnnotationModelExport(TestCase):
 
     def setUp(self):
@@ -845,10 +956,11 @@ class TestDocumentAnnotationModelExport(TestCase):
                 annotation = Annotation.objects.create(user=annotator,
                                                        document=document,
                                                        status=Annotation.COMPLETED,
-                                                       data={
-                                                           "text1": "Value1",
-                                                           "checkbox1": ["val1", "val2", "val3"],
-                                                       })
+                                                       )
+                annotation.data = {
+                                       "text1": "Value1",
+                                       "checkbox1": ["val1", "val2", "val3"],
+                                   }
 
                 annotation_pending = Annotation.objects.create(user=annotator,
                                                        document=document,

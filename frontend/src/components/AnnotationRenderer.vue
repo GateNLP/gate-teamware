@@ -28,6 +28,7 @@
         <BButton @click.prevent="submitHandler" class="mr-4" variant="success">Submit</BButton>
         <BButton @click.prevent="clearFormHandler" class="mr-4" variant="warning">Clear</BButton>
         <BButton v-if="allow_document_reject" @click.prevent="rejectHandler" variant="danger">Reject document</BButton>
+        <BButton v-if="allow_cancel" @click.prevent="cancelHandler" variant="danger">Cancel</BButton>
       </b-col>
     </b-row>
   </div>
@@ -46,6 +47,11 @@ import MarkdownRenderer from "@/components/MarkdownRenderer";
 
 /**
  * Renders annotation display and input capture from the config property
+ *
+ * Events
+ * submit(annotationOutput, elapsedTime) - When user presses the submit button
+ * reject() - When user presses the reject button
+ * cancel() - When user presses the cancel button
  */
 export default {
   name: "AnnotationRenderer",
@@ -86,9 +92,18 @@ export default {
     doc_gold_field: {
       default: 'gold'
     },
+    /**
+     * Adds Reject button if true
+     */
     allow_document_reject: {
       default: null
-    }
+    },
+    /**
+     * Adds a Cancel button if true
+     */
+    allow_cancel: {
+      default: null
+    },
   },
   methods: {
     startTimer(){
@@ -199,6 +214,10 @@ export default {
     },
     rejectHandler(e){
       this.$emit('reject')
+      this.startTimer();
+    },
+    cancelHandler(e){
+      this.$emit('cancel')
       this.startTimer();
     },
     getAnswerBgColor(elemConfig){
