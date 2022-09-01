@@ -316,16 +316,6 @@ export default {
       return null
 
     },
-    getAnnotationStageBackgroundClass(annotator){
-      if(this.isAtAnnotationStage(annotator)){
-        return {stageActive: true}
-      }
-      else if(this.getAnnotationStageWarning(annotator)){
-        return {stageWarning: true}
-      }
-
-      return {}
-    },
     getMakeAnnotatorBtnVariant(annotator) {
       if(annotator.status != 0)
         return "secondary"
@@ -791,10 +781,4 @@ export default {
 </script>
 
 <style scoped>
-.stageActive {
-  background: #c0fdea;
-}
-.stageWarning {
-  background: #fac980;
-}
 </style>
