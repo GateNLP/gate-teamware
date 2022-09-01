@@ -28,7 +28,10 @@ describe('Annotation Change Test in Project documents view and User My annotatio
         cy.visit("/")
         cy.get(".navbar").contains(annotatorUsername).click()
         cy.contains("My annotations").click()
-        cy.contains("Test project").click()
+        cy.get(".list-group-item").contains("Test project").click()
+        cy.wait(500)
+        cy.get('select[data-role="num-documents-select"]').first().select("100") // Show all documents
+        cy.wait(500)
 
 
         cy.get("[data-role='annotation-display-container']").first().then(container => {
@@ -36,7 +39,7 @@ describe('Annotation Change Test in Project documents view and User My annotatio
             cy.wrap(container).contains("Change annotation").click()
             cy.wrap(container).contains("Negative").click()
             cy.wrap(container).contains("Submit").click()
-
+            cy.wait(1000)
             cy.wrap(container).contains("Change annotation").click()
             cy.wrap(container).contains("Neutral").click()
             cy.wrap(container).contains("Submit").click()
@@ -69,12 +72,16 @@ describe('Annotation Change Test in Project documents view and User My annotatio
         cy.get(".navbar").contains("Projects").click()
         cy.contains("Test project").click()
         cy.contains("Documents & Annotations").click()
+        cy.wait(500)
+        cy.get('select[data-role="num-documents-select"]').first().select("100") // Show all documents
+        cy.wait(500)
 
         cy.get("[data-role='annotation-display-container']").first().then(container => {
             //Change an annotation twice
             cy.wrap(container).contains("Change annotation").click()
             cy.wrap(container).contains("Negative").click()
             cy.wrap(container).contains("Submit").click()
+            cy.wait(1000)
 
             cy.wrap(container).contains("Change annotation").click()
             cy.wrap(container).contains("Neutral").click()
@@ -105,13 +112,16 @@ describe('Annotation Change Test in Project documents view and User My annotatio
         cy.get(".navbar").contains("Projects").click()
         cy.contains("Test project").click()
         cy.contains("Documents & Annotations").click()
+        cy.wait(500)
+        cy.get('select[data-role="num-documents-select"]').first().select("100") // Show all documents
+        cy.wait(500)
 
         cy.get("[data-role='annotation-display-container']").first().then(container => {
             //Change an annotation twice
             cy.wrap(container).contains("Change annotation").click()
             cy.wrap(container).contains("Negative").click()
             cy.wrap(container).contains("Submit").click()
-
+            cy.wait(1000)
             cy.wrap(container).contains("Change annotation").click()
             cy.wrap(container).contains("Neutral").click()
             cy.wrap(container).contains("Submit").click()
@@ -135,6 +145,7 @@ describe('Annotation Change Test in Project documents view and User My annotatio
         })
         cy.wait(1000)
         cy.get(".modal-dialog .btn-danger").contains("Delete").click({force: true})
+        cy.get(".modal-dialog").should("not.exist")
         cy.get("[data-role='annotation-display-container']").first().then(container => {
             cy.wrap(container).contains('"sentiment": "positive"').should("not.exist")
             cy.wrap(container).contains('"sentiment": "negative"')
