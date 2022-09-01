@@ -28,6 +28,9 @@ describe('Annotation Change Test', () => {
         cy.get(".navbar").contains(annotatorUsername).click()
         cy.contains("My annotations").click()
         cy.get(".list-group-item").contains("Test project").click()
+        cy.wait(500)
+        cy.get('select[data-role="num-documents-select"]').first().select("100") // Show all documents
+        cy.wait(500)
 
 
         cy.get("[data-role='annotation-display-container']").first().then(container => {
@@ -35,7 +38,7 @@ describe('Annotation Change Test', () => {
             cy.wrap(container).contains("Change annotation").click()
             cy.wrap(container).contains("Negative").click()
             cy.wrap(container).contains("Submit").click()
-            cy.wait(1001)
+            cy.wait(1000)
             cy.wrap(container).contains("Change annotation").click()
             cy.wrap(container).contains("Neutral").click()
             cy.wrap(container).contains("Submit").click()
@@ -68,6 +71,9 @@ describe('Annotation Change Test', () => {
         cy.get(".navbar").contains("Projects").click()
         cy.contains("Test project").click()
         cy.contains("Documents & Annotations").click()
+        cy.wait(500)
+        cy.get('select[data-role="num-documents-select"]').first().select("100") // Show all documents
+        cy.wait(500)
 
         cy.get("[data-role='annotation-display-container']").first().then(container => {
             //Change an annotation twice
@@ -105,13 +111,16 @@ describe('Annotation Change Test', () => {
         cy.get(".navbar").contains("Projects").click()
         cy.contains("Test project").click()
         cy.contains("Documents & Annotations").click()
+        cy.wait(500)
+        cy.get('select[data-role="num-documents-select"]').first().select("100") // Show all documents
+        cy.wait(500)
 
         cy.get("[data-role='annotation-display-container']").first().then(container => {
             //Change an annotation twice
             cy.wrap(container).contains("Change annotation").click()
             cy.wrap(container).contains("Negative").click()
             cy.wrap(container).contains("Submit").click()
-
+            cy.wait(1000)
             cy.wrap(container).contains("Change annotation").click()
             cy.wrap(container).contains("Neutral").click()
             cy.wrap(container).contains("Submit").click()

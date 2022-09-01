@@ -227,13 +227,20 @@ describe('Site serve test', () => {
         cy.contains(projectsPageStr).click()
         cy.contains("New project name").click()
         cy.contains("Documents & Annotations").click()
-        cy.get("[data-role='annotation-display-container']", {timeout: 8000}).first().contains(adminUsername)
+        cy.wait(500)
+        cy.get('select[data-role="num-documents-select"]').first().select("100") // Show all documents
+        cy.wait(500)
+        cy.get("[data-role='annotation-display-container']").first().contains(adminUsername)
 
         //Check annotation exists in user profile
         cy.get(".navbar").contains(adminUsername).click()
         cy.contains("My annotations").click()
+        cy.wait(500)
         cy.contains(newProjectName).click()
-        cy.get("[data-role='annotation-display-container']", {timeout: 8000}).first().contains(adminUsername)
+        cy.wait(500)
+        cy.get('select[data-role="num-documents-select"]').first().select("100") // Show all documents
+        cy.wait(500)
+        cy.get("[data-role='annotation-display-container']").first().contains(adminUsername)
     })
 
     it('Test deleting project', () => {
@@ -474,13 +481,20 @@ describe('Site serve test', () => {
         cy.contains(projectsPageStr).click()
         cy.contains("New project name").click()
         cy.contains("Documents & Annotations").click()
-        cy.get("[data-role='annotation-display-container']", {timeout: 8000}).first().contains(adminUsername)
+        cy.wait(500)
+        cy.get('select[data-role="num-documents-select"]').first().select("100") // Show all documents
+        cy.wait(500)
+        cy.get("[data-role='annotation-display-container']").first().contains(adminUsername)
 
         //Check annotation exists in user profile
         cy.get(".navbar").contains(adminUsername).click()
         cy.contains("My annotations").click()
+        cy.wait(500)
         cy.get(".list-group", {timeout: 8000}).contains(newProjectName).click()
-        cy.get("[data-role='annotation-display-container']", {timeout: 8000}).first().contains(adminUsername)
+        cy.wait(500)
+        cy.get('select[data-role="num-documents-select"]').first().select("100") // Show all documents
+        cy.wait(500)
+        cy.get("[data-role='annotation-display-container']").first().contains(adminUsername)
     })
 
 
