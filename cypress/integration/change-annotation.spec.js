@@ -188,6 +188,7 @@ describe('Annotation Change Test in Annotate view', () => {
         // Complete first task
         cy.contains("Neutral").click()
         cy.contains("Submit").click()
+        cy.wait(100)
         cy.contains("Previous task").should("be.enabled")
         cy.contains("Next task").should("be.disabled")
         cy.contains("Current task").should("be.disabled")
@@ -195,12 +196,14 @@ describe('Annotation Change Test in Annotate view', () => {
         // Complete second task
         cy.contains("Neutral").click()
         cy.contains("Submit").click()
+        cy.wait(100)
         cy.contains("Previous task").should("be.enabled")
         cy.contains("Next task").should("be.disabled")
         cy.contains("Current task").should("be.disabled")
 
         // Go back to second task
         cy.contains("Previous task").click()
+        cy.wait(100)
         cy.contains("Previous task").should("be.enabled")
         cy.contains("Next task").should("be.enabled")
         cy.contains("Current task").should("be.enabled")
@@ -210,6 +213,7 @@ describe('Annotation Change Test in Annotate view', () => {
 
         // Go back to first task
         cy.contains("Previous task").click()
+        cy.wait(100)
         cy.contains("Previous task").should("be.disabled")
         cy.contains("Next task").should("be.enabled")
         cy.contains("Current task").should("be.enabled")
