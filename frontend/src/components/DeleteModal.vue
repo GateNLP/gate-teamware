@@ -2,7 +2,7 @@
   <b-modal v-model="showModal"
            ok-variant="danger"
            :ok-title="operationString"
-           :ok-disabled="deleteLocked"
+           :ok-disabled="deleteLocked && deleteLocking"
            @ok="$emit('delete')"
            @hidden="deleteLocked = true"
            :title="title">
@@ -14,7 +14,7 @@
       </div>
     </slot>
 
-    <div class="mt-4">
+    <div v-if="deleteLocking" class="mt-4">
       <p>Press the unlock button below to enable this operation.</p>
 
       <b-button @click="deleteLocked = !deleteLocked"
@@ -31,6 +31,18 @@
 </template>
 
 <script>
+/**
+ * Modal dialog for delete operations
+ *
+ * Properties
+ * v-model: Shows/hides this dialog.
+ * title: The title for this dialog .
+ * operation-string: The text for describing the delete operation to be performed.
+ * delete-locking: Should the user have to perform an extra unlock step before being able to confirm the delete.
+ *
+ * Events
+ * delete() - Confirms the delete operation
+ */
 export default {
   name: "DeleteModal",
   data() {
@@ -57,6 +69,9 @@ export default {
     },
     operationString: {
       default: "Delete"
+    },
+    deleteLocking: {
+      default: true
     }
   }
 }

@@ -121,6 +121,16 @@
                     description="The field in document's JSON that contains the ideal annotation values and explanation for the annotation.">
         <b-form-input v-model="local_project.document_gold_standard_field"></b-form-input>
       </b-form-group>
+      <b-form-group label="Allow annotation change after submission"
+        description="Allow annotators to change their annotations after submitting.">
+        <b-form-checkbox
+            id="project-allow-annotation-change-after-submission"
+            v-model="local_project.allow_annotation_change"
+            name="can-change-annotation-checkbox"
+            switch
+        >
+        </b-form-checkbox>
+      </b-form-group>
       <b-form-row>
         <b-col>
           <h4 id="annotation-preview">Annotation configuration</h4>

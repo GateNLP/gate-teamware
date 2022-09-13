@@ -505,18 +505,36 @@ export default new Vuex.Store({
             }
 
         },
-        async getDocumentContent({dispatch, commit}, id) {
+        async changeAnnotation({dispatch, commit}, {annotationID, newData}) {
             try{
-                return await rpc.call("get_document_content", id)
+                return await rpc.call("change_annotation", annotationID, newData)
             }catch(e){
                 console.error(e)
                 throw e
             }
 
         },
-        async getAnnotationContent({dispatch, commit}, id) {
+        async getDocument({dispatch, commit}, id) {
             try{
-                return await rpc.call("get_annotation_content", id)
+                return await rpc.call("get_document", id)
+            }catch(e){
+                console.error(e)
+                throw e
+            }
+
+        },
+        async getAnnotation({dispatch, commit}, id) {
+            try{
+                return await rpc.call("get_annotation", id)
+            }catch(e){
+                console.error(e)
+                throw e
+            }
+
+        },
+        async deleteAnnotationChangeHistory({dispatch, commit}, id) {
+            try{
+                return await rpc.call("delete_annotation_change_history", id)
             }catch(e){
                 console.error(e)
                 throw e

@@ -69,6 +69,7 @@ def create_db_users_with_project_and_annotation():
                                      configuration=project_config,
                                      has_test_stage=False,
                                      has_training_stage=False,
+                                     allow_annotation_change=True,
                                      document_id_field="id")
     for i in range(20):
         doc_data = {

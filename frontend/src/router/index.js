@@ -47,9 +47,15 @@ const routes = [
         meta: {guest: true},
     },
     {
-        path: '/profile',
-        name: 'UserProfile',
-        component: () => import('../views/UserProfile.vue'),
+        path: '/account',
+        name: 'UserAccount',
+        component: () => import('../views/UserAccount.vue'),
+        meta: {requiresAuth: true},
+    },
+    {
+        path: '/user_annotations',
+        name: 'UserAnnotations',
+        component: () => import('../views/UserAnnotations.vue'),
         meta: {requiresAuth: true},
     },
     {

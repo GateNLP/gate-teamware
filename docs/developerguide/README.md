@@ -67,7 +67,7 @@ Set up a new postgreSQL database and user for development:
 ```
 # Create a new directory for the db data and initialise
 mkdir -p pgsql/data
-initdb -p pgsql/data
+initdb -D pgsql/data
 
 # Launch postgres in the background
 postgres -p 5432 -D pgsql/data &

@@ -3,12 +3,13 @@ describe('User Interface Permissions Test', () => {
     beforeEach(()=>{
         // Run setup if needed
         if (Cypress.env('TESTENV') == 'container') {
-            cy.exec('docker-compose exec -T backend ./migrate-integration.sh')
+            cy.exec('docker-compose exec -T backend ./migrate-integration.sh -n=create_db_users')
         } else if (Cypress.env('TESTENV') == 'ci') {
-            cy.exec('DJANGO_SETTINGS_MODULE=teamware.settings.deployment docker-compose exec -T backend ./migrate-integration.sh')
+            cy.exec('DJANGO_SETTINGS_MODULE=teamware.settings.deployment docker-compose exec -T backend ./migrate-integration.sh -n=create_db_users')
         }
         else{
-            cy.exec('npm run migrate:integration')
+            console.log("Printing test")
+            cy.exec('npm run migrate:integration -- -n=create_db_users', {log:true})
         }
     })
 
@@ -60,7 +61,7 @@ describe('User Interface Permissions Test', () => {
         cy.contains('Projects').click()
         cy.contains('Create project').click()
         cy.contains('Project')
-        cy.get('input[name="project_name"]').type(projNameChange)
+        cy.get('input[name="project_name"]').clear().type(projNameChange)
         cy.contains('Save').click()
         cy.contains('Projects').click()
         cy.contains(projNameChange)

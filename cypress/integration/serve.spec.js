@@ -24,11 +24,11 @@ describe('Site serve test', () => {
     beforeEach(() => {
         // Run setup if needed
         if (Cypress.env('TESTENV') == 'container') {
-            cy.exec('docker-compose exec -T backend ./migrate-integration.sh')
+            cy.exec('docker-compose exec -T backend ./migrate-integration.sh -n=create_db_users')
         } else if (Cypress.env('TESTENV') == 'ci') {
-            cy.exec('DJANGO_SETTINGS_MODULE=teamware.settings.deployment docker-compose exec -T backend ./migrate-integration.sh')
+            cy.exec('DJANGO_SETTINGS_MODULE=teamware.settings.deployment docker-compose exec -T backend ./migrate-integration.sh -n=create_db_users')
         } else {
-            cy.exec('npm run migrate:integration')
+            cy.exec('npm run migrate:integration -- -n=create_db_users', {log:true})
         }
 
     })
@@ -96,17 +96,17 @@ describe('Site serve test', () => {
         loggedOutCheck()
     })
 
-    describe("Test user profile page", () => {
+    describe("Test user account page", () => {
 
         beforeEach(()=>{
             cy.login(annotatorUsername, password)
             cy.visit("/")
             cy.contains(annotatorUsername).click()
-            cy.contains("Profile").click()
+            cy.contains("Account").click()
 
         })
 
-        it("Check profile page items", () => {
+        it("Check account page items", () => {
 
             cy.contains("Username").parent().contains(annotatorUsername)
             cy.contains("User Role").parent().contains("annotator")
@@ -228,12 +228,18 @@ describe('Site serve test', () => {
         cy.contains("New project name").click()
         cy.contains("Documents & Annotations").click()
         cy.wait(500)
+        cy.get('select[data-role="num-documents-select"]').first().select("100") // Show all documents
+        cy.wait(500)
         cy.get("[data-role='annotation-display-container']").first().contains(adminUsername)
 
         //Check annotation exists in user profile
         cy.get(".navbar").contains(adminUsername).click()
-        cy.contains("Profile").click()
-        cy.contains(newProjectName)
+        cy.contains("My annotations").click()
+        cy.wait(500)
+        cy.contains(newProjectName).click()
+        cy.wait(500)
+        cy.get('select[data-role="num-documents-select"]').first().select("100") // Show all documents
+        cy.wait(500)
         cy.get("[data-role='annotation-display-container']").first().contains(adminUsername)
     })
 
@@ -476,12 +482,18 @@ describe('Site serve test', () => {
         cy.contains("New project name").click()
         cy.contains("Documents & Annotations").click()
         cy.wait(500)
+        cy.get('select[data-role="num-documents-select"]').first().select("100") // Show all documents
+        cy.wait(500)
         cy.get("[data-role='annotation-display-container']").first().contains(adminUsername)
 
         //Check annotation exists in user profile
         cy.get(".navbar").contains(adminUsername).click()
-        cy.contains("Profile").click()
-        cy.contains(newProjectName)
+        cy.contains("My annotations").click()
+        cy.wait(500)
+        cy.get(".list-group", {timeout: 8000}).contains(newProjectName).click()
+        cy.wait(500)
+        cy.get('select[data-role="num-documents-select"]').first().select("100") // Show all documents
+        cy.wait(500)
         cy.get("[data-role='annotation-display-container']").first().contains(adminUsername)
     })
 
