@@ -287,9 +287,6 @@ class Project(models.Model):
         except ObjectDoesNotExist:
             raise Exception("User must be added to the project before they can be made active.")
 
-
-
-
     def annotator_completed_training(self, user, finished_time=timezone.now()):
         try:
             annotator_project = AnnotatorProject.objects.get(project=self, annotator=user)
@@ -486,8 +483,6 @@ class Project(models.Model):
             user from annotator list if there's no more tasks or user reached quota.
         """
 
-
-
         annotation = self.get_current_annotator_task(user)
         if annotation:
             # User has existing task
@@ -527,24 +522,39 @@ class Project(models.Model):
 
         return annotation
 
-    def get_annotation_task_dict(self, annotation):
+    def get_annotation_task_dict(self, annotation, include_task_history_in_project=True):
+        """
+        Returns a dictionary with all information required rendering an annotation task
+        annotation:Annotation - The annotation to create an annotation task dictionary for
+        task_history_in_project:bool - Returns a list of annotation ids for this user in the project
+        """
         document = annotation.document
 
-        return {
+        output = {
             **self.get_annotation_task_project_dict(),
             "document_id": document.pk,
             "document_field_id": get_value_from_key_path(document.data, self.document_id_field),
             "document_data": document.data,
             "document_type": document.doc_type_str,
             "annotation_id": annotation.pk,
+            "annotation_data": annotation.data,
             "allow_document_reject": self.allow_document_reject,
             "annotation_timeout": annotation.times_out_at,
             "annotator_remaining_tasks": self.num_annotator_task_remaining(user=annotation.user),
             "annotator_completed_tasks": self.get_annotator_completed_documents_query(user=annotation.user).count(),
-            "annotator_completed_training_tasks": self.get_annotator_completed_documents_query(user=annotation.user, doc_type=DocumentType.TRAINING).count(),
-            "annotator_completed_test_tasks": self.get_annotator_completed_documents_query(user=annotation.user, doc_type=DocumentType.TEST).count(),
+            "annotator_completed_training_tasks": self.get_annotator_completed_documents_query(user=annotation.user,
+                                                                                               doc_type=DocumentType.TRAINING).count(),
+            "annotator_completed_test_tasks": self.get_annotator_completed_documents_query(user=annotation.user,
+                                                                                           doc_type=DocumentType.TEST).count(),
             "document_gold_standard_field": self.document_gold_standard_field,
         }
+
+        if include_task_history_in_project and document.doc_type is DocumentType.ANNOTATION:
+            # If specified, also returns a list of annotation ids for this user in the project
+            output["task_history"] = [annotation.pk for annotation in
+                                      Annotation.get_annotations_for_user_in_project(annotation.user.pk, self.pk)]
+
+        return output
 
     def get_annotation_task_project_dict(self):
 
@@ -555,7 +565,6 @@ class Project(models.Model):
             "project_config": self.configuration,
             "project_id": self.pk,
         }
-
 
     def decide_annotator_task_type_and_assign(self, user):
         """
@@ -853,7 +862,6 @@ class Document(models.Model):
         return doc_dict
 
 
-
 class Annotation(models.Model):
     """
     Model to represent a single annotation.
@@ -961,10 +969,6 @@ class Annotation(models.Model):
                                                annotation=self,
                                                changed_by=by_user)
 
-
-
-
-
     def latest_annotation_history(self):
         """
         Convenience function for getting the latest annotation data from the change history.
@@ -1018,6 +1022,21 @@ class Annotation(models.Model):
         for annotation in pending_annotations:
             annotation.abort_annotation()
 
+    @staticmethod
+    def get_annotations_for_user_in_project(user_id, project_id, doc_type=DocumentType.ANNOTATION):
+        """
+        Gets a list of all completed and pending annotation tasks in the project project_id that belong to the
+        annotator with user_id.
+
+        Ordered by descending date and PK so the most recent entry is placed first.
+        """
+
+        return Annotation.objects.filter(document__project_id=project_id,
+                                         document__doc_type=doc_type,
+                                         user_id=user_id).distinct().filter(
+            Q(status=Annotation.COMPLETED) | Q(status=Annotation.PENDING)).order_by("-created", "-pk")
+
+
 class AnnotationChangeHistory(models.Model):
     """
     Model to store the changes in annotation when an annotator makes a change after initial submission
@@ -1025,7 +1044,8 @@ class AnnotationChangeHistory(models.Model):
     data = models.JSONField(default=dict)
     time = models.DateTimeField(default=timezone.now)
     annotation = models.ForeignKey(Annotation, on_delete=models.CASCADE, related_name="change_history", null=False)
-    changed_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, related_name="changed_annotations", null=True)
+    changed_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, related_name="changed_annotations",
+                                   null=True)
 
     def get_listing(self):
         return {
@@ -1034,4 +1054,3 @@ class AnnotationChangeHistory(models.Model):
             "time": self.time,
             "changed_by": self.changed_by.username,
         }
-

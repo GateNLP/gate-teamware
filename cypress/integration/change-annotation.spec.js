@@ -1,4 +1,4 @@
-describe('Annotation Change Test', () => {
+describe('Annotation Change Test in Project documents view and User My annotations view', () => {
 
     let annotatorUsername = "annotator"
     let annotatorEmail = "annotator@test.com"
@@ -11,14 +11,15 @@ describe('Annotation Change Test', () => {
     let password = "testpassword"
 
     beforeEach(()=>{
+        const fixtureName = "create_db_users_with_project_and_annotation"
         // Run setup if needed
         if (Cypress.env('TESTENV') == 'container') {
-            cy.exec('docker-compose exec -T backend ./migrate-integration.sh -n=create_db_users_with_project_and_annotation')
+            cy.exec(`docker-compose exec -T backend ./migrate-integration.sh -n=${fixtureName}`)
         } else if (Cypress.env('TESTENV') == 'ci') {
-            cy.exec('DJANGO_SETTINGS_MODULE=teamware.settings.deployment docker-compose exec -T backend ./migrate-integration.sh -n=create_db_users_with_project_and_annotation')
+            cy.exec(`DJANGO_SETTINGS_MODULE=teamware.settings.deployment docker-compose exec -T backend ./migrate-integration.sh -n=${fixtureName}`)
         }
         else{
-            cy.exec('npm run migrate:integration -- -n=create_db_users_with_project_and_annotation', {log:true})
+            cy.exec(`npm run migrate:integration -- -n=${fixtureName}`, {log:true})
         }
     })
 
@@ -150,6 +151,98 @@ describe('Annotation Change Test', () => {
             cy.wrap(container).contains('"sentiment": "negative"')
             cy.wrap(container).contains('"sentiment": "neutral"')
         })
+
+    })
+
+})
+
+describe('Annotation Change Test in Annotate view', () => {
+
+    let adminUsername = "admin"
+    let adminEmail = "admin@test.com"
+    let password = "testpassword"
+
+    beforeEach(()=>{
+        const fixtureName = "create_db_users_with_project_admin_is_annotator"
+        // Run setup if needed
+        if (Cypress.env('TESTENV') == 'container') {
+            cy.exec(`docker-compose exec -T backend ./migrate-integration.sh -n=${fixtureName}`)
+        } else if (Cypress.env('TESTENV') == 'ci') {
+            cy.exec(`DJANGO_SETTINGS_MODULE=teamware.settings.deployment docker-compose exec -T backend ./migrate-integration.sh -n=${fixtureName}`)
+        }
+        else{
+            cy.exec(`npm run migrate:integration -- -n=${fixtureName}`, {log:true})
+        }
+    })
+
+    it("Change annotation in Annotate view", () => {
+        cy.login(adminUsername, password)
+        cy.visit("/")
+        cy.get(".navbar").contains("Annotate").click()
+        cy.contains("Start annotating").click()
+        // All task navigation buttons should start disabled
+        cy.contains("Previous task").should("be.disabled")
+        cy.contains("Next task").should("be.disabled")
+        cy.contains("Current task").should("be.disabled")
+
+        // Complete first task
+        cy.contains("Neutral").click()
+        cy.contains("Submit").click()
+        cy.wait(100)
+        cy.contains("Previous task").should("be.enabled")
+        cy.contains("Next task").should("be.disabled")
+        cy.contains("Current task").should("be.disabled")
+
+        // Complete second task
+        cy.contains("Neutral").click()
+        cy.contains("Submit").click()
+        cy.wait(100)
+        cy.contains("Previous task").should("be.enabled")
+        cy.contains("Next task").should("be.disabled")
+        cy.contains("Current task").should("be.disabled")
+
+        // Go back to second task
+        cy.contains("Previous task").click()
+        cy.wait(100)
+        cy.contains("Previous task").should("be.enabled")
+        cy.contains("Next task").should("be.enabled")
+        cy.contains("Current task").should("be.enabled")
+        cy.contains("Negative").click()
+        cy.contains("Submit").click()
+        cy.contains("Annotation changed")
+
+        // Go back to first task
+        cy.contains("Previous task").click()
+        cy.wait(100)
+        cy.contains("Previous task").should("be.disabled")
+        cy.contains("Next task").should("be.enabled")
+        cy.contains("Current task").should("be.enabled")
+        cy.contains("Positive").click()
+        cy.contains("Submit").click()
+        cy.contains("Annotation changed")
+
+        // Forward to second task
+        cy.contains("Next task").click()
+        cy.wait(100)
+        cy.get("input[type='radio'][value='negative']").should('be.checked')
+
+        // Back again to first task
+        cy.contains("Previous task").click()
+        cy.wait(100)
+        cy.get("input[type='radio'][value='positive']").should('be.checked')
+
+        // Back to the latest task, should be blank
+        cy.contains("Current task").click()
+        cy.wait(100)
+        cy.get("input[type='radio'][value='negative']").should('not.be.checked')
+        cy.get("input[type='radio'][value='positive']").should('not.be.checked')
+        cy.get("input[type='radio'][value='neutral']").should('not.be.checked')
+
+
+
+
+
+
 
     })
 

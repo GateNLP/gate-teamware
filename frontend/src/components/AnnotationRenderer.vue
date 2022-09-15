@@ -104,8 +104,15 @@ export default {
     allow_cancel: {
       default: null
     },
+    clear_after_submit: {
+      default: true,
+      type: Boolean
+    }
   },
   methods: {
+    setAnnotationData(data){
+      this.annotationOutput = data
+    },
     startTimer(){
       this.startTime = new Date();
     },
@@ -200,7 +207,8 @@ export default {
 
       if (validationPassed) {
         this.$emit('submit', this.annotationOutput, elapsedTime)
-        this.clearForm()
+        if(this.clear_after_submit)
+          this.clearForm()
         this.startTimer();
       }
     },
