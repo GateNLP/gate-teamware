@@ -1,5 +1,5 @@
 <template>
-    <VJsoneditor v-model="inputVal" :options="jeOptions" :plus="false" height="800px"></VJsoneditor>
+  <VJsoneditor v-model="inputVal" :options="jeOptions" :plus="false" height="800px"></VJsoneditor>
 </template>
 
 <script>
@@ -28,6 +28,29 @@ export default {
               "type": {
                 "enum": ["text", "textarea", "selector", "checkbox", "radio", "html"]
               }
+            },
+            "if": {
+              "properties": {
+                "type": {
+                  "anyOf": [
+                    {"const": "selector"},
+                    {"const": "checkbox"},
+                    {"const": "radio"}
+                  ]
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "options": {
+                  "oneOf": [
+                    {"type": "array"},
+                    {"type": "object"}
+                  ]
+                }
+              },
+              "required": ["options"]
+
             },
             "required": ["name", "type"]
           },
