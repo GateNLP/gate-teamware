@@ -138,24 +138,45 @@ class Project(models.Model):
     min_test_pass_threshold = models.FloatField(default=1.0, null=True)
     document_gold_standard_field = models.TextField(default="gold")
 
-    project_config_fields = {
-        "name",
-        "description",
-        "annotator_guideline",
-        "configuration",
-        "annotations_per_doc",
-        "annotator_max_annotation",
-        "allow_document_reject",
-        "allow_annotation_change",
-        "annotation_timeout",
-        "document_input_preview",
-        "document_id_field",
-        "has_training_stage",
-        "has_test_stage",
-        "can_annotate_after_passing_training_and_test",
-        "min_test_pass_threshold",
-        "document_gold_standard_field",
-    }
+    @classmethod
+    def get_project_config_fields(cls, exclude_fields: set = set()):
+        exclude_field_types = {
+            models.ManyToOneRel,
+            models.ManyToManyField,
+            models.ManyToManyRel,
+        }
+        fields = Project._meta.get_fields()
+        config_fields = []
+
+        for field in fields:
+            if field.__class__ not in exclude_field_types and field.name not in exclude_fields:
+                config_fields.append(field)
+
+        return config_fields
+
+
+
+    def clone(self, new_name = None, clone_name_prefix="Copy of ", owner = None):
+        """
+        Clones the Project object, does not retain documents and annotator membership
+        """
+        exclude_fields = { "name", "owner", "id", "created" }
+
+        # Setting project name
+        new_project_name = new_name if new_name is not None else ""
+        if clone_name_prefix:
+            new_project_name = clone_name_prefix + self.name
+        new_project = Project.objects.create(name=new_project_name)
+        # Setting owner
+        new_project.owner = owner
+        # Copy all config over
+        config_fields = self.get_project_config_fields(exclude_fields)
+        for field in config_fields:
+            setattr(new_project, field.name, getattr(self, field.name))
+
+        new_project.save()
+        return new_project
+
 
     @property
     def num_documents(self):

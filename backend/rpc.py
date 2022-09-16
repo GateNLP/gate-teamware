@@ -402,17 +402,8 @@ def get_project(request, project_id):
 def clone_project(request, project_id):
     with transaction.atomic():
         current_project = Project.objects.get(pk=project_id)
-        new_project = Project.objects.create()
-        new_project.owner = request.user
-        for field_name in Project.project_config_fields:
-            if field_name == "name":
-                setattr(new_project, field_name, "Copy of " + getattr(current_project, field_name))
-            else:
-                setattr(new_project, field_name, getattr(current_project, field_name))
-        new_project.save()
-
+        new_project = current_project.clone(owner=request.user)
         return serializer.serialize(new_project, exclude_fields=set(["annotators", "annotatorproject"]))
-
 
 
 @rpc_method_manager
