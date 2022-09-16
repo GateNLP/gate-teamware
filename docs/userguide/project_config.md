@@ -238,8 +238,8 @@ Configuration, showing the same field/column in document as-is or as HTML:
         "regex": "regex string", //Optional - When specified, the regex pattern will used to validate the text
         "title": "Title string", //Optional
         "description": "Description string", //Optional
-        "valSuccess": "Success message then field is validated", //Optional
-        "valError": "Error message when field fails is validation" //Optional
+        "valSuccess": "Success message when the field is validated", //Optional
+        "valError": "Error message when the field fails validation" //Optional
     }
 ]
 ```
@@ -259,8 +259,8 @@ Configuration, showing the same field/column in document as-is or as HTML:
         "regex": "regex string", //Optional - When specified, the regex pattern will used to validate the text
         "title": "Title string", //Optional
         "description": "Description string", //Optional
-        "valSuccess": "Success message then field is validated", //Optional
-        "valError": "Error message when field fails is validation" //Optional
+        "valSuccess": "Success message when the field is validated", //Optional
+        "valError": "Error message when the field fails validation" //Optional
     }
 ]
 ```
@@ -277,15 +277,15 @@ Configuration, showing the same field/column in document as-is or as HTML:
         "name": "mylabel",
         "type": "radio",
         "optional": true, //Optional - Set if validation is not required
-        "options": { // The options that the user is able to select from
-            "value1": "Text to show user 1",
-            "value2": "Text to show user 2",
-            "value3": "Text to show user 3",
-        },
+        "options": [ // The options that the user is able to select from
+                {"value": "value1", "label": "Text to show user 1"},
+                {"value": "value2", "label": "Text to show user 2"},
+                {"value": "value3", "label": "Text to show user 3"}
+            ],
         "title": "Title string", //Optional
         "description": "Description string", //Optional
-        "valSuccess": "Success message then field is validated", //Optional
-        "valError": "Error message when field fails is validation" //Optional
+        "valSuccess": "Success message when the field is validated", //Optional
+        "valError": "Error message when the field fails validation" //Optional
     }
 ]
 ```
@@ -302,16 +302,16 @@ Configuration, showing the same field/column in document as-is or as HTML:
         "name": "mylabel",
         "type": "checkbox",
         "optional": true, //Optional - Set if validation is not required
-        "options": { // The options that the user is able to select from
-            "value1": "Text to show user 1",
-            "value2": "Text to show user 2",
-            "value3": "Text to show user 3",
-        },
+        "options": [ // The options that the user is able to select from
+                {"value": "value1", "label": "Text to show user 1"},
+                {"value": "value2", "label": "Text to show user 2"},
+                {"value": "value3", "label": "Text to show user 3"}
+            ],
         "minSelected": 1, //Optional - Overrides optional field. Specify the minimum number of options that must be selected
         "title": "Title string", //Optional
         "description": "Description string", //Optional
-        "valSuccess": "Success message then field is validated", //Optional
-        "valError": "Error message when field fails is validation" //Optional
+        "valSuccess": "Success message when the field is validated", //Optional
+        "valError": "Error message when the field fails validation" //Optional
     }
 ]
 ```
@@ -328,16 +328,45 @@ Configuration, showing the same field/column in document as-is or as HTML:
         "name": "mylabel",
         "type": "selector",
         "optional": true, //Optional - Set if validation is not required
-        "options": { // The options that the user is able to select from
-            "value1": "Text to show user 1",
-            "value2": "Text to show user 2",
-            "value3": "Text to show user 3",
-        },
+        "options": [ // The options that the user is able to select from
+                {"value": "value1", "label": "Text to show user 1"},
+                {"value": "value2", "label": "Text to show user 2"},
+                {"value": "value3", "label": "Text to show user 3"}
+            ],
         "title": "Title string", //Optional
         "description": "Description string", //Optional
-        "valSuccess": "Success message then field is validated", //Optional
-        "valError": "Error message when field fails is validation" //Optional
+        "valSuccess": "Success message when the field is validated", //Optional
+        "valError": "Error message when the field fails validation" //Optional
     }
+]
+```
+
+</AnnotationRendererPreview>
+
+### Alternative way to provide options for radio, checkbox and selector
+
+A dictionary (key value pairs) and also be provided to the `options` field of the radio, checkbox and selector widgets
+but note that the ordering of the options are **not guaranteed** as javascript does not sort dictionaries by
+the order in which keys are added.
+
+<AnnotationRendererPreview :config="configs.configRadioDict">
+
+```json
+[
+    {
+          "name": "mylabel",
+          "type": "radio",
+          "optional": true, //Optional - Set if validation is not required
+          "options": { // The options can be specified as a dictionary, ordering is not guaranteed
+              "value1": "Text to show user 1",
+              "value2": "Text to show user 2",
+              "value3": "Text to show user 3"
+          },
+          "title": "Title string", //Optional
+          "description": "Description string", //Optional
+          "valSuccess": "Success message when the field is validated", //Optional
+          "valError": "Error message when the field fails validation" //Optional
+      }
 ]
 ```
 
