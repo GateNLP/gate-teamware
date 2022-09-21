@@ -412,13 +412,13 @@ def import_project_config(request, pk, project_dict):
         serializer.deserialize(Project, {
             "id": pk,
             **project_dict
-        }, Project.get_project_export_field_names)
+        }, Project.get_project_export_field_names())
 
 
 @rpc_method_manager
 def export_project_config(request, pk):
     proj = Project.objects.get(pk=pk)
-    return serializer.serialize(proj, Project.get_project_export_field_names)
+    return serializer.serialize(proj, Project.get_project_export_field_names())
 
 @rpc_method_manager
 def get_projects(request, current_page=1, page_size=None, filters=None):
