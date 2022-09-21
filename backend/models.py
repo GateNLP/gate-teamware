@@ -154,6 +154,10 @@ class Project(models.Model):
 
         return config_fields
 
+    @classmethod
+    def get_project_export_field_names(cls):
+        fields = Project.get_project_config_fields({"owner", "id", "created"})
+        return [field.name for field in fields]
 
 
     def clone(self, new_name = None, clone_name_prefix="Copy of ", owner = None):
