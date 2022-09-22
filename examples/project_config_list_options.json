@@ -1,0 +1,96 @@
+[
+  {
+    "name": "html",
+    "title": "Test html display",
+    "description": "Test html display description",
+    "type": "html",
+    "text": "Some text to display"
+  },
+  {
+    "name": "radio",
+    "title": "Test radio input",
+    "description": "Test radio description",
+    "type": "radio",
+    "options": {
+      "val1": "Value 1",
+      "val2": "Value 2",
+      "val3": "Value 4",
+      "val4": "Value 5"
+    }
+  },
+  {
+    "name": "radioListOpt",
+    "title": "Test radio input (using list for options)",
+    "description": "Test radio description",
+    "type": "radio",
+    "options": [
+      { "value": "val1", "label":  "Value 1"},
+      { "value": "val2", "label":  "Value 2"},
+      { "value": "val3", "label":  "Value 3"},
+      { "value": "val4", "label":  "Value 4"},
+      { "value": "val5", "label":  "Value 5"}
+    ]
+  },
+  {
+    "name": "checkbox",
+    "title": "Test checkbox input",
+    "description": "Test checkbox description",
+    "type": "checkbox",
+    "options": {
+      "val1": "Value 1",
+      "val2": "Value 2",
+      "val3": "Value 4",
+      "val4": "Value 5"
+    }
+  },
+  {
+    "name": "checkboxListOpt",
+    "title": "Test checkbox input  (using list for options)",
+    "description": "Test checkbox description",
+    "type": "checkbox",
+    "options": [
+      { "value": "val1", "label":  "Value 1"},
+      { "value": "val2", "label":  "Value 2"},
+      { "value": "val3", "label":  "Value 3"},
+      { "value": "val4", "label":  "Value 4"},
+      { "value": "val5", "label":  "Value 5"}
+    ]
+  },
+  {
+    "name": "selector",
+    "title": "Test selector input",
+    "description": "Test selector description",
+    "type": "selector",
+    "options": {
+      "val1": "Value 1",
+      "val2": "Value 2",
+      "val3": "Value 4",
+      "val4": "Value 5"
+    }
+  },
+  {
+    "name": "selectorListOpt",
+    "title": "Test selector input (using list for options)",
+    "description": "Test selector description",
+    "type": "selector",
+    "options": [
+      { "value": "val1", "label":  "Value 1"},
+      { "value": "val2", "label":  "Value 2"},
+      { "value": "val3", "label":  "Value 3"},
+      { "value": "val4", "label":  "Value 4"},
+      { "value": "val5", "label":  "Value 5"}
+    ]
+  },
+  {
+    "name": "textarea",
+    "title": "Test textarea input",
+    "description": "Test textarea description",
+    "type": "textarea"
+  },
+  {
+    "name": "text",
+    "title": "Test text input",
+    "description": "Test text description",
+    "type": "text"
+  }
+]

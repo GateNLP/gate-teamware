@@ -1,5 +1,5 @@
 <template>
-    <VJsoneditor v-model="inputVal" :options="jeOptions" :plus="false" height="800px"></VJsoneditor>
+  <VJsoneditor v-model="inputVal" :options="jeOptions" :plus="false" height="800px"></VJsoneditor>
 </template>
 
 <script>
@@ -27,9 +27,101 @@ export default {
               },
               "type": {
                 "enum": ["text", "textarea", "selector", "checkbox", "radio", "html"]
-              }
+              },
+              "title": {"type": "string"},
+              "description": {"type": "string"},
+              "optional": {"type": "boolean"},
+              "valSuccess": {"type": "string"},
+              "valError": {"type": "string"}
             },
-            "required": ["name", "type"]
+            "allOf": [
+              {
+                // html type should have the field text
+                "if": {
+                  "properties": {
+                    "type": {
+                      "anyOf": [
+                        {"const": "html"},
+                      ]
+                    }
+                  }
+                },
+                "then": {
+                  "properties": {
+                    "text": {"type": "string"}
+                  },
+                  "required": ["text"]
+                }
+              },
+              {
+                // text and textarea can have the fields regex for checking
+                "if": {
+                  "properties": {
+                    "type": {
+                      "anyOf": [
+                        {"const": "text"},
+                        {"const": "textarea"}
+                      ]
+                    }
+                  }
+                },
+                "then": {
+                  "properties": {
+                    "regex": {"type": "string"}
+                  },
+                }
+              },
+              {
+                // selector, checkbox and radio should have the options field with at least
+                // one item
+                "if": {
+                  "properties": {
+                    "type": {
+                      "anyOf": [
+                        {"const": "selector"},
+                        {"const": "checkbox"},
+                        {"const": "radio"}
+                      ]
+                    }
+                  }
+                },
+                "then": {
+                  "properties": {
+                    "options": {
+                      "oneOf": [
+                        {
+                          "type": "array",
+                          "minItems": 1,
+                          "uniqueItems": true,
+                          "items": {
+                            "type:": "object",
+                            "properties": {
+                              "label": {"type": "string"},
+                              "value": {
+                                "anyOf": [
+                                  {"type": "string"},
+                                  {"type": "integer"},
+                                  {"type": "number"}
+                                ]
+                              }
+                            },
+                            "required": ["label", "value"]
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "minProperties": 1,
+                          "additionalProperties": {"type": "string"}
+                        }
+                      ]
+                    }
+                  },
+                  "required": ["options"]
+                }
+              }
+            ],
+            "required": ["name", "type"],
+            "unevaluatedProperties": false
           },
           "minItems": 1
         },
