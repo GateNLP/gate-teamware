@@ -10,6 +10,7 @@ from backend.utils.serialize import ModelSerializer
 # Import signal which is used for cleaning up user pending annotations
 import backend.signals
 
+
 class ModelTestCase(TestCase):
 
     def check_model_field(self, model_class, field_name, field_type):
@@ -18,6 +19,7 @@ class ModelTestCase(TestCase):
     def check_model_fields(self, model_class, field_name_types_dict):
         for field_name, field_type in field_name_types_dict.items():
             self.check_model_field(model_class, field_name, field_type)
+
 
 class TestUserModel(TestCase):
 
@@ -73,7 +75,6 @@ class TestUserModel(TestCase):
         self.assertTrue(user2.is_associated_with_annotation(annotation2))
 
     def test_check_user_active_project(self):
-
         user = get_user_model().objects.create(username="test1")
         self.assertFalse(user.has_active_project)
         self.assertEqual(user.active_project, None)
@@ -86,8 +87,6 @@ class TestUserModel(TestCase):
         project.remove_annotator(user)
         self.assertFalse(user.has_active_project)
         self.assertEqual(user.active_project, None)
-
-
 
     def test_delete_user_with_annotations(self):
         user = get_user_model().objects.create(username="test1")
@@ -124,7 +123,6 @@ class TestUserModel(TestCase):
         self.assertEqual(1, Annotation.objects.filter(status=Annotation.REJECTED).count())
         self.assertEqual(1, Annotation.objects.filter(status=Annotation.TIMED_OUT).count())
         self.assertEqual(1, Annotation.objects.filter(status=Annotation.ABORTED).count())
-
 
 
 class TestDocumentModel(ModelTestCase):
@@ -207,12 +205,12 @@ class TestProjectModel(ModelTestCase):
         self.num_total_tasks = self.num_docs * self.annotations_per_doc
 
         self.project = Project.objects.create(annotations_per_doc=self.annotations_per_doc,
-                                         annotator_max_annotation=self.annotator_max_annotation)
+                                              annotator_max_annotation=self.annotator_max_annotation)
         self.docs = [Document.objects.create(project=self.project) for i in range(self.num_docs)]
         self.training_docs = [Document.objects.create(project=self.project, doc_type=DocumentType.TRAINING) for i in
                               range(self.num_training_docs)]
         self.test_docs = [Document.objects.create(project=self.project, doc_type=DocumentType.TEST) for i in
-                              range(self.num_test_docs)]
+                          range(self.num_test_docs)]
 
         # Add answers to training docs
         counter = 0
@@ -252,7 +250,6 @@ class TestProjectModel(ModelTestCase):
             }
             doc.save()
             counter += 1
-
 
         self.annotators = [get_user_model().objects.create(username=f"test{i}") for i in range(self.num_annotators)]
         for annotator in self.annotators:
@@ -332,10 +329,6 @@ class TestProjectModel(ModelTestCase):
         with self.assertRaises(Exception):
             project.make_annotator_active(annotator)
 
-
-
-
-
     def test_remove_annotator(self):
         project = Project.objects.create()
         annotator = get_user_model().objects.create(username="anno1")
@@ -362,10 +355,6 @@ class TestProjectModel(ModelTestCase):
         annotator_project = AnnotatorProject.objects.get(project=project, annotator=annotator)
         self.assertEqual(AnnotatorProject.COMPLETED, annotator_project.status)
         self.assertEqual(True, annotator_project.rejected)
-
-
-
-
 
     def test_num_documents(self):
         self.assertEqual(self.project.num_documents, self.num_docs)
@@ -413,14 +402,15 @@ class TestProjectModel(ModelTestCase):
         self.annotate_docs_all_states(self.docs, self.annotators[0])
         self.annotate_docs_all_states(self.test_docs, self.annotators[0])
         self.annotate_docs_all_states(self.training_docs, self.annotators[0])
-        self.assertEqual(self.project.num_occupied_tasks, self.num_docs*2, f"Must have {self.num_docs*2} annotations (completed + pending)")
+        self.assertEqual(self.project.num_occupied_tasks, self.num_docs * 2,
+                         f"Must have {self.num_docs * 2} annotations (completed + pending)")
 
     def test_num_annotation_tasks_remaining(self):
         self.annotate_docs_all_states(self.docs, self.annotators[0])
         self.annotate_docs_all_states(self.test_docs, self.annotators[0])
         self.annotate_docs_all_states(self.training_docs, self.annotators[0])
-        self.assertEqual(self.project.num_annotation_tasks_remaining, self.num_docs*self.annotations_per_doc - self.num_docs*2)
-
+        self.assertEqual(self.project.num_annotation_tasks_remaining,
+                         self.num_docs * self.annotations_per_doc - self.num_docs * 2)
 
     def annotate_docs_all_states(self, docs, annotator):
         for doc in docs:
@@ -431,7 +421,8 @@ class TestProjectModel(ModelTestCase):
             Annotation.objects.create(user=annotator, document=doc, status=Annotation.TIMED_OUT)
 
     def test_max_num_task_per_annotator(self):
-        self.assertEqual(self.project.max_num_task_per_annotator, math.ceil(self.num_docs*self.annotator_max_annotation))
+        self.assertEqual(self.project.max_num_task_per_annotator,
+                         math.ceil(self.num_docs * self.annotator_max_annotation))
 
     def test_num_annotators(self):
         self.assertEqual(self.project.num_annotators, self.num_annotators)
@@ -478,12 +469,13 @@ class TestProjectModel(ModelTestCase):
             Annotation.objects.create(user=annotator2, document=doc, status=Annotation.COMPLETED)
             Annotation.objects.create(user=annotator2, document=doc, status=Annotation.ABORTED)
 
-        for i in range(math.ceil(project.annotator_max_annotation*project.documents.filter(doc_type=DocumentType.ANNOTATION).count())):
+        for i in range(math.ceil(
+                project.annotator_max_annotation * project.documents.filter(doc_type=DocumentType.ANNOTATION).count())):
             project.refresh_from_db()
             doc = docs[i]
             Annotation.objects.create(user=annotator, document=doc, status=Annotation.COMPLETED)
             Annotation.objects.create(user=annotator, document=doc, status=Annotation.ABORTED)
-            self.assertEqual(project.num_annotator_task_remaining(annotator), num_docs_user_can_annotate - (i+1))
+            self.assertEqual(project.num_annotator_task_remaining(annotator), num_docs_user_can_annotate - (i + 1))
             print(project.num_annotator_task_remaining(annotator))
 
         self.assertEqual(project.num_annotator_task_remaining(annotator), 0, "Must have 0 tasks remaining")
@@ -499,8 +491,6 @@ class TestProjectModel(ModelTestCase):
         for doc in self.test_docs:
             Annotation.objects.create(document=doc, user=annotator, status=Annotation.COMPLETED)
 
-
-
         # Can annotate all docs when blank
         self.assertEqual(project.get_annotator_annotatable_documents_query(annotator).count(), self.num_docs)
 
@@ -509,13 +499,12 @@ class TestProjectModel(ModelTestCase):
         self.assertEqual(project.get_annotator_completed_documents_query(annotator).count(), 0)
         self.assertEqual(project.get_annotator_pending_documents_query(annotator).count(), 0)
 
-
         # One less doc if other annotator has annotated
         for i in range(self.annotations_per_doc):
-            ann = self.annotators[i+1]
+            ann = self.annotators[i + 1]
             Annotation.objects.create(user=ann, document=self.docs[0], status=Annotation.COMPLETED)
 
-        self.assertEqual(project.get_annotator_annotatable_documents_query(annotator).count(), self.num_docs-1)
+        self.assertEqual(project.get_annotator_annotatable_documents_query(annotator).count(), self.num_docs - 1)
 
         # Reset annotation state
         Annotation.objects.all().delete()
@@ -572,7 +561,6 @@ class TestProjectModel(ModelTestCase):
 
         self.assertTrue(self.project.annotator_reached_quota(annotator))
 
-
     def test_annotator_completed_training(self):
         annotator = self.annotators[0]
         self.project.annotator_completed_training(annotator)
@@ -628,7 +616,7 @@ class TestProjectModel(ModelTestCase):
                 "label2": doc.data["gold"]["label2"]["value"],
             }
             anno = Annotation.objects.create(user=annotator2, document=doc)
-            anno.data=correct_annotation_data
+            anno.data = correct_annotation_data
 
         self.assertEqual(self.num_test_docs, self.project.get_annotator_document_score(annotator2, DocumentType.TEST))
 
@@ -643,11 +631,10 @@ class TestProjectModel(ModelTestCase):
             }
             data = correct_annotation_data if counter < num_correct else incorrect_data
             anno = Annotation.objects.create(user=annotator3, document=doc)
-            anno.data =data
+            anno.data = data
             counter += 1
 
         self.assertEqual(num_correct, self.project.get_annotator_document_score(annotator3, DocumentType.TEST))
-
 
     def test_check_annotation_answer(self):
 
@@ -713,8 +700,6 @@ class TestProjectModel(ModelTestCase):
         # Missing one label in annotation
         annotation_list_str_label.pop("label2")
         self.assertFalse(self.project.check_annotation_answer(annotation_list_str_label, answers_list_str_label))
-
-
 
     def test_saving_and_loading(self):
         name = "Test name"
@@ -797,6 +782,77 @@ class TestProjectModel(ModelTestCase):
         self.assertEqual(input_dict["name"], deserialized_obj.name)
         self.assertEqual(input_dict["owner"], deserialized_obj.owner.id)
 
+    def test_clone_project(self):
+
+        project_fields = {
+            "description",
+            "annotator_guideline",
+            "configuration",
+            "annotations_per_doc",
+            "annotator_max_annotation",
+            "allow_document_reject",
+            "allow_annotation_change",
+            "annotation_timeout",
+            "document_input_preview",
+            "document_id_field",
+            "has_training_stage",
+            "has_test_stage",
+            "can_annotate_after_passing_training_and_test",
+            "min_test_pass_threshold",
+            "document_gold_standard_field",
+        }
+
+        clone_prefix = "Test project prefix "
+
+        # Check fields must match exactly
+        fields = Project.get_project_config_fields({"name", "owner", "id", "created"})
+        field_name_set = set()
+        for field in fields:
+            field_name_set.add(field.name)
+
+        self.assertSetEqual(project_fields, field_name_set)
+
+        project = Project.objects.create(name="Testname",
+                                         description="Test desc",
+                                         annotator_guideline="Test annotator guideline",
+                                         configuration=[
+                                             {
+                                                 "name": "sentiment",
+                                                 "title": "Sentiment",
+                                                 "type": "radio",
+                                                 "options": {
+                                                     "positive": "Positive",
+                                                     "negative": "Negative",
+                                                     "neutral": "Neutral"
+                                                 }
+                                             },
+                                             {
+                                                 "name": "reason",
+                                                 "title": "Reason for your stated sentiment",
+                                                 "type": "textarea"
+                                             }
+                                         ],
+                                         annotations_per_doc=3,
+                                         annotator_max_annotation=0.3,
+                                         allow_document_reject=False,
+                                         allow_annotation_change=False,
+                                         annotation_timeout=809,
+                                         document_input_preview={"test": "testest"},
+                                         document_id_field="test_field_name",
+                                         has_training_stage=False,
+                                         has_test_stage=False,
+                                         can_annotate_after_passing_training_and_test=False,
+                                         min_test_pass_threshold=0.9,
+                                         document_gold_standard_field="test_fname",
+                                         )
+        cloned_project = project.clone(clone_name_prefix=clone_prefix)
+        # Check ID and name
+        self.assertNotEqual(project.id, cloned_project.id)
+        self.assertEqual(clone_prefix + project.name, cloned_project.name)
+        # Check cloned parameters
+        for field_name in project_fields:
+            self.assertEqual(getattr(project, field_name), getattr(cloned_project, field_name))
+
 
 class TestAnnotationModel(ModelTestCase):
 
@@ -812,7 +868,6 @@ class TestAnnotationModel(ModelTestCase):
 
     def test_model_data(self):
         """Getting and setting data to the annotation model"""
-
 
         project = Project.objects.create(name="Test")
         document = Document.objects.create(project=project)
@@ -833,11 +888,12 @@ class TestAnnotationModel(ModelTestCase):
         self.assertDictEqual(annotation_test_data, annotation.data, "Contents of returned dict should be the same")
 
         annotation.data = annotation_test_data_changed
-        self.assertDictEqual(annotation_test_data_changed, annotation.data, "Contents of returned dict should be the same")
+        self.assertDictEqual(annotation_test_data_changed, annotation.data,
+                             "Contents of returned dict should be the same")
 
         anno_db_fetch = Annotation.objects.get(pk=annotation.id)
-        self.assertDictEqual(annotation_test_data_changed, anno_db_fetch.data, "Contents of returned dict should be the smae")
-
+        self.assertDictEqual(annotation_test_data_changed, anno_db_fetch.data,
+                             "Contents of returned dict should be the smae")
 
     def test_timeout_check(self):
         num_already_timedout = 12
@@ -906,7 +962,6 @@ class TestAnnotationModel(ModelTestCase):
             # Error should be raised if annotation not already completed
             annotation.change_annotation(changed_annotation, annotator2)
 
-
         # Complete the annotation
         annotation.complete_annotation(original_annotation)
         self.assertDictEqual(original_annotation, annotation.data, "Expects the original annotation")
@@ -926,7 +981,6 @@ class TestAnnotationModel(ModelTestCase):
         self.assertEqual(annotator2,
                          annotation.latest_annotation_history().changed_by,
                          "Should be changed by annotator2")
-
 
     def test_get_annotations_for_user_in_project(self):
         num_projects = 10
@@ -948,25 +1002,20 @@ class TestAnnotationModel(ModelTestCase):
                             doc = Document.objects.create(project=project, doc_type=doc_type)
                             Annotation.objects.create(user=annotator, document=doc, status=status)
 
-
         # Check for all annotators and projects
         for project in projects:
             for annotator in annotators:
                 # Shows 15 pending and 15 completed annotations
-                self.assertEqual(num_annotations_for_annotator*2,
+                self.assertEqual(num_annotations_for_annotator * 2,
                                  len(Annotation.get_annotations_for_user_in_project(annotator.pk, project.pk)))
-                self.assertEqual(num_annotations_for_annotator*2,
+                self.assertEqual(num_annotations_for_annotator * 2,
                                  len(Annotation.get_annotations_for_user_in_project(annotator.pk,
                                                                                     project.pk,
                                                                                     DocumentType.TEST)))
-                self.assertEqual(num_annotations_for_annotator*2,
-                             len(Annotation.get_annotations_for_user_in_project(annotator.pk,
-                                                                                project.pk,
-                                                                                DocumentType.TRAINING)))
-
-
-
-
+                self.assertEqual(num_annotations_for_annotator * 2,
+                                 len(Annotation.get_annotations_for_user_in_project(annotator.pk,
+                                                                                    project.pk,
+                                                                                    DocumentType.TRAINING)))
 
 
 class TestDocumentAnnotationModelExport(TestCase):
@@ -994,26 +1043,25 @@ class TestDocumentAnnotationModelExport(TestCase):
                                                        status=Annotation.COMPLETED,
                                                        )
                 annotation.data = {
-                                       "text1": "Value1",
-                                       "checkbox1": ["val1", "val2", "val3"],
-                                   }
+                    "text1": "Value1",
+                    "checkbox1": ["val1", "val2", "val3"],
+                }
 
                 annotation_pending = Annotation.objects.create(user=annotator,
-                                                       document=document,
-                                                       status=Annotation.PENDING)
+                                                               document=document,
+                                                               status=Annotation.PENDING)
 
                 annotation_timed_out = Annotation.objects.create(user=annotator,
-                                                              document=document,
-                                                              status=Annotation.TIMED_OUT)
+                                                                 document=document,
+                                                                 status=Annotation.TIMED_OUT)
 
                 annotation_reject = Annotation.objects.create(user=annotator,
                                                               document=document,
                                                               status=Annotation.REJECTED)
 
                 annotation_aborted = Annotation.objects.create(user=annotator,
-                                                              document=document,
-                                                              status=Annotation.ABORTED)
-
+                                                               document=document,
+                                                               status=Annotation.ABORTED)
 
         self.project.refresh_from_db()
 
@@ -1028,10 +1076,7 @@ class TestDocumentAnnotationModelExport(TestCase):
             self.assertTrue("feature2" in doc_dict)
             self.assertTrue("feature3" in doc_dict)
 
-
             self.check_raw_gate_annotation_formatting(doc_dict)
-
-
 
     def test_export_gate(self):
 
@@ -1086,5 +1131,3 @@ class TestDocumentAnnotationModelExport(TestCase):
             for set_key in anno_set_dict:
                 self.assertTrue(isinstance(anno_set_dict[set_key]["text1"], str))
                 self.assertTrue(isinstance(anno_set_dict[set_key]["checkbox1"], str))
-
-

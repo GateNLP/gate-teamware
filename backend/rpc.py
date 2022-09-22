@@ -402,17 +402,8 @@ def get_project(request, project_id):
 def clone_project(request, project_id):
     with transaction.atomic():
         current_project = Project.objects.get(pk=project_id)
-        new_project = Project.objects.create()
-        new_project.owner = request.user
-        for field_name in Project.project_config_fields:
-            if field_name == "name":
-                setattr(new_project, field_name, "Copy of " + getattr(current_project, field_name))
-            else:
-                setattr(new_project, field_name, getattr(current_project, field_name))
-        new_project.save()
-
+        new_project = current_project.clone(owner=request.user)
         return serializer.serialize(new_project, exclude_fields=set(["annotators", "annotatorproject"]))
-
 
 
 @rpc_method_manager
@@ -421,13 +412,13 @@ def import_project_config(request, pk, project_dict):
         serializer.deserialize(Project, {
             "id": pk,
             **project_dict
-        }, Project.project_config_fields)
+        }, Project.get_project_export_field_names())
 
 
 @rpc_method_manager
 def export_project_config(request, pk):
     proj = Project.objects.get(pk=pk)
-    return serializer.serialize(proj, Project.project_config_fields)
+    return serializer.serialize(proj, Project.get_project_export_field_names())
 
 @rpc_method_manager
 def get_projects(request, current_page=1, page_size=None, filters=None):

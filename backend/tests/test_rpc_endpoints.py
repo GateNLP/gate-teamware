@@ -462,12 +462,6 @@ class TestProject(TestEndpoint):
 
         cloned_project_dict = clone_project(self.get_loggedin_request(), project.pk)
         cloned_project = Project.objects.get(pk=cloned_project_dict["id"])
-        self.assertNotEqual(project.pk, cloned_project.pk)
-        for field_name in Project.project_config_fields:
-            if field_name == "name":
-                self.assertEqual("Copy of " + getattr(project, field_name),  getattr(cloned_project, field_name))
-            else:
-                self.assertEqual(getattr(project, field_name), getattr(cloned_project, field_name))
 
         # Must not have associated documents
         self.assertEqual(0, cloned_project.num_training_documents)
