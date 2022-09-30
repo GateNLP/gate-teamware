@@ -30,6 +30,14 @@
             <b-nav-item to="/about">About</b-nav-item>
           </b-navbar-nav>
 
+          {{settings.docFormatPref}}
+
+          <b-navbar-nav class="ml-auto">
+            <b-nav-form>
+              <b-form-select :options="{0: 'Json', 1: 'CSV' }" :value="settings.docFormatPref" @input="updateDocFormatPref($event)"></b-form-select>
+            </b-nav-form>
+          </b-navbar-nav>
+
 
           <b-navbar-nav class="ml-auto" v-if="!user || !user.isAuthenticated">
             <b-nav-item to="/login" right>Sign In</b-nav-item>
@@ -61,10 +69,10 @@ import {mapState, mapActions} from "vuex";
 
 export default {
   computed: {
-    ...mapState(["user"]),
+    ...mapState(["user", "settings"]),
   },
   methods: {
-    ...mapActions(["logout"]),
+    ...mapActions(["logout", "updateDocFormatPref"]),
     logoutHandler() {
       this.logout();
       this.$router.push({name: 'Home'}).catch(() => {

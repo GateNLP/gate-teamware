@@ -17,6 +17,9 @@ export default new Vuex.Store({
             isAdmin: false,
             isActivated: false,
         },
+        settings: {
+            docFormatPref: 0,
+        }
     },
     getters:{
         isAuthenticated: state => state.user.isAuthenticated,
@@ -36,8 +39,14 @@ export default new Vuex.Store({
             state.user.isAdmin = params.isAdmin;
             state.user.isActivated = params.isActivated;
         },
+        updateDocFormatPref(state, preference){
+            state.settings.docFormatPref = preference
+        }
     },
     actions: {
+        updateDocFormatPref({commit}, pref){
+            commit("updateDocFormatPref", pref)
+        },
         updateUser({commit}, params) {
             commit("updateUser", params);
         },
