@@ -27,7 +27,7 @@ describe('User Registration Test', () => {
         cy.contains('Password must match')
         })
 
-    it.only('tests username in use error', () => {
+    it('tests username in use error', () => {
         cy.visit("/register")
     
         cy.contains('Username').type('annotator')
