@@ -8,6 +8,9 @@ describe("Test admin user management", () => {
     let wrongPassword = "wrongPassword"
 
     beforeEach(() => {
+        const fixtureName = 'create_db_users'
+        cy.migrate_integration_db(fixtureName)
+
         // Login through JSON request
         cy.login(adminUsername, password)
 
