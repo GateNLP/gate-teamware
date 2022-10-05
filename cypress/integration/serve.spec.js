@@ -206,8 +206,9 @@ describe('Site serve test', () => {
 
         // Add admin user as annotator
         cy.contains("Annotators").click()
-        cy.get("h5").contains("Add annotator to project").parent().contains("admin").click()
-        cy.get("h5").contains("Current annotators of the project").parent().contains("admin").should("be.visible")
+        cy.get(".btn").contains("+ Add annotators").click()
+        cy.get(".list-group-item").contains("admin").click()
+        cy.get(".btn").contains("OK").click()
 
         cy.contains("Improperly configured project").should("not.exist")
 
@@ -435,8 +436,9 @@ describe('Site serve test', () => {
 
         // Add admin user as annotator
         cy.contains("Annotators").click()
-        cy.get("h5").contains("Add annotator to project").parent().contains("admin").click()
-        cy.get("h5").contains("Current annotators of the project").parent().contains("admin").should("be.visible")
+        cy.get(".btn").contains("+ Add annotators").click()
+        cy.get(".list-group-item").contains("admin").click()
+        cy.get(".btn").contains("OK").click()
         
         cy.contains("Improperly configured project").should("not.exist")
         
