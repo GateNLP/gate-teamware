@@ -13,7 +13,8 @@ describe("Test flatten function", () => {
                     line1: "123 Fake St",
                     line2: "Apt 1",
                 },
-                listings: ["one", "two", {oname: "three", o2name: "four"}, ["ins1", "ins2", "ins3"]]
+                listings: ["one", "two", {l2name1: "three", l2name2: "four"}],
+                doublelist: ["one", "two", ["one", "two"], ["one", "two"]]
             },
             username: "testusername",
             fruitsILike: ["apples", "bananas", "pineapple"]
@@ -28,8 +29,20 @@ describe("Test flatten function", () => {
             "company.name": "testname",
             "company.address.line1": "123 Fake St",
             "company.address.line2": "Apt 1",
+            "company.listings.0": "one",
+            "company.listings.1": "two",
+            "company.listings.2.l2name1": "three",
+            "company.listings.2.l2name2": "four",
+            "company.doublelist.0":"one",
+            "company.doublelist.1":"two",
+            "company.doublelist.2.0":"one",
+            "company.doublelist.2.1":"two",
+            "company.doublelist.3.0":"one",
+            "company.doublelist.3.1":"two",
             "username": "testusername",
-            "fruitsILike": "apples,bananas,pineapple"
+            "fruitsILike.0": "apples",
+            "fruitsILike.1": "bananas",
+            "fruitsILike.2": "pineapple",
         })
 
     })

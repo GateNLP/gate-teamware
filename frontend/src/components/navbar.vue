@@ -30,11 +30,9 @@
             <b-nav-item to="/about">About</b-nav-item>
           </b-navbar-nav>
 
-          {{settings.docFormatPref}}
-
           <b-navbar-nav class="ml-auto">
             <b-nav-form>
-              <b-form-select :options="{0: 'Json', 1: 'CSV' }" :value="settings.docFormatPref" @input="updateDocFormatPref($event)"></b-form-select>
+              <b-form-select :options="{'json': 'JSON', 'csv': 'CSV' }" :value="docFormatPref" @input="updateDocFormatPref($event)"></b-form-select>
             </b-nav-form>
           </b-navbar-nav>
 
@@ -69,7 +67,7 @@ import {mapState, mapActions} from "vuex";
 
 export default {
   computed: {
-    ...mapState(["user", "settings"]),
+    ...mapState(["user", "docFormatPref"]),
   },
   methods: {
     ...mapActions(["logout", "updateDocFormatPref"]),

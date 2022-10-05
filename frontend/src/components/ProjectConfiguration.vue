@@ -174,7 +174,13 @@
             Live preview of the JSON annotation output after performing annotation in the <a
               href="#annotation-preview">Annotation preview</a>.
           </p>
-          <VJsoneditor v-model="annotationOutput" :options="{mode: 'preview', mainMenuBar: false}" :plus="false"
+
+          <b-table v-if="docFormatPref === 'csv'" :items="jsonToTableData(annotationOutput)">
+              <template #head()="{ column }">
+                {{ column }}
+              </template>
+          </b-table>
+          <VJsoneditor v-else v-model="annotationOutput" :options="{mode: 'preview', mainMenuBar: false}" :plus="false"
                        height="400px"></VJsoneditor>
         </b-col>
       </b-form-row>
@@ -192,7 +198,7 @@ import MarkdownEditor from "@/components/MarkdownEditor";
 import JsonEditor from "@/components/JsonEditor";
 import AnnotationRenderer from "@/components/AnnotationRenderer";
 import VJsoneditor from "v-jsoneditor";
-import {readFileAsync, toastError, toastSuccess} from "@/utils";
+import {flatten, readFileAsync, toastError, toastSuccess} from "@/utils";
 
 
 export default {
@@ -242,6 +248,7 @@ export default {
     }
   },
   computed: {
+    ...mapState(["docFormatPref"]),
     loadingVariant() {
       if (this.loading) {
         return "secondary"
@@ -253,6 +260,9 @@ export default {
   methods: {
     ...mapActions(["getProject",
       "updateProject", "importProjectConfiguration", "exportProjectConfiguration", "cloneProject"]),
+    jsonToTableData(data) {
+      return [flatten(data)]
+    },
     async saveProjectHandler() {
       this.setLoading(true)
       try {

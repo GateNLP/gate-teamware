@@ -7,6 +7,7 @@
                    :allow-annotation-edit="project.allow_annotation_change"
                    :project-config="project.configuration"
                    :allow-annotation-change-delete="true"
+                   :document-display-format="docFormatPref"
                    @fetch="refreshDocumentsHandler"
                    @fetch-annotation="refreshAnnotationHandler"
                    @upload="showDocumentUploadModal = true"
@@ -63,6 +64,7 @@ export default {
     }
   },
   computed: {
+    ...mapState(["docFormatPref"]),
     loadingVariant() {
       if (this.loading) {
         return "secondary"

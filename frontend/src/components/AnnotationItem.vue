@@ -70,12 +70,12 @@
           </p>
         </template>
         <AnnotationRenderer :config="projectConfig"
-                          :document="document.data"
-                          :allow_cancel="true"
-                          @submit="annotationChangeSubmitHandler"
-                          @cancel="editingAnnotation = false"
-      >
-      </AnnotationRenderer>
+                            :document="document.data"
+                            :allow_cancel="true"
+                            @submit="annotationChangeSubmitHandler"
+                            @cancel="editingAnnotation = false"
+        >
+        </AnnotationRenderer>
 
       </b-card>
 
@@ -96,7 +96,7 @@
                 {{ change.time | datetime }}
               </b-col>
               <b-col class="text-right">
-                <b-button  v-if="allowChangeDelete" @click="deleteAnnotationChangeHistoryHandler(change.id)"
+                <b-button v-if="allowChangeDelete" @click="deleteAnnotationChangeHistoryHandler(change.id)"
                           size="sm" title="Delete this change history" variant="danger" squared
                           data-role="annotation-change-delete">
                   <b-icon-x></b-icon-x>
@@ -110,13 +110,33 @@
                          @delete="confirmDeleteAnnotationChangeHistoryHandler"
             ></DeleteModal>
 
-            <vue-json-pretty :data="change.data"></vue-json-pretty>
+            <div v-if="documentDisplayFormat === 'csv'">
+              <b-table :items="jsonToTableData(change.data)">
+                <template #head()="{ column }">
+                  {{ column }}
+                </template>
+              </b-table>
+            </div>
+            <div v-else>
+              <vue-json-pretty :data="change.data"></vue-json-pretty>
+            </div>
+
+
           </div>
 
         </div>
-        <div v-else class="mt-2 mb-2 p-2 data-bg">
+        <div v-else class="mt-2 mb-2 p-2">
           <!-- Shows the last (latest) item-->
-          <vue-json-pretty :data="annotation.change_list[annotation.change_list.length - 1].data"></vue-json-pretty>
+          <div v-if="documentDisplayFormat === 'csv'">
+            <b-table :items="jsonToTableData(annotation.change_list[annotation.change_list.length - 1].data)">
+              <template #head()="{ column }">
+                {{ column }}
+              </template>
+            </b-table>
+          </div>
+          <div v-else class="data-bg">
+            <vue-json-pretty :data="annotation.change_list[annotation.change_list.length - 1].data"></vue-json-pretty>
+          </div>
         </div>
 
         <div v-if="annotation.change_list.length > 1" class="text-right">
@@ -147,7 +167,7 @@ import AnnotationRenderer from "@/components/AnnotationRenderer";
 import VueJsonPretty from 'vue-json-pretty';
 import 'vue-json-pretty/lib/styles.css';
 import {mapActions} from "vuex";
-import {toastError, toastSuccess} from "@/utils";
+import {flatten, toastError, toastSuccess} from "@/utils";
 import DeleteModal from "@/components/DeleteModal";
 
 /**
@@ -186,21 +206,30 @@ export default {
     },
     allowChangeDelete: {
       default: false,
-    }
+    },
+    /**
+     * Between json or csv
+     */
+    documentDisplayFormat: {
+      default: "json"
+    },
   },
   methods: {
     ...mapActions(["changeAnnotation", "deleteAnnotationChangeHistory"]),
+    jsonToTableData(data) {
+      return [flatten(data)]
+    },
     toggleAnnotationSelect() {
       this.$emit("selection-changed", this.annotation, this.document)
     },
-    async deleteAnnotationChangeHistoryHandler(id){
+    async deleteAnnotationChangeHistoryHandler(id) {
       this.showDeleteModal = true
       this.annotationChangeHistoryIdToDelete = id
 
     },
-    async confirmDeleteAnnotationChangeHistoryHandler(){
+    async confirmDeleteAnnotationChangeHistoryHandler() {
 
-      try{
+      try {
         await this.deleteAnnotationChangeHistory(this.annotationChangeHistoryIdToDelete)
         this.$emit("annotation-changed", this.annotation.id)
         toastSuccess("Delete confirmed", "The annotation change has been deleted.")
@@ -211,7 +240,7 @@ export default {
 
     },
     async annotationChangeSubmitHandler(newAnnotation, elapsedTime) {
-      try{
+      try {
         await this.changeAnnotation({annotationID: this.annotation.id, newData: newAnnotation})
         this.$emit("annotation-changed", this.annotation.id)
         toastSuccess("Annotation changed", "The annotation has been successfully changed.")
