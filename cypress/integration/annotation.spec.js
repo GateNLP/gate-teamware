@@ -1,11 +1,6 @@
+import { projectsPageStr, annotatePageStr, adminUsername, password } from '../support/params.js';
+
 describe('Annotation tests', () => {
-
-    let projectsPageStr = "Projects"
-    let annotatePageStr = "Annotate"
-
-    let adminUsername = "admin"
-    let adminEmail = "admin@test.com"
-    let password = "testpassword"
 
     beforeEach(() => {
         const fixtureName = 'create_db_users'
@@ -18,7 +13,7 @@ describe('Annotation tests', () => {
      */
     it('Test app annotation cycle', () => {
         // Login through JSON request
-        cy.login("admin", "testpassword")
+        cy.login( adminUsername, password)
 
         cy.visit("/")
 
@@ -100,7 +95,7 @@ describe('Annotation tests', () => {
      */
     it('Test annotator training and test', () => {
         // Login through JSON request
-        cy.login("admin", "testpassword")
+        cy.login(adminUsername, password)
 
         cy.visit("/")
 

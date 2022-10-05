@@ -1,3 +1,7 @@
+import { projectsPageStr, annotatePageStr, manageUsersPageStr, documentationPageStr, aboutPageStr, signInPageStr, registerPageStr,
+    annotatorAccessLevel, managerAccessLevel, adminAccessLevel,
+    annotatorUsername, managerUsername, adminUsername, annotatorEmail, password } from '../support/params.js';
+
 describe('User Registration Test', () => {
 
     beforeEach(()=>{
@@ -43,26 +47,6 @@ describe('User Registration Test', () => {
 
 describe('User options', () => {
 
-    let projectsPageStr = "Projects"
-    let annotatePageStr = "Annotate"
-    let manageUsersPageStr = "Manage Users"
-    let documentationPageStr = "Documentation"
-    let aboutPageStr = "About"
-    let signInPageStr = "Sign In"
-    let registerPageStr = "Register"
-    let annotatorAccessLevel = 1
-    let managerAccessLevel = 2
-    let adminAccessLevel = 3
-
-    let annotatorUsername = "annotator"
-    let annotatorEmail = "annotator@test.com"
-
-    let managerUsername = "manager"
-    let managerEmail = "manager@test.com"
-
-    let adminUsername = "admin"
-    let adminEmail = "admin@test.com"
-    let password = "testpassword"
 
     beforeEach(() => {
         const fixtureName = 'create_db_users'

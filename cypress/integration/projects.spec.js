@@ -1,3 +1,5 @@
+import { projectsPageStr, adminUsername, password } from '../support/params.js';
+
 describe('User Interface Permissions Test', () => {
 
     beforeEach(()=>{
@@ -27,7 +29,7 @@ describe('User Interface Permissions Test', () => {
 
     it('Test deleting project', () => {
         // Login through JSON request
-        cy.login("admin", "testpassword")
+        cy.login(adminUsername, password)
 
          cy.visit("/")
 

@@ -1,9 +1,6 @@
-describe('Annotator Management Test', () => {
+import { projectsPageStr, adminUsername, password } from '../support/params.js';
 
-    let projectsPageStr = "Projects"
-    let adminUsername = "admin"
-    let adminEmail = "admin@test.com"
-    let password = "testpassword"
+describe('Annotator Management Test', () => {
 
     beforeEach(()=>{
         const fixtureName = 'project_with_annotators'

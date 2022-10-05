@@ -1,14 +1,6 @@
+import { annotatorUsername, annotatorEmail, managerUsername, managerEmail, adminUsername, password } from '../support/params.js';
+
 describe('Annotation Change Test in Project documents view and User My annotations view', () => {
-
-    let annotatorUsername = "annotator"
-    let annotatorEmail = "annotator@test.com"
-
-    let managerUsername = "manager"
-    let managerEmail = "manager@test.com"
-
-    let adminUsername = "admin"
-    let adminEmail = "admin@test.com"
-    let password = "testpassword"
 
     beforeEach(()=>{
         const fixtureName = "create_db_users_with_project_and_annotation"
@@ -150,10 +142,6 @@ describe('Annotation Change Test in Project documents view and User My annotatio
 
 describe('Annotation Change Test in Annotate view', () => {
 
-    let adminUsername = "admin"
-    let adminEmail = "admin@test.com"
-    let password = "testpassword"
-
     beforeEach(()=>{
         const fixtureName = "create_db_users_with_project_admin_is_annotator"
         cy.migrate_integration_db(fixtureName)
@@ -221,11 +209,6 @@ describe('Annotation Change Test in Annotate view', () => {
         cy.get("input[type='radio'][value='negative']").should('not.be.checked')
         cy.get("input[type='radio'][value='positive']").should('not.be.checked')
         cy.get("input[type='radio'][value='neutral']").should('not.be.checked')
-
-
-
-
-
 
 
     })

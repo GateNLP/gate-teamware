@@ -1,3 +1,5 @@
+import { adminUsername, password, manageUsersPageStr } from '../support/params.js';
+
 describe("Test admin user management", () => {
 
     let newAnnotatorName = "ChangedAnnotatorName"
@@ -7,7 +9,7 @@ describe("Test admin user management", () => {
 
     beforeEach(() => {
         // Login through JSON request
-        cy.login("admin", "testpassword")
+        cy.login(adminUsername, password)
 
 
         // Go to the Manage users page
