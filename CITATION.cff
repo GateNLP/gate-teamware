@@ -1,0 +1,44 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: GATE Teamware
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Twin
+    family-names: Karmakharm
+    email: t.karmakharm@sheffield.ac.uk
+    affiliation: The University of Sheffield
+  - given-names: David
+    family-names: Wilby
+    email: d.wilby@sheffield.ac.uk
+    affiliation: The University of Sheffield
+    orcid: 'https://orcid.org/0000-0002-6553-8739'
+  - given-names: Ian
+    family-names: Roberts
+    email: i.roberts@sheffield.ac.uk
+    affiliation: The University of Sheffield
+    orcid: 'https://orcid.org/0000-0002-7296-5851'
+  - given-names: Kalina
+    family-names: Bontcheva
+    email: k.bontcheva@sheffield.ac.uk
+    affiliation: The University of Sheffield
+    orcid: 'https://orcid.org/0000-0001-6152-9600'
+repository-code: 'https://github.com/GateNLP/gate-teamware'
+url: 'https://gatenlp.github.io/gate-teamware/'
+abstract: >-
+  A web application for collaborative document
+  annotation. GATE teamware provides a flexible web
+  app platform for managing classification of
+  documents by human annotators.
+keywords:
+  - NLP
+  - machine learning
+  - document annotation
+license: AGPL-3.0
+commit: 04252c3de34f22f47a9f119ee31aef12c620dc19
+version: 0.1.4
+date-released: '2022-06-09'

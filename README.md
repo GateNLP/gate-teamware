@@ -44,8 +44,12 @@ Developer documentation is [provided here][dev-docs].
 # Contribution
 We welcome contributions to this open source project. Please [create a fork](https://docs.github.com/en/get-started/quickstart/fork-a-repo) of this repository and make a pull request against the `dev` branch with your changes.
 
+# Using Teamware
+Teamware is developed by the [GATE](https://gate.ac.uk) team, an academic research group at The University of Sheffield. As a result, future funding relies on evidence of the impact that the software provides. If you use Teamware, please let us know by emailing us at 
 
-
+## Citation
+For published work that has used Teamware, please cite this repository. One way is to include a citation such as:
+>
 
 
 [docs]: https://gatenlp.github.io/gate-teamware/
