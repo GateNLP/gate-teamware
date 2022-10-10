@@ -68,3 +68,16 @@ Cypress.Commands.add("login", (username, password, doFailOnStatusCode=true) => {
 Cypress.Commands.add("logout", () => {
     return cy.rpcRequest("logout")
 })
+
+
+//Migrate integration db
+Cypress.Commands.add("migrate_integration_db", (fixtureName) => {
+    if (Cypress.env('TESTENV') == 'container') {
+        cy.exec(`docker-compose exec -T backend ./migrate-integration.sh -n=${fixtureName}`)
+    } else if (Cypress.env('TESTENV') == 'ci') {
+        cy.exec(`DJANGO_SETTINGS_MODULE=teamware.settings.deployment docker-compose exec -T backend ./migrate-integration.sh -n=${fixtureName}`)
+    }
+    else{
+        cy.exec(`npm run migrate:integration -- -n=${fixtureName}`, {log:true})
+    }
+})
