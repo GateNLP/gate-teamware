@@ -48,7 +48,7 @@ def update():
     print(f"Writing master version {master_version} to {PACKAGE_JSON_FILE_PATH}")
     with open(PACKAGE_JSON_FILE_PATH, "w") as f:
         package_json['version'] = master_version
-        json.dump(package_json, f)
+        json.dump(package_json, f, indent=2)
 
     with open(CITATION_FILE_PATH, "r") as f:
         citation_file = yaml.safe_load(f)
