@@ -31,3 +31,5 @@ For published work that has used Teamware, please cite this repository. One way 
 > Karmakharm, T., Wilby, D., Roberts, I., & Bontcheva, K. (2022). GATE Teamware (Version 0.1.4) [Computer software]. https://github.com/GateNLP/gate-teamware
 
 Please use the `Cite this repository` button at the top of the [project's GitHub repository](https://github.com/GATENLP/gate-teamware) to get an up to date citation.
+
+The Teamware version can be found on the 'About' page of your Teamware instance.
