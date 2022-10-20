@@ -1,21 +1,10 @@
+import { projectsPageStr, adminUsername, password } from '../support/params.js';
+
 describe('Annotator Management Test', () => {
 
-    let projectsPageStr = "Projects"
-    let adminUsername = "admin"
-    let adminEmail = "admin@test.com"
-    let password = "testpassword"
-
     beforeEach(()=>{
-        // Run setup if needed
-        if (Cypress.env('TESTENV') == 'container') {
-            cy.exec('docker-compose exec -T backend ./migrate-integration.sh -n=project_with_annotators')
-        } else if (Cypress.env('TESTENV') == 'ci') {
-            cy.exec('DJANGO_SETTINGS_MODULE=teamware.settings.deployment docker-compose exec -T backend ./migrate-integration.sh -n=project_with_annotators')
-        }
-        else{
-            cy.exec('npm run migrate:integration -- -n=project_with_annotators', {log:true})
-        }
-
+        const fixtureName = 'project_with_annotators'
+        cy.migrate_integration_db(fixtureName)
         cy.login(adminUsername, password)
     })
 
