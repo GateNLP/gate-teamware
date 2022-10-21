@@ -153,7 +153,7 @@
             is shown in the <a href="#annotation-output-preview">Annotation output preview</a> below.</p>
           <b-card>
             <AnnotationRenderer :config="local_project.configuration"
-                                :document="local_project.document_input_preview"
+                                :document="previewDocument"
                                 @input="annotationOutputHandler"></AnnotationRenderer>
 
           </b-card>
@@ -162,19 +162,33 @@
       <b-form-row>
         <b-col>
           <h5 class="mt-4" id="document-input-preview">Document input preview</h5>
-          <p class="form-text text-muted">An example of a document in JSON. You can modify the contents below to see
+          <div v-if="docFormatPref === 'json'">
+            <p class="form-text text-muted">An example of a document in JSON. You can modify the contents below to see
             how your
             document looks in the <a href="#annotation-preview">Annotation Preview</a>.</p>
           <VJsoneditor v-model="local_project.document_input_preview" :options="{mode: 'code'}" :plus="false"
                        height="400px"></VJsoneditor>
+
+          </div>
+          <div v-else>
+            <p class="form-text text-muted">Upload a csv to use as input to the
+              <a href="#annotation-preview">Annotation Preview</a>. Only one row is displayed at a time,
+            click on a different row to preview a different document.</p>
+
+            <CSVDisplay v-model="project.document_input_preview_csv"
+                      @selected-row-value="docPreviewTableRowSelectedHandler"></CSVDisplay>
+
+          </div>
+
+
+
         </b-col>
         <b-col>
           <h5 class="mt-4" id="annotation-output-preview">Annotation output preview</h5>
           <p class="form-text text-muted">
-            Live preview of the JSON annotation output after performing annotation in the <a
+            Live preview of the {{docFormatPref}} annotation output after performing annotation in the <a
               href="#annotation-preview">Annotation preview</a>.
           </p>
-
           <b-table v-if="docFormatPref === 'csv'" :items="jsonToTableData(annotationOutput)">
               <template #head()="{ column }">
                 {{ column }}
@@ -199,11 +213,13 @@ import JsonEditor from "@/components/JsonEditor";
 import AnnotationRenderer from "@/components/AnnotationRenderer";
 import VJsoneditor from "v-jsoneditor";
 import {flatten, readFileAsync, toastError, toastSuccess} from "@/utils";
+import CSVDisplay from "@/components/CSVDisplay";
 
 
 export default {
   name: "ProjectConfiguration",
   components: {
+    CSVDisplay,
     ProjectStatusBadges,
     ProjectIcon,
     MarkdownEditor, JsonEditor, AnnotationRenderer, VJsoneditor
@@ -220,6 +236,7 @@ export default {
         annotator_max_annotation: 0.6,
         allow_document_reject: true,
         document_input_preview: {},
+        document_input_preview_csv: "",
         is_configured: false,
         is_completed: false,
         has_training_stage: false,
@@ -230,7 +247,7 @@ export default {
       },
       annotationOutput: {},
       configurationStr: "",
-
+      docPreviewCsvSelectedRowValue: null,
       loading: false,
     }
   },
@@ -256,6 +273,13 @@ export default {
         return "primary"
       }
     },
+    previewDocument(){
+      if(this.docFormatPref === 'csv'){
+        return this.docPreviewCsvSelectedRowValue
+      }else{
+        return this.local_project.document_input_preview
+      }
+    }
   },
   methods: {
     ...mapActions(["getProject",
@@ -333,6 +357,9 @@ export default {
     },
     annotationOutputHandler(value) {
       this.annotationOutput = value
+    },
+    docPreviewTableRowSelectedHandler(value){
+      this.docPreviewCsvSelectedRowValue = value
     },
     async setLoading(isLoading) {
       this.loading = isLoading

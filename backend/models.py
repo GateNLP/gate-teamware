@@ -140,6 +140,8 @@ class Project(models.Model):
     annotation_timeout = models.IntegerField(default=60)
     # Stores a document that's used for previewing in the AnnotationRenderer
     document_input_preview = models.JSONField(default=default_document_input_preview)
+    # Stores a csv document that's used for previewing in the AnnotationRenderer
+    document_input_preview_csv = models.TextField(default="")
     document_id_field = models.TextField(default="name")
     annotators = models.ManyToManyField(get_user_model(), through='AnnotatorProject', related_name="annotates")
     has_training_stage = models.BooleanField(default=False)
