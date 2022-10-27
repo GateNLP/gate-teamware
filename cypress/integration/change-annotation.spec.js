@@ -1,26 +1,10 @@
+import { annotatorUsername, annotatorEmail, managerUsername, managerEmail, adminUsername, password } from '../support/params.js';
+
 describe('Annotation Change Test in Project documents view and User My annotations view', () => {
-
-    let annotatorUsername = "annotator"
-    let annotatorEmail = "annotator@test.com"
-
-    let managerUsername = "manager"
-    let managerEmail = "manager@test.com"
-
-    let adminUsername = "admin"
-    let adminEmail = "admin@test.com"
-    let password = "testpassword"
 
     beforeEach(()=>{
         const fixtureName = "create_db_users_with_project_and_annotation"
-        // Run setup if needed
-        if (Cypress.env('TESTENV') == 'container') {
-            cy.exec(`docker-compose exec -T backend ./migrate-integration.sh -n=${fixtureName}`)
-        } else if (Cypress.env('TESTENV') == 'ci') {
-            cy.exec(`DJANGO_SETTINGS_MODULE=teamware.settings.deployment docker-compose exec -T backend ./migrate-integration.sh -n=${fixtureName}`)
-        }
-        else{
-            cy.exec(`npm run migrate:integration -- -n=${fixtureName}`, {log:true})
-        }
+        cy.migrate_integration_db(fixtureName)
     })
 
     it("Change annotation in My annotations", () => {
@@ -158,21 +142,9 @@ describe('Annotation Change Test in Project documents view and User My annotatio
 
 describe('Annotation Change Test in Annotate view', () => {
 
-    let adminUsername = "admin"
-    let adminEmail = "admin@test.com"
-    let password = "testpassword"
-
     beforeEach(()=>{
         const fixtureName = "create_db_users_with_project_admin_is_annotator"
-        // Run setup if needed
-        if (Cypress.env('TESTENV') == 'container') {
-            cy.exec(`docker-compose exec -T backend ./migrate-integration.sh -n=${fixtureName}`)
-        } else if (Cypress.env('TESTENV') == 'ci') {
-            cy.exec(`DJANGO_SETTINGS_MODULE=teamware.settings.deployment docker-compose exec -T backend ./migrate-integration.sh -n=${fixtureName}`)
-        }
-        else{
-            cy.exec(`npm run migrate:integration -- -n=${fixtureName}`, {log:true})
-        }
+        cy.migrate_integration_db(fixtureName)
     })
 
     it("Change annotation in Annotate view", () => {
@@ -237,11 +209,6 @@ describe('Annotation Change Test in Annotate view', () => {
         cy.get("input[type='radio'][value='negative']").should('not.be.checked')
         cy.get("input[type='radio'][value='positive']").should('not.be.checked')
         cy.get("input[type='radio'][value='neutral']").should('not.be.checked')
-
-
-
-
-
 
 
     })
