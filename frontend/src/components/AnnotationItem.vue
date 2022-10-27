@@ -110,7 +110,7 @@
                          @delete="confirmDeleteAnnotationChangeHistoryHandler"
             ></DeleteModal>
 
-            <div v-if="documentDisplayFormat === 'csv'">
+            <div v-if="documentDisplayFormat === 'CSV'">
               <b-table :items="jsonToTableData(change.data)">
                 <template #head()="{ column }">
                   {{ column }}
@@ -127,7 +127,7 @@
         </div>
         <div v-else class="mt-2 mb-2 p-2">
           <!-- Shows the last (latest) item-->
-          <div v-if="documentDisplayFormat === 'csv'">
+          <div v-if="documentDisplayFormat === 'CSV'">
             <b-table :items="jsonToTableData(annotation.change_list[annotation.change_list.length - 1].data)">
               <template #head()="{ column }">
                 {{ column }}

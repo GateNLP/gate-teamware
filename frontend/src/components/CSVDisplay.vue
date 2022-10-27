@@ -53,6 +53,9 @@ export default {
     async loadFileHandler(file){
       if(file != null){
         const csv_str = await readFileAsync(file)
+        /**
+         * CSV document uploaded input event
+         */
         this.$emit("input", csv_str)
         this.convertCSVStringToItems(csv_str)
       }

@@ -29,7 +29,7 @@
 </template>
 
 <script>
-import {mapActions, mapState} from "vuex";
+import {mapActions, mapGetters, mapState} from "vuex";
 import DocumentExporter from "@/components/DocumentExporter";
 import DocumentUploader from "@/components/DocumentUploader";
 import DocumentsList from "@/components/DocumentsList";
@@ -64,7 +64,7 @@ export default {
     }
   },
   computed: {
-    ...mapState(["docFormatPref"]),
+    ...mapGetters(["docFormatPref"]),
     loadingVariant() {
       if (this.loading) {
         return "secondary"

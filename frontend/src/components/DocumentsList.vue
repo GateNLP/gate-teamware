@@ -135,7 +135,7 @@
           </div>
 
 
-          <div v-if="documentDisplayFormat === 'csv'" class="mt-2 mb-2 p-2">
+          <div v-if="documentDisplayFormat === 'CSV'" class="mt-2 mb-2 p-2">
             <b-table :items="jsonToTableData(doc.data)">
               <template #head()="{ column }">
                 {{ column }}

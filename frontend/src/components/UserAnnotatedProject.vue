@@ -46,7 +46,7 @@ export default {
     }
   },
   computed: {
-    ...mapState(["docFormatPref"])
+    ...mapGetters(["docFormatPref"])
   },
   methods: {
     ...mapActions(["getUserAnnotationsInProject", "getAnnotation"]),

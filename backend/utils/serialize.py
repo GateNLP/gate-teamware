@@ -12,16 +12,27 @@ log = logging.getLogger(__name__)
 
 
 def dsl_val(attr_name, obj, data):
+    """
+    Insert value of `data` with key `attr_name` into the object `obj` with attribute name `attr_name`
+    """
     if attr_name in data:
         setattr(obj, attr_name, data[attr_name])
 
 
 def dsl_json(attr_name, obj, data):
+    """
+    Convert value of `data` with key `attr_name` into a JSON string and insert into the
+    object `obj` with attribute name `attr_name`
+    """
     if attr_name in data:
         setattr(obj, attr_name, json.dumps(data[attr_name]))
 
 
 def dsl_date(attr_name, obj, data):
+    """
+    Convert value of `data` with key `attr_name` into a datetime object and insert into the
+    object `obj` with attribute name `attr_name`
+    """
     if attr_name in data:
         if data[attr_name] is None:
             setattr(obj, attr_name, None)

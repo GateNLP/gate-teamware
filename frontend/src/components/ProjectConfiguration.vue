@@ -162,7 +162,7 @@
       <b-form-row>
         <b-col>
           <h5 class="mt-4" id="document-input-preview">Document input preview</h5>
-          <div v-if="docFormatPref === 'json'">
+          <div v-if="docFormatPref === 'JSON'">
             <p class="form-text text-muted">An example of a document in JSON. You can modify the contents below to see
             how your
             document looks in the <a href="#annotation-preview">Annotation Preview</a>.</p>
@@ -189,13 +189,14 @@
             Live preview of the {{docFormatPref}} annotation output after performing annotation in the <a
               href="#annotation-preview">Annotation preview</a>.
           </p>
-          <b-table v-if="docFormatPref === 'csv'" :items="jsonToTableData(annotationOutput)">
+
+          <VJsoneditor v-if="docFormatPref === 'JSON'" v-model="annotationOutput" :options="{mode: 'preview', mainMenuBar: false}" :plus="false"
+                       height="400px"></VJsoneditor>
+          <b-table v-else :items="jsonToTableData(annotationOutput)">
               <template #head()="{ column }">
                 {{ column }}
               </template>
           </b-table>
-          <VJsoneditor v-else v-model="annotationOutput" :options="{mode: 'preview', mainMenuBar: false}" :plus="false"
-                       height="400px"></VJsoneditor>
         </b-col>
       </b-form-row>
 
@@ -205,7 +206,7 @@
 </template>
 
 <script>
-import {mapActions, mapState} from "vuex";
+import {mapActions, mapGetters, mapState} from "vuex";
 import ProjectStatusBadges from "@/components/ProjectStatusBadges";
 import ProjectIcon from "@/components/ProjectIcon";
 import MarkdownEditor from "@/components/MarkdownEditor";
@@ -265,7 +266,7 @@ export default {
     }
   },
   computed: {
-    ...mapState(["docFormatPref"]),
+    ...mapGetters(["docFormatPref"]),
     loadingVariant() {
       if (this.loading) {
         return "secondary"
@@ -274,10 +275,10 @@ export default {
       }
     },
     previewDocument(){
-      if(this.docFormatPref === 'csv'){
-        return this.docPreviewCsvSelectedRowValue
-      }else{
+      if(this.docFormatPref === 'JSON'){
         return this.local_project.document_input_preview
+      }else{
+        return this.docPreviewCsvSelectedRowValue
       }
     }
   },
