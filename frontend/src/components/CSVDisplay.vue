@@ -1,11 +1,11 @@
 <template>
-  <div>
+  <div class="csv-display">
     <b-input-group>
       <b-form-file
                    placeholder="Choose a csv file or drop it here..."
                    class="mr-2"
                    accept=".csv"
-                   data-cy="file-input"
+                   data-cy="csv-display-file-input"
                    @input="loadFileHandler"
       ></b-form-file>
     </b-input-group>

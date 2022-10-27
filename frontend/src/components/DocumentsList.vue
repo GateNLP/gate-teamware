@@ -135,14 +135,14 @@
           </div>
 
 
-          <div v-if="documentDisplayFormat === 'CSV'" class="mt-2 mb-2 p-2">
+          <div v-if="documentDisplayFormat === 'CSV'" class="mt-2 mb-2 p-2" data-role="document-display-json">
             <b-table :items="jsonToTableData(doc.data)">
               <template #head()="{ column }">
                 {{ column }}
               </template>
             </b-table>
           </div>
-          <div v-else class="mt-2 mb-2 p-2 data-bg">
+          <div v-else class="mt-2 mb-2 p-2 data-bg" data-role="document-display-json">
             <vue-json-pretty :data="doc.data"></vue-json-pretty>
           </div>
 

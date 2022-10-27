@@ -154,7 +154,9 @@
           <b-card>
             <AnnotationRenderer :config="local_project.configuration"
                                 :document="previewDocument"
-                                @input="annotationOutputHandler"></AnnotationRenderer>
+                                @input="annotationOutputHandler"
+                                data-cy="annotation-renderer"
+            ></AnnotationRenderer>
 
           </b-card>
         </b-col>
@@ -191,8 +193,8 @@
           </p>
 
           <VJsoneditor v-if="docFormatPref === 'JSON'" v-model="annotationOutput" :options="{mode: 'preview', mainMenuBar: false}" :plus="false"
-                       height="400px"></VJsoneditor>
-          <b-table v-else :items="jsonToTableData(annotationOutput)">
+                       height="400px" data-role="annotation-output-json"></VJsoneditor>
+          <b-table v-else :items="jsonToTableData(annotationOutput)" data-role="annotation-output-csv">
               <template #head()="{ column }">
                 {{ column }}
               </template>
