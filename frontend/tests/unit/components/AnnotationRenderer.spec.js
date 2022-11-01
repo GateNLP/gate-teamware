@@ -413,5 +413,41 @@ describe("AnnotationRenderer", () => {
 
     })
 
+    it('Test pre-annotation', async () => {
+
+        const annotationComps = [
+            {
+                name: "text",
+                type: "checkbox",
+                optional: true,
+                minSelected: 2,
+                options: {
+                    "val1": "Val 1",
+                    "val2": "Val 2",
+                    "val3": "Val 3",
+                    "val4": "Val 4",
+                }
+
+            }]
+
+        const document = {
+            "text": "<p>Some html text <strong>in bold</strong>.</p><p>Paragraph 2.</p>",
+            "preanno": {
+                "sentiment": "neutral"
+            }
+        }
+
+        // Test disabling reject button
+        const ar = render(AnnotationRenderer, {
+            props: {
+                config: annotationComps,
+                document: document,
+                doc_preannotation_field: "preanno",
+            }
+        })
+
+
+    })
+
 
 })

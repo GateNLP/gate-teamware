@@ -137,6 +137,7 @@ class Project(models.Model):
     can_annotate_after_passing_training_and_test = models.BooleanField(default=True)
     min_test_pass_threshold = models.FloatField(default=1.0, null=True)
     document_gold_standard_field = models.TextField(default="gold")
+    document_pre_annotation_field = models.TextField(default="")
 
     @classmethod
     def get_project_config_fields(cls, exclude_fields: set = set()):
@@ -572,6 +573,7 @@ class Project(models.Model):
             "annotator_completed_test_tasks": self.get_annotator_completed_documents_query(user=annotation.user,
                                                                                            doc_type=DocumentType.TEST).count(),
             "document_gold_standard_field": self.document_gold_standard_field,
+            "document_pre_annotation_field": self.document_pre_annotation_field,
         }
 
         if include_task_history_in_project and document.doc_type is DocumentType.ANNOTATION:

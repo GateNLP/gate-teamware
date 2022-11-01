@@ -101,14 +101,15 @@
         </b-form-checkbox>
       </b-form-group>
       <b-form-group label="Auto elevate to annotator"
-        description="Automatically allows annotation on real dataset after the training and testing stage. A disabled stage counts as having been completed.">
+                    description="Automatically allows annotation on real dataset after the training and testing stage. A disabled stage counts as having been completed.">
         <b-form-checkbox
             id="project-can-annotate-after-passing"
             v-model="local_project.can_annotate_after_passing_training_and_test"
             name="can-annotate-after-passing-checkbox"
             switch
         >
-          <span v-if="local_project.can_annotate_after_passing_training_and_test">Can</span><span v-else>Cannot</span> annotate after
+          <span v-if="local_project.can_annotate_after_passing_training_and_test">Can</span><span v-else>Cannot</span>
+          annotate after
           passing
         </b-form-checkbox>
       </b-form-group>
@@ -122,7 +123,7 @@
         <b-form-input v-model="local_project.document_gold_standard_field"></b-form-input>
       </b-form-group>
       <b-form-group label="Allow annotation change after submission"
-        description="Allow annotators to change their annotations after submitting.">
+                    description="Allow annotators to change their annotations after submitting.">
         <b-form-checkbox
             id="project-allow-annotation-change-after-submission"
             v-model="local_project.allow_annotation_change"
@@ -130,6 +131,19 @@
             switch
         >
         </b-form-checkbox>
+      </b-form-group>
+      <b-form-group label="Pre-annotation"
+                    description="Pre-annotation">
+        <b-input-group>
+          <b-input-group-prepend is-text>
+            Field name
+          </b-input-group-prepend>
+          <b-input v-model="local_project.document_pre_annotation_field" name="pre-annotation-field"></b-input>
+
+
+        </b-input-group>
+
+
       </b-form-group>
       <b-form-row>
         <b-col>
@@ -154,6 +168,7 @@
           <b-card>
             <AnnotationRenderer :config="local_project.configuration"
                                 :document="local_project.document_input_preview"
+                                :doc_preannotation_field="local_project.document_pre_annotation_field"
                                 @input="annotationOutputHandler"></AnnotationRenderer>
 
           </b-card>
@@ -221,6 +236,7 @@ export default {
         can_annotate_after_passing_training_and_test: false,
         min_test_pass_threshold: 0.8,
         document_id_field: "",
+        document_pre_annotation_field: ""
       },
       annotationOutput: {},
       configurationStr: "",

@@ -44,6 +44,8 @@ import SelectorInput from "@/components/annotation/SelectorInput";
 import HtmlDisplay from "@/components/annotation/HtmlDisplay";
 import {DocumentType} from '@/enum/DocumentTypes';
 import MarkdownRenderer from "@/components/MarkdownRenderer";
+import {getValueFromKeyPath} from "@/utils";
+import _ from "lodash"
 
 /**
  * Renders annotation display and input capture from the config property
@@ -93,6 +95,13 @@ export default {
       default: 'gold'
     },
     /**
+     * This field will be used to provide pre-annotation
+     * i.e. pre-filling the form before it's presented to the user
+     */
+    doc_preannotation_field: {
+      default: ""
+    },
+    /**
      * Adds Reject button if true
      */
     allow_document_reject: {
@@ -108,6 +117,15 @@ export default {
       default: true,
       type: Boolean
     }
+  },
+  computed: {
+    preAnnotationValues(){
+      if(this.document != null && this.doc_preannotation_field != null){
+        return  getValueFromKeyPath(this.document, this.doc_preannotation_field)
+      }
+      return null
+    }
+
   },
   methods: {
     setAnnotationData(data){
@@ -215,6 +233,7 @@ export default {
     clearForm() {
       this.annotationOutput = {}
       this.validation = {}
+      this.fillWithPreAnnotation()
 
     },
     clearFormHandler(e) {
@@ -265,6 +284,11 @@ export default {
       } else {
         return ""
       }
+    },
+    fillWithPreAnnotation(){
+      if(this.preAnnotationValues != null){
+          this.setAnnotationData(_.cloneDeep(this.preAnnotationValues))
+        }
     }
   },
   watch: {
@@ -272,6 +296,16 @@ export default {
       immediate: true,
       handler(newConfig) {
         this.generateValidationTracker(newConfig)
+      }
+    },
+    document: {
+      handler(){
+        this.fillWithPreAnnotation()
+      }
+    },
+    doc_preannotation_field: {
+      handler(){
+        this.fillWithPreAnnotation()
       }
     },
     annotationOutput: {

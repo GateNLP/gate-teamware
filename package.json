@@ -7,6 +7,8 @@
     "postinstall": "(cd frontend && npm install --unsafe-perm) #Install npm packages in frontend also",
     "migrate": "./manage.py migrate",
     "migrate:integration": "./migrate-integration.sh",
+    "db:create": "createdb -p 5432 -O user teamware_db",
+    "db:drop": "dropdb teamware_db",
     "dj-collectstatic": "python manage.py collectstatic --noinput --settings='teamware.settings.integration'",
     "preserve:docs": "run-s build:apidocs",
     "serve:docs": "vuepress dev docs",

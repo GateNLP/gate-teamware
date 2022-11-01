@@ -100,6 +100,7 @@
                               :document="currentAnnotationTask.document_data"
                               :document_type="currentAnnotationTask.document_type"
                               :doc_gold_field="currentAnnotationTask.document_gold_standard_field"
+                              :doc_preannotation_field="currentAnnotationTask.document_pre_annotation_field"
                               :allow_document_reject="isLatestTask() && currentAnnotationTask.allow_document_reject"
                               :clear_after_submit="clearFormAfterSubmit"
                               @submit="submitHandler"
@@ -250,8 +251,11 @@ export default {
     },
     async getCurrentTask() {
       try {
-        if ("task_history" in this.annotationTask) {
+
+        if (this.annotationTask != null && "task_history" in this.annotationTask) {
           const annotationId = this.annotationTask["task_history"][this.currentTaskIndex]
+
+
           if (annotationId === this.annotationTask.id) {
             this.currentAnnotationTask = this.annotationTask
             this.clearFormAfterSubmit = true
@@ -264,6 +268,7 @@ export default {
           this.clearFormAfterSubmit = true
         }
 
+
         //Fills the annotation renderer with data
         if (this.$refs.annotationRenderer) {
           this.$refs.annotationRenderer.clearForm()
@@ -273,6 +278,7 @@ export default {
 
       } catch (e) {
         toastError("Could not get annotation task", e, this)
+        console.log(e)
       }
     },
     async submitHandler(value, time) {
