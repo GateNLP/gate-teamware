@@ -299,11 +299,13 @@ export default {
       }
     },
     document: {
+      immediate: true,
       handler(){
         this.fillWithPreAnnotation()
       }
     },
     doc_preannotation_field: {
+      immediate: true,
       handler(){
         this.fillWithPreAnnotation()
       }
@@ -321,6 +323,7 @@ export default {
     }
   },
   mounted(){
+
     for (const prop in this.config){
       if(this.config[prop].type != 'html') {
         this.answerBgColor[this.config[prop].name] = "Default";

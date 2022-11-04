@@ -1,5 +1,5 @@
 const fs = require('fs')
-import {render, fireEvent} from "@testing-library/vue";
+import {render, fireEvent, waitFor} from "@testing-library/vue";
 import '@testing-library/jest-dom';
 
 import '../globalVue'
@@ -415,29 +415,22 @@ describe("AnnotationRenderer", () => {
 
     it('Test pre-annotation', async () => {
 
-        const annotationComps = [
-            {
-                name: "text",
-                type: "checkbox",
-                optional: true,
-                minSelected: 2,
-                options: {
-                    "val1": "Val 1",
-                    "val2": "Val 2",
-                    "val3": "Val 3",
-                    "val4": "Val 4",
-                }
-
-            }]
+        const annotationComps = JSON.parse(fs.readFileSync("../examples/project_config.json", "utf-8"))
 
         const document = {
             "text": "<p>Some html text <strong>in bold</strong>.</p><p>Paragraph 2.</p>",
             "preanno": {
-                "sentiment": "neutral"
+                "radio": "val1",
+                "checkbox": [
+                    "val1",
+                    "val3"
+                ],
+                "selector": "val2",
+                "textarea": "Test textarea",
+                "text": "Test text"
             }
         }
 
-        // Test disabling reject button
         const ar = render(AnnotationRenderer, {
             props: {
                 config: annotationComps,
@@ -445,6 +438,28 @@ describe("AnnotationRenderer", () => {
                 doc_preannotation_field: "preanno",
             }
         })
+
+        function getInputElemFromComponent(component, name, value) {
+            return component.container.querySelector(`input[name='${name}'][value='${value}']`)
+        }
+
+        // Test radio
+        expect(getInputElemFromComponent(ar, "radio", "val1")).toBeChecked()
+        expect(getInputElemFromComponent(ar, "radio", "val2")).not.toBeChecked()
+        expect(getInputElemFromComponent(ar, "radio", "val3")).not.toBeChecked()
+        expect(getInputElemFromComponent(ar, "radio", "val4")).not.toBeChecked()
+
+        // Test cheeckbox
+        expect(getInputElemFromComponent(ar, "checkbox", "val1")).toBeChecked()
+        expect(getInputElemFromComponent(ar, "checkbox", "val2")).not.toBeChecked()
+        expect(getInputElemFromComponent(ar, "checkbox", "val3")).toBeChecked()
+        expect(getInputElemFromComponent(ar, "checkbox", "val4")).not.toBeChecked()
+
+        //Test selector
+        expect(ar.container.querySelector(`select[name='selector']`)).toHaveValue("val2")
+
+        //Test text box
+        expect(ar.container.querySelector(`input[name='textarea']`)).toHaveValue("Test text")
 
 
     })
