@@ -133,7 +133,7 @@
         </b-form-checkbox>
       </b-form-group>
       <b-form-group label="Pre-annotation"
-                    description="Pre-annotation">
+                    description="Pre-fill the form with annotation provided in the specified field.">
         <b-input-group>
           <b-input-group-prepend is-text>
             Field name
