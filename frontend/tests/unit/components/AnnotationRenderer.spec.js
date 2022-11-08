@@ -459,7 +459,7 @@ describe("AnnotationRenderer", () => {
         expect(ar.container.querySelector(`select[name='selector']`)).toHaveValue("val2")
 
         //Test text box
-        expect(ar.container.querySelector(`input[name='textarea']`)).toHaveValue("Test text")
+        expect(ar.container.querySelector(`input[name='text']`)).toHaveValue("Test text")
 
 
     })

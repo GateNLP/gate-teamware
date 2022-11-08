@@ -800,6 +800,7 @@ class TestProjectModel(ModelTestCase):
             "can_annotate_after_passing_training_and_test",
             "min_test_pass_threshold",
             "document_gold_standard_field",
+            "document_pre_annotation_field",
         }
 
         clone_prefix = "Test project prefix "
@@ -983,9 +984,9 @@ class TestAnnotationModel(ModelTestCase):
                          "Should be changed by annotator2")
 
     def test_get_annotations_for_user_in_project(self):
-        num_projects = 10
-        num_annotators = 12
-        num_annotations_for_annotator = 15
+        num_projects = 3
+        num_annotators = 4
+        num_annotations_for_annotator = 4
 
         projects = [Project.objects.create() for i in range(num_projects)]
         annotators = [get_user_model().objects.create(username=f"Testannotator{i}") for i in range(num_annotators)]
@@ -1005,7 +1006,7 @@ class TestAnnotationModel(ModelTestCase):
         # Check for all annotators and projects
         for project in projects:
             for annotator in annotators:
-                # Shows 15 pending and 15 completed annotations
+                # Shows 4 pending and 4 completed annotations
                 self.assertEqual(num_annotations_for_annotator * 2,
                                  len(Annotation.get_annotations_for_user_in_project(annotator.pk, project.pk)))
                 self.assertEqual(num_annotations_for_annotator * 2,
