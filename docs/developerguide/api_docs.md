@@ -236,6 +236,21 @@ Checks that the current user has logged in.
 
 
 
+### set_user_document_format_preference(doc_preference) <Badge text="login" type="tip" title="Requires user to be logged in"/>
+
+
+
+
+#### Parameters
+
+* doc_preference
+
+
+
+
+
+
+
 ### get_user_details() <Badge text="login" type="tip" title="Requires user to be logged in"/>
 
 
@@ -569,7 +584,7 @@ Gets the list of documents and its annotations. Query result can be limited by u
 
 
 
-### add_document_annotation(doc_id,annotation) <Badge text="manager" type="warning" title="Requires manager permission"/>
+### add_document_annotation(doc_id,annotation_data) <Badge text="manager" type="warning" title="Requires manager permission"/>
 
 
 
@@ -578,7 +593,7 @@ Gets the list of documents and its annotations. Query result can be limited by u
 
 * doc_id
 
-* annotation
+* annotation_data
 
 
 
@@ -752,13 +767,48 @@ Serialize project annotations as GATENLP format JSON using the python-gatenlp in
 
 
 
+### delete_annotation_change_history(annotation_change_history_id) <Badge text="manager" type="warning" title="Requires manager permission"/>
+
+
+
+
+#### Parameters
+
+* annotation_change_history_id
+
+
+
+
+
+
+
 ### get_annotation_task() <Badge text="login" type="tip" title="Requires user to be logged in"/>
 
 
 ::: tip Description
-Gets the annotator&#x27;s current task
+Gets the annotator&#x27;s current task, returns a dictionary about the annotation task that contains all the information
+    needed to render the Annotate view.
 :::
 
+
+
+
+
+
+
+
+### get_annotation_task_with_id(annotation_id) <Badge text="login" type="tip" title="Requires user to be logged in"/>
+
+
+::: tip Description
+Get annotation task dictionary for a specific annotation_id, must belong to the annotator (or is a manager or above)
+:::
+
+
+
+#### Parameters
+
+* annotation_id
 
 
 
@@ -770,7 +820,7 @@ Gets the annotator&#x27;s current task
 
 
 ::: tip Description
-Complete the annotator&#x27;s current task, with option to get the next task
+Complete the annotator&#x27;s current task
 :::
 
 
@@ -792,6 +842,10 @@ Complete the annotator&#x27;s current task, with option to get the next task
 ### reject_annotation_task(annotation_id) <Badge text="login" type="tip" title="Requires user to be logged in"/>
 
 
+::: tip Description
+Reject the annotator&#x27;s current task
+:::
+
 
 
 #### Parameters
@@ -804,8 +858,33 @@ Complete the annotator&#x27;s current task, with option to get the next task
 
 
 
-### get_document_content(document_id) <Badge text="login" type="tip" title="Requires user to be logged in"/>
+### change_annotation(annotation_id,new_data) <Badge text="login" type="tip" title="Requires user to be logged in"/>
 
+
+::: tip Description
+Adds annotation data to history
+:::
+
+
+
+#### Parameters
+
+* annotation_id
+
+* new_data
+
+
+
+
+
+
+
+### get_document(document_id) <Badge text="login" type="tip" title="Requires user to be logged in"/>
+
+
+::: tip Description
+Obsolete: to be deleted
+:::
 
 
 
@@ -819,8 +898,12 @@ Complete the annotator&#x27;s current task, with option to get the next task
 
 
 
-### get_annotation_content(annotation_id) <Badge text="login" type="tip" title="Requires user to be logged in"/>
+### get_annotation(annotation_id) <Badge text="login" type="tip" title="Requires user to be logged in"/>
 
+
+::: tip Description
+Obsolete: to be deleted
+:::
 
 
 

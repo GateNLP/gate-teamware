@@ -44,8 +44,8 @@ import SelectorInput from "@/components/annotation/SelectorInput";
 import HtmlDisplay from "@/components/annotation/HtmlDisplay";
 import {DocumentType} from '@/enum/DocumentTypes';
 import MarkdownRenderer from "@/components/MarkdownRenderer";
-import {getValueFromKeyPath} from "@/utils";
 import _ from "lodash"
+import {getValueFromKeyPath} from "@/utils/dict";
 
 /**
  * Renders annotation display and input capture from the config property

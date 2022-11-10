@@ -1,5 +1,5 @@
 import {flatten} from "@/utils";
-import {getValueFromKeyPath} from "@/utils";
+import {getValueFromKeyPath} from "@/utils/dict";
 
 describe("Test flatten function", () => {
     it("Test flatten function", () => {
