@@ -1,5 +1,65 @@
 import { projectsPageStr, adminUsername, password } from '../support/params.js';
 
+describe('Annotator Leaving Test', () => {
+    
+    beforeEach(()=>{
+        const fixtureName = 'create_db_users_with_project_admin_is_annotator'
+        cy.migrate_integration_db(fixtureName)
+        cy.login(adminUsername, password)
+    })
+    
+    it('Tests annotator leaving project', () => {
+        cy.visit("/annotate")
+        cy.contains('Leave project').click()
+        cy.contains('Unlock').click()
+        cy.get(".modal-dialog button").contains('Leave project').click()
+        cy.visit("/annotate")
+        cy.get("h1").should("contain", "Nothing to annotate")
+    })
+
+    it('Tests annotator being removed from project', () => {
+        cy.visit("/projects")
+
+        cy.contains('Test project').click()
+
+        // Go to annotator management tab
+        cy.contains('Annotators').click()
+
+        // Verify that annotator table is present
+        cy.get('table').contains('td', 'annotator').should('be.visible');
+
+        // Mark annotator as completed
+        cy.contains('td', 'admin')
+            .siblings().contains('Complete')
+            .click()
+
+        cy.contains('td', 'admin')
+            .siblings().should('contain','Completed')
+
+        // Create a new project
+        cy.visit("/project/1")
+        cy.contains('Clone project').click()
+        cy.wait(1) // wait for DOM to render after cloning
+        cy.contains('Documents & Annotations').click()
+        cy.contains("Upload").click()
+        cy.get(".modal-dialog").get('[data-cy="file-input"]').attachFile('documents_20_items.json')
+        cy.get(".modal-dialog button").contains("Upload").click()
+        cy.get(".modal-dialog button").contains("Close").click()
+
+        // Go to annotator management tab
+        cy.contains('Annotators').click()
+
+        cy.get(".btn").contains("+ Add annotators").click()
+        cy.get(".list-group-item").contains("admin").click()
+        cy.get(".btn").contains("OK").click()
+
+        cy.contains('td', 'admin')
+            .siblings().should('contain','Annotating')
+
+    })
+
+})
+
 describe('Annotator Management Test', () => {
 
     beforeEach(()=>{
