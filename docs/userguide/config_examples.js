@@ -163,6 +163,53 @@ export default {
             subfieldContent: "Content of a subfield."
         }
     },
+    configPreAnnotation: [
+        {
+            "name": "htmldisplay",
+            "type": "html",
+            "text": "{{{text}}}"
+        },
+        {
+            "name": "radio",
+            "type": "radio",
+            "title": "Test radio input",
+            "options": {
+                "val1": "Value 1",
+                "val2": "Value 2",
+                "val3": "Value 4",
+                "val4": "Value 5"
+            },
+            "description": "Test radio description"
+        },
+        {
+            "name": "checkbox",
+            "type": "checkbox",
+            "title": "Test checkbox input",
+            "options": {
+                "val1": "Value 1",
+                "val2": "Value 2",
+                "val3": "Value 4",
+                "val4": "Value 5"
+            },
+            "description": "Test checkbox description"
+        },
+        {
+            "name": "text",
+            "type": "text",
+            "title": "Test text input",
+            "description": "Test text description"
+        }
+
+    ],
+    docPreAnnotation: {
+        "id": 12345,
+        "text": "Example document text",
+        "preannotation": {
+            "radio": "val1",
+            "checkbox": ["val1", "val3"],
+            "text": "Pre-annotation text value"
+        }
+    }
 
 
 }

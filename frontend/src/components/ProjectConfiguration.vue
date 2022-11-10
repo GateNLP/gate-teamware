@@ -181,38 +181,38 @@
           <h5 class="mt-4" id="document-input-preview">Document input preview</h5>
           <div v-if="docFormatPref === 'JSON'">
             <p class="form-text text-muted">An example of a document in JSON. You can modify the contents below to see
-            how your
-            document looks in the <a href="#annotation-preview">Annotation Preview</a>.</p>
-          <VJsoneditor v-model="local_project.document_input_preview" :options="{mode: 'code'}" :plus="false"
-                       height="400px"></VJsoneditor>
+              how your
+              document looks in the <a href="#annotation-preview">Annotation Preview</a>.</p>
+            <VJsoneditor v-model="local_project.document_input_preview" :options="{mode: 'code'}" :plus="false"
+                         height="400px"></VJsoneditor>
 
           </div>
           <div v-else>
             <p class="form-text text-muted">Upload a csv to use as input to the
               <a href="#annotation-preview">Annotation Preview</a>. Only one row is displayed at a time,
-            click on a different row to preview a different document.</p>
+              click on a different row to preview a different document.</p>
 
             <CSVDisplay v-model="project.document_input_preview_csv"
-                      @selected-row-value="docPreviewTableRowSelectedHandler"></CSVDisplay>
+                        @selected-row-value="docPreviewTableRowSelectedHandler"></CSVDisplay>
 
           </div>
-
 
 
         </b-col>
         <b-col>
           <h5 class="mt-4" id="annotation-output-preview">Annotation output preview</h5>
           <p class="form-text text-muted">
-            Live preview of the {{docFormatPref}} annotation output after performing annotation in the <a
+            Live preview of the {{ docFormatPref }} annotation output after performing annotation in the <a
               href="#annotation-preview">Annotation preview</a>.
           </p>
 
-          <VJsoneditor v-if="docFormatPref === 'JSON'" v-model="annotationOutput" :options="{mode: 'preview', mainMenuBar: false}" :plus="false"
+          <VJsoneditor v-if="docFormatPref === 'JSON'" v-model="annotationOutput"
+                       :options="{mode: 'preview', mainMenuBar: false}" :plus="false"
                        height="400px" data-role="annotation-output-json"></VJsoneditor>
           <b-table v-else :items="jsonToTableData(annotationOutput)" data-role="annotation-output-csv">
-              <template #head()="{ column }">
-                {{ column }}
-              </template>
+            <template #head()="{ column }">
+              {{ column }}
+            </template>
           </b-table>
         </b-col>
       </b-form-row>
@@ -292,10 +292,10 @@ export default {
         return "primary"
       }
     },
-    previewDocument(){
-      if(this.docFormatPref === 'JSON'){
+    previewDocument() {
+      if (this.docFormatPref === 'JSON') {
         return this.local_project.document_input_preview
-      }else{
+      } else {
         return this.docPreviewCsvSelectedRowValue
       }
     }
@@ -377,7 +377,7 @@ export default {
     annotationOutputHandler(value) {
       this.annotationOutput = value
     },
-    docPreviewTableRowSelectedHandler(value){
+    docPreviewTableRowSelectedHandler(value) {
       this.docPreviewCsvSelectedRowValue = value
     },
     async setLoading(isLoading) {
