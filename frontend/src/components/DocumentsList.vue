@@ -1,6 +1,6 @@
 <template>
   <b-overlay :show="isLoading">
-    <b-button-toolbar v-if="showMenuBar" class="mt-2 mb-2" >
+    <b-button-toolbar v-if="showMenuBar" class="mt-2 mb-2">
       <b-button-group>
         <b-button v-if="isPageSelected()"
                   :title="'Clear selection. (' + selectedDocs.size + ' documents and ' + selectedAnnotations.size + ' annotations selected)'"
@@ -38,7 +38,7 @@
           Delete
         </b-button>
         <b-button :variant="loadingVariant" :disabled="isLoading" @click="fetchDocuments">
-          <b-icon-arrow-clockwise ></b-icon-arrow-clockwise>
+          <b-icon-arrow-clockwise></b-icon-arrow-clockwise>
           Refresh
         </b-button>
         <b-button variant="primary" @click="uploadHandler" title="Upload documents">
@@ -83,7 +83,7 @@
                 <span @click="toggleDocument(doc)" style="cursor: pointer" class="mr-1">
                   <b-badge variant="primary" :class="{'docBgSelected': isDocSelected(doc)}">
                     <b-icon-file-earmark-check v-if="isDocSelected(doc)"
-                                             :class="{ 'docIcon': true, 'docIconSelected': isDocSelected(doc)}"></b-icon-file-earmark-check>
+                                               :class="{ 'docIcon': true, 'docIconSelected': isDocSelected(doc)}"></b-icon-file-earmark-check>
                   <b-icon-file-earmark-text-fill v-else
                                                  :class="{ 'docIcon': true, 'docIconSelected': isDocSelected(doc)}"></b-icon-file-earmark-text-fill>
                   </b-badge>
@@ -91,7 +91,10 @@
                 </span>
 
                 <strong>
-                  <span v-if="doc.doc_id" title="ID of the document. ID is obtained from the field specified in the project's configuration.">{{ doc.doc_id }}</span>
+                  <span v-if="doc.doc_id"
+                        title="ID of the document. ID is obtained from the field specified in the project's configuration.">{{
+                      doc.doc_id
+                    }}</span>
                   <b-badge v-else variant="warning" :title="`Specified ID field does not exist in document.`">
                     <b-icon-exclamation-triangle></b-icon-exclamation-triangle>
                   </b-badge>
@@ -132,11 +135,16 @@
           </div>
 
 
-          <div class="mt-2 mb-2 p-2 data-bg">
+          <div v-if="documentDisplayFormat === 'CSV'" class="mt-2 mb-2 p-2" data-role="document-display-json">
+            <b-table :items="jsonToTableData(doc.data)">
+              <template #head()="{ column }">
+                {{ column }}
+              </template>
+            </b-table>
+          </div>
+          <div v-else class="mt-2 mb-2 p-2 data-bg" data-role="document-display-json">
             <vue-json-pretty :data="doc.data"></vue-json-pretty>
           </div>
-
-
 
 
           <BCard v-for="anno in doc.annotations" :key="anno.id"
@@ -150,6 +158,7 @@
                               :allow-annotation-edit="allowAnnotationEdit"
                               :selected="isAnnotationSelected(anno)"
                               :allow-change-delete="allowAnnotationChangeDelete"
+                              :document-display-format="documentDisplayFormat"
                               @annotation-changed="fetchAnnotation"
                               @selection-changed="toggleAnnotation"
               >
@@ -181,6 +190,7 @@ import _ from "lodash"
 import {toastError, toastSuccess} from "@/utils";
 import AnnotationRenderer from "@/components/AnnotationRenderer";
 import AnnotationItem from "@/components/AnnotationItem";
+import {flatten} from '@/utils';
 
 /**
  * Displays a list of documents, with builtin pagination.
@@ -206,7 +216,15 @@ import AnnotationItem from "@/components/AnnotationItem";
  */
 export default {
   name: "DocumentsList",
-  components: {AnnotationItem, AnnotationRenderer, Search, PaginationAsync, AsyncJsonDisplay, DeleteModal, VueJsonPretty},
+  components: {
+    AnnotationItem,
+    AnnotationRenderer,
+    Search,
+    PaginationAsync,
+    AsyncJsonDisplay,
+    DeleteModal,
+    VueJsonPretty
+  },
   data() {
     return {
       searchStr: "",
@@ -245,7 +263,12 @@ export default {
     showFilters: {
       default: true,
     },
-
+    /**
+     * Between json or csv
+     */
+    documentDisplayFormat: {
+      default: "json"
+    },
     allowAnnotationEdit: {
       default: false,
     },
@@ -271,34 +294,37 @@ export default {
   },
   methods: {
     ...mapActions(["getDocumentContent", "getAnnotationContent", "changeAnnotation"]),
-    pageSizeChangeHandler(newSize){
+    jsonToTableData(data) {
+      return [flatten(data)]
+    },
+    pageSizeChangeHandler(newSize) {
       this.itemsPerPage = newSize
       this.fetchDocuments()
     },
-    fetchDocuments(){
+    fetchDocuments() {
       this.$emit("fetch", this.currentPage, this.itemsPerPage)
     },
-    fetchAnnotation(annotationId){
+    fetchAnnotation(annotationId) {
       this.$emit("fetch-annotation", annotationId)
     },
-    deleteHandler(){
+    deleteHandler() {
       this.$emit("delete", this.getSelectionList())
     },
-    uploadHandler(){
+    uploadHandler() {
       this.$emit("upload")
     },
-    exportHandler(){
+    exportHandler() {
       this.$emit("export", this.getSelectionList())
     },
-    getSelectionList(){
+    getSelectionList() {
       return {
-            documentIds: [...this.selectedDocs],
-            annotationIds: [...this.selectedAnnotations],
-          }
+        documentIds: [...this.selectedDocs],
+        annotationIds: [...this.selectedAnnotations],
+      }
     },
-    isPageSelected(){
-      for(const doc of this.documents){
-        if(!this.selectedDocs.has(doc.id)){
+    isPageSelected() {
+      for (const doc of this.documents) {
+        if (!this.selectedDocs.has(doc.id)) {
           return false
         }
       }
@@ -308,28 +334,27 @@ export default {
     searchDocs(searchStr) {
       this.searchStr = searchStr
     },
-    emitSelectionList(){
+    emitSelectionList() {
       // Forces vue to track the set change
       this.selectedDocs = new Set(this.selectedDocs)
       this.selectedAnnotations = new Set(this.selectedAnnotations)
 
       this.$emit("selection-changed", this.getSelectionList())
     },
-    selectDocument(doc, doSelect, emitEvent=true){
-      if(doSelect){
+    selectDocument(doc, doSelect, emitEvent = true) {
+      if (doSelect) {
         this.selectedDocs.add(doc.id)
-        for(let anno of doc.annotations){
+        for (let anno of doc.annotations) {
           this.selectedAnnotations.add(anno.id)
         }
-      }
-      else{
+      } else {
         this.selectedDocs.delete(doc.id)
-        for(let anno of doc.annotations){
+        for (let anno of doc.annotations) {
           this.selectedAnnotations.delete(anno.id)
         }
       }
 
-      if(emitEvent)
+      if (emitEvent)
         this.emitSelectionList()
 
     },
@@ -339,9 +364,9 @@ export default {
     isDocSelected(doc) {
       return this.selectedDocs.has(doc.id)
     },
-    selectAnnotation(anno, doSelect, doc, emitEvent=true){
+    selectAnnotation(anno, doSelect, doc, emitEvent = true) {
       //Can't change selection if document is already selected
-      if(this.isDocSelected(doc))
+      if (this.isDocSelected(doc))
         return
 
       if (doSelect)
@@ -350,7 +375,7 @@ export default {
         this.selectedAnnotations.delete(anno.id)
 
 
-      if(emitEvent)
+      if (emitEvent)
         this.emitSelectionList()
 
     },
@@ -360,45 +385,45 @@ export default {
     isAnnotationSelected(anno) {
       return this.selectedAnnotations.has(anno.id)
     },
-    clearDocumentSelection(doEmitEvent=true){
-      for(let doc of this.documents){
+    clearDocumentSelection(doEmitEvent = true) {
+      for (let doc of this.documents) {
         this.selectDocument(doc, false, false)
       }
-      if(doEmitEvent)
+      if (doEmitEvent)
         this.emitSelectionList()
     },
-    clearAnnotationSelection(doEmitEvent=true){
-      for(let doc in this.documents){
-        for(let anno in doc.annotations){
-          this.selectAnnotation(anno, false, doc,false)
+    clearAnnotationSelection(doEmitEvent = true) {
+      for (let doc in this.documents) {
+        for (let anno in doc.annotations) {
+          this.selectAnnotation(anno, false, doc, false)
         }
       }
 
-      if(doEmitEvent)
+      if (doEmitEvent)
         this.emitSelectionList()
 
     },
-    selectAllDocuments(doEmitEvent=true){
-      for(let doc of this.documents){
+    selectAllDocuments(doEmitEvent = true) {
+      for (let doc of this.documents) {
         this.selectDocument(doc, true, false)
       }
 
-      if(doEmitEvent)
+      if (doEmitEvent)
         this.emitSelectionList()
 
     },
-    selectAllAnnotations(doEmitEvent=true){
-      for(let doc of this.documents){
-        for(let anno of doc.annotations){
+    selectAllAnnotations(doEmitEvent = true) {
+      for (let doc of this.documents) {
+        for (let anno of doc.annotations) {
           this.selectAnnotation(anno, true, doc, false)
         }
       }
-      if(doEmitEvent)
+      if (doEmitEvent)
         this.emitSelectionList()
     },
   },
   watch: {
-    currentPage:{
+    currentPage: {
       handler() {
         this.fetchDocuments()
       }
@@ -421,7 +446,7 @@ export default {
   background: #b3b3b3;
 }
 
-.docBgSelected{
+.docBgSelected {
   background: #fff;
 }
 
@@ -430,7 +455,7 @@ export default {
   height: auto
 }
 
-.docIconSelected{
+.docIconSelected {
   color: black;
 }
 

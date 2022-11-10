@@ -87,6 +87,20 @@
 
       </b-col>
     </b-row>
+    <b-row class="mt-3">
+      <b-col>
+        <b-form inline>
+          <b class="mr-2">Document format preference:</b>
+          <b-form-radio-group v-model="user.doc_format_pref"
+                              name="document_format_pref"
+                              :options="doc_format_pref_options"
+                              @change="userDocumentFormatPreferenceHandler"></b-form-radio-group>
+
+
+        </b-form>
+
+      </b-col>
+    </b-row>
 
     <AccountActivationGenerator></AccountActivationGenerator>
 
@@ -114,6 +128,7 @@ export default {
         created: null,
         email: null,
         receive_mail_notifications: false,
+        doc_format_pref: "JSON",
       },
       form: {
         email: null,
@@ -121,7 +136,10 @@ export default {
         confirmpassword: null,
       },
       activationEmailSent: false,
-
+      doc_format_pref_options: [
+          {text: "JSON", value: "JSON"},
+          {text: "CSV", value: "CSV"},
+      ]
     }
   },
   computed: {
@@ -129,7 +147,7 @@ export default {
   },
   methods: {
     ...mapActions(["getUser", "changeEmail", "changePassword",
-      "setUserReceiveMailNotification", "generateUserActivation"]),
+      "setUserReceiveMailNotification", "setUserDocumentFormatPreference", "generateUserActivation"]),
     async EmailSubmitHandler() {
       try{
         await this.changeEmail(this.form);
@@ -157,6 +175,13 @@ export default {
         await this.setUserReceiveMailNotification(this.user.receive_mail_notifications)
       }catch (e){
         toastError("Could not change user mail notification preference", e, this)
+      }
+    },
+    async userDocumentFormatPreferenceHandler(){
+      try{
+        await this.setUserDocumentFormatPreference(this.user.doc_format_pref)
+      }catch (e){
+        toastError("Could not change document format preference", e, this)
       }
     },
   },

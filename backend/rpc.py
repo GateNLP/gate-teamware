@@ -24,7 +24,8 @@ from gatenlp import annotation_set
 
 from backend.errors import AuthError
 from backend.rpcserver import rpc_method, rpc_method_auth, rpc_method_manager, rpc_method_admin
-from backend.models import Project, Document, DocumentType, Annotation, AnnotatorProject, AnnotationChangeHistory
+from backend.models import Project, Document, DocumentType, Annotation, AnnotatorProject, AnnotationChangeHistory, \
+    UserDocumentFormatPreference
 from backend.utils.misc import get_value_from_key_path, insert_value_to_key_path
 from backend.utils.serialize import ModelSerializer
 
@@ -267,6 +268,19 @@ def set_user_receive_mail_notifications(request, do_receive_notifications):
     user.receive_mail_notifications = do_receive_notifications
     user.save()
 
+@rpc_method_auth
+def set_user_document_format_preference(request, doc_preference):
+    user = request.user
+
+    # Convert to enum value
+    if doc_preference == "JSON":
+        user.doc_format_pref = UserDocumentFormatPreference.JSON
+    elif doc_preference == "CSV":
+        user.doc_format_pref = UserDocumentFormatPreference.CSV
+    else:
+        raise ValueError(f"Document preference value {doc_preference} is invalid")
+
+    user.save()
 
 
 #############################
@@ -291,6 +305,12 @@ def get_user_details(request):
         user_role = "manager"
 
     data["user_role"] = user_role
+
+    # Convert doc preference to string
+    if user.doc_format_pref == UserDocumentFormatPreference.JSON:
+        data["doc_format_pref"] = "JSON"
+    else:
+        data["doc_format_pref"] = "CSV"
 
     return data
 @rpc_method_auth

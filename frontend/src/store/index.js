@@ -16,7 +16,9 @@ export default new Vuex.Store({
             isManager: false,
             isAdmin: false,
             isActivated: false,
+            docFormatPref: "JSON",
         },
+
     },
     getters:{
         isAuthenticated: state => state.user.isAuthenticated,
@@ -24,6 +26,9 @@ export default new Vuex.Store({
         isAdmin: state => state.user.isAdmin,
         isActivated: state => state.user.isActivated,
         username: state => state.user.username,
+        docFormatPref(state){
+            return state.user.docFormatPref
+        },
     },
     mutations: {
         activateUser(state){
@@ -36,6 +41,9 @@ export default new Vuex.Store({
             state.user.isAdmin = params.isAdmin;
             state.user.isActivated = params.isActivated;
         },
+        updateDocFormatPref(state, preference){
+            state.user.docFormatPref = preference
+        }
     },
     actions: {
         updateUser({commit}, params) {
@@ -150,6 +158,16 @@ export default new Vuex.Store({
                 throw e
             }
         },
+        async setUserDocumentFormatPreference({dispatch, commit}, preference){
+            try{
+                commit("updateDocFormatPref", preference)
+                let response = await rpc.call("set_user_document_format_preference", preference)
+
+            }catch(e){
+                console.error(e)
+                throw e
+            }
+        },
         async is_authenticated({dispatch, commit}) {
             try{
                 let response = await rpc.call("is_authenticated");
@@ -164,6 +182,8 @@ export default new Vuex.Store({
         async getUser({dispatch, commit}) {
             try{
                 let user = await rpc.call("get_user_details");
+                commit("updateDocFormatPref", user.doc_format_pref)
+
                 return user
             }catch (e){
                 console.error(e);
