@@ -9,7 +9,7 @@ from django.test import TestCase, Client
 from django.utils import timezone
 import json
 
-from backend.models import Annotation, Document, DocumentType, Project, AnnotatorProject
+from backend.models import Annotation, Document, DocumentType, Project, AnnotatorProject, UserDocumentFormatPreference
 from backend.rpc import create_project, update_project, add_project_document, add_document_annotation, \
     get_possible_annotators, add_project_annotator, remove_project_annotator, get_project_annotators, \
     get_annotation_task, complete_annotation_task, reject_annotation_task, register, activate_account, \
@@ -18,7 +18,8 @@ from backend.rpc import create_project, update_project, add_project_document, ad
     clone_project, delete_project, get_projects, get_project_documents, get_user_annotated_projects, \
     get_user_annotations_in_project, add_project_test_document, add_project_training_document, \
     get_project_training_documents, get_project_test_documents, project_annotator_allow_annotation, \
-    annotator_leave_project, login, change_annotation, delete_annotation_change_history, get_annotation_task_with_id
+    annotator_leave_project, login, change_annotation, delete_annotation_change_history, get_annotation_task_with_id, \
+    set_user_document_format_preference
 from backend.rpcserver import rpc_method
 from backend.errors import AuthError
 
@@ -236,6 +237,16 @@ class TestUserConfig(TestEndpoint):
         set_user_receive_mail_notifications(self.get_loggedin_request(), True)
         user.refresh_from_db()
         self.assertEqual(user.receive_mail_notifications, True)
+
+    def test_change_user_document_format_preference(self):
+        user = self.get_default_user()
+        set_user_document_format_preference(self.get_loggedin_request(), "JSON")
+        user.refresh_from_db()
+        self.assertEqual(user.doc_format_pref, UserDocumentFormatPreference.JSON)
+
+        set_user_document_format_preference(self.get_loggedin_request(), "CSV")
+        user.refresh_from_db()
+        self.assertEqual(user.doc_format_pref, UserDocumentFormatPreference.CSV)
 
 
 

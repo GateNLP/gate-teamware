@@ -15,6 +15,14 @@ from backend.utils.misc import get_value_from_key_path, insert_value_to_key_path
 
 log = logging.getLogger(__name__)
 
+class UserDocumentFormatPreference:
+    JSON = 0
+    CSV = 1
+
+    USER_DOC_FORMAT_PREF = (
+        (JSON, 'JSON'),
+        (CSV, 'CSV')
+    )
 
 class DocumentType:
     ANNOTATION = 0
@@ -41,6 +49,8 @@ class ServiceUser(AbstractUser):
     reset_password_token = models.TextField(null=True, blank=True)
     reset_password_token_expire = models.DateTimeField(null=True, blank=True)
     receive_mail_notifications = models.BooleanField(default=True)
+    doc_format_pref = models.IntegerField(choices=UserDocumentFormatPreference.USER_DOC_FORMAT_PREF,
+                                          default=UserDocumentFormatPreference.JSON)
 
     @property
     def has_active_project(self):
@@ -130,6 +140,8 @@ class Project(models.Model):
     annotation_timeout = models.IntegerField(default=60)
     # Stores a document that's used for previewing in the AnnotationRenderer
     document_input_preview = models.JSONField(default=default_document_input_preview)
+    # Stores a csv document that's used for previewing in the AnnotationRenderer
+    document_input_preview_csv = models.TextField(default="")
     document_id_field = models.TextField(default="name")
     annotators = models.ManyToManyField(get_user_model(), through='AnnotatorProject', related_name="annotates")
     has_training_stage = models.BooleanField(default=False)

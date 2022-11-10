@@ -15,6 +15,7 @@
         :allow-annotation-edit="project.allow_annotation_change"
         :allow-annotation-change-delete="false"
         :project-config="project.configuration"
+        :document-display-format="docFormatPref"
         ref="docsList"
     ></DocumentsList>
 
@@ -43,6 +44,9 @@ export default {
     project: {
       default: null
     }
+  },
+  computed: {
+    ...mapGetters(["docFormatPref"])
   },
   methods: {
     ...mapActions(["getUserAnnotationsInProject", "getAnnotation"]),

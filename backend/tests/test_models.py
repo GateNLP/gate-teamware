@@ -794,6 +794,7 @@ class TestProjectModel(ModelTestCase):
             "allow_annotation_change",
             "annotation_timeout",
             "document_input_preview",
+            "document_input_preview_csv",
             "document_id_field",
             "has_training_stage",
             "has_test_stage",

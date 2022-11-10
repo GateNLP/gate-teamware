@@ -7,6 +7,7 @@
                    :allow-annotation-edit="project.allow_annotation_change"
                    :project-config="project.configuration"
                    :allow-annotation-change-delete="true"
+                   :document-display-format="docFormatPref"
                    @fetch="refreshDocumentsHandler"
                    @fetch-annotation="refreshAnnotationHandler"
                    @upload="showDocumentUploadModal = true"
@@ -28,7 +29,7 @@
 </template>
 
 <script>
-import {mapActions, mapState} from "vuex";
+import {mapActions, mapGetters, mapState} from "vuex";
 import DocumentExporter from "@/components/DocumentExporter";
 import DocumentUploader from "@/components/DocumentUploader";
 import DocumentsList from "@/components/DocumentsList";
@@ -63,6 +64,7 @@ export default {
     }
   },
   computed: {
+    ...mapGetters(["docFormatPref"]),
     loadingVariant() {
       if (this.loading) {
         return "secondary"
