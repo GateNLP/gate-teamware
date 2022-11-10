@@ -1,13 +1,7 @@
-name: Test image build and run Integration tests
+name: Run integration tests and record to cypress dashboard
 on:
-  push:
-    branches:
-      - master
-      - dev
-  pull_request:
-    branches:
-      - master
-      - dev
+  workflow_dispatch:
+
 
 env:
   MAIN_IMAGE: teamware-main
