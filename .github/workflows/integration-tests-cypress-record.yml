@@ -1,13 +1,7 @@
-name: Test image build and run Integration tests
+name: Run integration tests and record to cypress dashboard
 on:
-  push:
-    branches:
-      - master
-      - dev
-  pull_request:
-    branches:
-      - master
-      - dev
+  workflow_dispatch:
+
 
 env:
   MAIN_IMAGE: teamware-main
@@ -53,7 +47,9 @@ jobs:
           start: /bin/bash deploy.sh production
           wait-on: 'http://localhost:8076'
           config: baseUrl=http://localhost:8076
-          record: false
+          record: true
         env:
           CYPRESS_TESTENV: ci
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CYPRESS_PROJECT_ID: ${{ secrets.PROJECT_ID }}
