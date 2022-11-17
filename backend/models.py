@@ -1101,3 +1101,13 @@ class AnnotationChangeHistory(models.Model):
             "time": self.time,
             "changed_by": self.changed_by.username,
         }
+
+
+class Telemetry(models.Model):
+    """
+    Model to store a small amount of telemetry information
+    """
+
+    sent = models.DateTimeField(default=timezone.now)
+    data = models.JSONField()
+    status = models.IntegerField()
