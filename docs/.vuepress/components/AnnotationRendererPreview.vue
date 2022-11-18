@@ -8,7 +8,11 @@
       </b-tab>
       <b-tab title="Preview">
         <b-card class="mb-2 mt-2">
-          <AnnotationRenderer :config="config" :document="document" :allow_document_reject="true"  v-model="annotationOutput"></AnnotationRenderer>
+          <AnnotationRenderer :config="config"
+                              :document="document" :allow_document_reject="true"
+                              v-model="annotationOutput"
+                              :doc_preannotation_field="preAnnotation"
+          ></AnnotationRenderer>
         </b-card>
         <b-card class="mb-2 mt-2">
           <p><strong>Annotation output:</strong></p>
@@ -37,6 +41,11 @@ export default {
 
   },
   props: {
+    preAnnotation: {
+      default(){
+        return ""
+      }
+    },
     document: {
       default(){
         return {text: "Sometext with <strong>html</strong>"}

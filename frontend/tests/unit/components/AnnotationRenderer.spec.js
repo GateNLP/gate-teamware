@@ -1,5 +1,5 @@
 const fs = require('fs')
-import {render, fireEvent} from "@testing-library/vue";
+import {render, fireEvent, waitFor} from "@testing-library/vue";
 import '@testing-library/jest-dom';
 
 import '../globalVue'
@@ -410,6 +410,57 @@ describe("AnnotationRenderer", () => {
 
         const rejectBtn = ar.queryByText("Reject document")
         expect(rejectBtn).toBeNull()
+
+    })
+
+    it('Test pre-annotation', async () => {
+
+        const annotationComps = JSON.parse(fs.readFileSync("../examples/project_config.json", "utf-8"))
+
+        const document = {
+            "text": "<p>Some html text <strong>in bold</strong>.</p><p>Paragraph 2.</p>",
+            "preanno": {
+                "radio": "val1",
+                "checkbox": [
+                    "val1",
+                    "val3"
+                ],
+                "selector": "val2",
+                "textarea": "Test textarea",
+                "text": "Test text"
+            }
+        }
+
+        const ar = render(AnnotationRenderer, {
+            props: {
+                config: annotationComps,
+                document: document,
+                doc_preannotation_field: "preanno",
+            }
+        })
+
+        function getInputElemFromComponent(component, name, value) {
+            return component.container.querySelector(`input[name='${name}'][value='${value}']`)
+        }
+
+        // Test radio
+        expect(getInputElemFromComponent(ar, "radio", "val1")).toBeChecked()
+        expect(getInputElemFromComponent(ar, "radio", "val2")).not.toBeChecked()
+        expect(getInputElemFromComponent(ar, "radio", "val3")).not.toBeChecked()
+        expect(getInputElemFromComponent(ar, "radio", "val4")).not.toBeChecked()
+
+        // Test cheeckbox
+        expect(getInputElemFromComponent(ar, "checkbox", "val1")).toBeChecked()
+        expect(getInputElemFromComponent(ar, "checkbox", "val2")).not.toBeChecked()
+        expect(getInputElemFromComponent(ar, "checkbox", "val3")).toBeChecked()
+        expect(getInputElemFromComponent(ar, "checkbox", "val4")).not.toBeChecked()
+
+        //Test selector
+        expect(ar.container.querySelector(`select[name='selector']`)).toHaveValue("val2")
+
+        //Test text box
+        expect(ar.container.querySelector(`input[name='text']`)).toHaveValue("Test text")
+
 
     })
 

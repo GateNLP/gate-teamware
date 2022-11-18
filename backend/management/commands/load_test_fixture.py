@@ -37,7 +37,10 @@ def create_db_users():
 
 @test_fixture
 def create_db_users_with_project():
-    """Create default db users and also create a project that belongs to an admin."""
+    """
+    Create default db users and also create a project that belongs to an admin.
+    Creates 20 documents for the project.
+    """
     create_db_users()
     admin_user = get_user_model().objects.get(username="admin")
     manager_user = get_user_model().objects.get(username="manager")
@@ -73,7 +76,8 @@ def create_db_users_with_project():
     for i in range(20):
         doc_data = {
             "id": f"{i+1}",
-            "text": f"Document text {i}"
+            "text": f"Document text {i}",
+            "preanno": {"sentiment": "positive"},
         }
         document = Document.objects.create(project=project, data=doc_data)
 

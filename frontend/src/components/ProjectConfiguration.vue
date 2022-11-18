@@ -101,14 +101,15 @@
         </b-form-checkbox>
       </b-form-group>
       <b-form-group label="Auto elevate to annotator"
-        description="Automatically allows annotation on real dataset after the training and testing stage. A disabled stage counts as having been completed.">
+                    description="Automatically allows annotation on real dataset after the training and testing stage. A disabled stage counts as having been completed.">
         <b-form-checkbox
             id="project-can-annotate-after-passing"
             v-model="local_project.can_annotate_after_passing_training_and_test"
             name="can-annotate-after-passing-checkbox"
             switch
         >
-          <span v-if="local_project.can_annotate_after_passing_training_and_test">Can</span><span v-else>Cannot</span> annotate after
+          <span v-if="local_project.can_annotate_after_passing_training_and_test">Can</span><span v-else>Cannot</span>
+          annotate after
           passing
         </b-form-checkbox>
       </b-form-group>
@@ -122,7 +123,7 @@
         <b-form-input v-model="local_project.document_gold_standard_field"></b-form-input>
       </b-form-group>
       <b-form-group label="Allow annotation change after submission"
-        description="Allow annotators to change their annotations after submitting.">
+                    description="Allow annotators to change their annotations after submitting.">
         <b-form-checkbox
             id="project-allow-annotation-change-after-submission"
             v-model="local_project.allow_annotation_change"
@@ -130,6 +131,19 @@
             switch
         >
         </b-form-checkbox>
+      </b-form-group>
+      <b-form-group label="Pre-annotation"
+                    description="Pre-fill the form with annotation provided in the specified field.">
+        <b-input-group>
+          <b-input-group-prepend is-text>
+            Field name
+          </b-input-group-prepend>
+          <b-input v-model="local_project.document_pre_annotation_field" name="pre-annotation-field"></b-input>
+
+
+        </b-input-group>
+
+
       </b-form-group>
       <b-form-row>
         <b-col>
@@ -153,9 +167,10 @@
             is shown in the <a href="#annotation-output-preview">Annotation output preview</a> below.</p>
           <b-card>
             <AnnotationRenderer :config="local_project.configuration"
+                                :doc_preannotation_field="local_project.document_pre_annotation_field"
                                 :document="previewDocument"
-                                @input="annotationOutputHandler"
                                 data-cy="annotation-renderer"
+                                @input="annotationOutputHandler"
             ></AnnotationRenderer>
 
           </b-card>
@@ -166,38 +181,38 @@
           <h5 class="mt-4" id="document-input-preview">Document input preview</h5>
           <div v-if="docFormatPref === 'JSON'">
             <p class="form-text text-muted">An example of a document in JSON. You can modify the contents below to see
-            how your
-            document looks in the <a href="#annotation-preview">Annotation Preview</a>.</p>
-          <VJsoneditor v-model="local_project.document_input_preview" :options="{mode: 'code'}" :plus="false"
-                       height="400px"></VJsoneditor>
+              how your
+              document looks in the <a href="#annotation-preview">Annotation Preview</a>.</p>
+            <VJsoneditor v-model="local_project.document_input_preview" :options="{mode: 'code'}" :plus="false"
+                         height="400px"></VJsoneditor>
 
           </div>
           <div v-else>
             <p class="form-text text-muted">Upload a csv to use as input to the
               <a href="#annotation-preview">Annotation Preview</a>. Only one row is displayed at a time,
-            click on a different row to preview a different document.</p>
+              click on a different row to preview a different document.</p>
 
             <CSVDisplay v-model="project.document_input_preview_csv"
-                      @selected-row-value="docPreviewTableRowSelectedHandler"></CSVDisplay>
+                        @selected-row-value="docPreviewTableRowSelectedHandler"></CSVDisplay>
 
           </div>
-
 
 
         </b-col>
         <b-col>
           <h5 class="mt-4" id="annotation-output-preview">Annotation output preview</h5>
           <p class="form-text text-muted">
-            Live preview of the {{docFormatPref}} annotation output after performing annotation in the <a
+            Live preview of the {{ docFormatPref }} annotation output after performing annotation in the <a
               href="#annotation-preview">Annotation preview</a>.
           </p>
 
-          <VJsoneditor v-if="docFormatPref === 'JSON'" v-model="annotationOutput" :options="{mode: 'preview', mainMenuBar: false}" :plus="false"
+          <VJsoneditor v-if="docFormatPref === 'JSON'" v-model="annotationOutput"
+                       :options="{mode: 'preview', mainMenuBar: false}" :plus="false"
                        height="400px" data-role="annotation-output-json"></VJsoneditor>
           <b-table v-else :items="jsonToTableData(annotationOutput)" data-role="annotation-output-csv">
-              <template #head()="{ column }">
-                {{ column }}
-              </template>
+            <template #head()="{ column }">
+              {{ column }}
+            </template>
           </b-table>
         </b-col>
       </b-form-row>
@@ -247,6 +262,7 @@ export default {
         can_annotate_after_passing_training_and_test: false,
         min_test_pass_threshold: 0.8,
         document_id_field: "",
+        document_pre_annotation_field: ""
       },
       annotationOutput: {},
       configurationStr: "",
@@ -276,10 +292,10 @@ export default {
         return "primary"
       }
     },
-    previewDocument(){
-      if(this.docFormatPref === 'JSON'){
+    previewDocument() {
+      if (this.docFormatPref === 'JSON') {
         return this.local_project.document_input_preview
-      }else{
+      } else {
         return this.docPreviewCsvSelectedRowValue
       }
     }
@@ -361,7 +377,7 @@ export default {
     annotationOutputHandler(value) {
       this.annotationOutput = value
     },
-    docPreviewTableRowSelectedHandler(value){
+    docPreviewTableRowSelectedHandler(value) {
       this.docPreviewCsvSelectedRowValue = value
     },
     async setLoading(isLoading) {

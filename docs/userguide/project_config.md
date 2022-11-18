@@ -45,6 +45,7 @@ documents, annotations or annotators to the new project.
 
 * **Test pass proportion** - The proportion of correct test annotations to be automatically allowed to annotate documents.
 * **Gold standard field** - The field in document's JSON/column that contains the ideal annotation values and explanation for the annotation.
+* **Pre-annotation** - Pre-fill the form with annotation provided in the specified field. See [Importing Documents with pre-annotation](./documents_annotations_management.md#importing-documents-with-pre-annotation) section for more detail.
 
 ## Anotation configuration
 
