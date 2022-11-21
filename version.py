@@ -34,7 +34,7 @@ def check():
 
 def get_master_version():
     with open(MASTER_VERSION_FILE, "r") as f:
-            master_version = f.readline()
+            master_version = f.readline().strip()
     return master_version
 
 def update():
