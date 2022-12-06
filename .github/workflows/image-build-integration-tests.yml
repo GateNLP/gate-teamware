@@ -8,6 +8,12 @@ on:
     branches:
       - master
       - dev
+
+env:
+  MAIN_IMAGE: teamware-main
+  STATIC_IMAGE: teamware-static
+  DJANGO_DB_NAME: teamware_integration_db
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -18,15 +24,36 @@ jobs:
         shell: bash
         run: |
           ./generate-docker-env.sh
+
+          # Remove container registry address
+          sed -i 's/ghcr.io\/gatenlp\///g' .env
+
+          # Display the environment variable file for the logs
+          cat .env
+
+      - name: Set up Docker cache
+        uses: satackey/action-docker-layer-caching@v0.0.11
+        continue-on-error: true
+        with:
+          key: integration-test-docker-cache-{hash}
+          restore-keys: |
+            integration-test-docker-cache-
       
       - uses: docker-practice/actions-setup-docker@master
       - run: |
           ./build-images.sh
+          
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 14
 
       - name: Run integration tests with cypress
-        uses: cypress-io/github-action@v2
+        uses: cypress-io/github-action@v4
         with:
-          start: /bin/bash deploy.sh integration
+          start: /bin/bash deploy.sh production
           wait-on: 'http://localhost:8076'
           config: baseUrl=http://localhost:8076
-          env: TESTENV=container
+          record: false
+        env:
+          CYPRESS_TESTENV: ci
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

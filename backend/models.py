@@ -15,6 +15,14 @@ from backend.utils.misc import get_value_from_key_path, insert_value_to_key_path
 
 log = logging.getLogger(__name__)
 
+class UserDocumentFormatPreference:
+    JSON = 0
+    CSV = 1
+
+    USER_DOC_FORMAT_PREF = (
+        (JSON, 'JSON'),
+        (CSV, 'CSV')
+    )
 
 class DocumentType:
     ANNOTATION = 0
@@ -41,6 +49,8 @@ class ServiceUser(AbstractUser):
     reset_password_token = models.TextField(null=True, blank=True)
     reset_password_token_expire = models.DateTimeField(null=True, blank=True)
     receive_mail_notifications = models.BooleanField(default=True)
+    doc_format_pref = models.IntegerField(choices=UserDocumentFormatPreference.USER_DOC_FORMAT_PREF,
+                                          default=UserDocumentFormatPreference.JSON)
 
     @property
     def has_active_project(self):
@@ -99,6 +109,12 @@ class ServiceUser(AbstractUser):
 
         return self.annotations.filter(pk=annotation.pk).count() > 0
 
+    def is_manager_or_above(self):
+        if self.is_manager or self.is_staff or self.is_superuser:
+            return True
+        else:
+            return False
+
 
 def default_document_input_preview():
     return {"text": "<p>Some html text <strong>in bold</strong>.</p><p>Paragraph 2.</p>"}
@@ -116,9 +132,16 @@ class Project(models.Model):
     owner = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, related_name="owns")
     annotations_per_doc = models.IntegerField(default=3)
     annotator_max_annotation = models.FloatField(default=0.6)
+    # Allow annotators to reject document
     allow_document_reject = models.BooleanField(default=True)
+    # Allow annotators to change their annotation after it's been submitted
+    allow_annotation_change = models.BooleanField(default=True)
+    # Time it takes for user annotation to timeout (minutes)
     annotation_timeout = models.IntegerField(default=60)
+    # Stores a document that's used for previewing in the AnnotationRenderer
     document_input_preview = models.JSONField(default=default_document_input_preview)
+    # Stores a csv document that's used for previewing in the AnnotationRenderer
+    document_input_preview_csv = models.TextField(default="")
     document_id_field = models.TextField(default="name")
     annotators = models.ManyToManyField(get_user_model(), through='AnnotatorProject', related_name="annotates")
     has_training_stage = models.BooleanField(default=False)
@@ -126,24 +149,51 @@ class Project(models.Model):
     can_annotate_after_passing_training_and_test = models.BooleanField(default=True)
     min_test_pass_threshold = models.FloatField(default=1.0, null=True)
     document_gold_standard_field = models.TextField(default="gold")
+    document_pre_annotation_field = models.TextField(default="")
 
-    project_config_fields = {
-        "name",
-        "description",
-        "annotator_guideline",
-        "configuration",
-        "annotations_per_doc",
-        "annotator_max_annotation",
-        "allow_document_reject",
-        "annotation_timeout",
-        "document_input_preview",
-        "document_id_field",
-        "has_training_stage",
-        "has_test_stage",
-        "can_annotate_after_passing_training_and_test",
-        "min_test_pass_threshold",
-        "document_gold_standard_field",
-    }
+    @classmethod
+    def get_project_config_fields(cls, exclude_fields: set = set()):
+        exclude_field_types = {
+            models.ManyToOneRel,
+            models.ManyToManyField,
+            models.ManyToManyRel,
+        }
+        fields = Project._meta.get_fields()
+        config_fields = []
+
+        for field in fields:
+            if field.__class__ not in exclude_field_types and field.name not in exclude_fields:
+                config_fields.append(field)
+
+        return config_fields
+
+    @classmethod
+    def get_project_export_field_names(cls):
+        fields = Project.get_project_config_fields({"owner", "id", "created"})
+        return [field.name for field in fields]
+
+
+    def clone(self, new_name = None, clone_name_prefix="Copy of ", owner = None):
+        """
+        Clones the Project object, does not retain documents and annotator membership
+        """
+        exclude_fields = { "name", "owner", "id", "created" }
+
+        # Setting project name
+        new_project_name = new_name if new_name is not None else ""
+        if clone_name_prefix:
+            new_project_name = clone_name_prefix + self.name
+        new_project = Project.objects.create(name=new_project_name)
+        # Setting owner
+        new_project.owner = owner
+        # Copy all config over
+        config_fields = self.get_project_config_fields(exclude_fields)
+        for field in config_fields:
+            setattr(new_project, field.name, getattr(self, field.name))
+
+        new_project.save()
+        return new_project
+
 
     @property
     def num_documents(self):
@@ -274,9 +324,6 @@ class Project(models.Model):
             annotator_project.save()
         except ObjectDoesNotExist:
             raise Exception("User must be added to the project before they can be made active.")
-
-
-
 
     def annotator_completed_training(self, user, finished_time=timezone.now()):
         try:
@@ -474,8 +521,6 @@ class Project(models.Model):
             user from annotator list if there's no more tasks or user reached quota.
         """
 
-
-
         annotation = self.get_current_annotator_task(user)
         if annotation:
             # User has existing task
@@ -515,24 +560,40 @@ class Project(models.Model):
 
         return annotation
 
-    def get_annotation_task_dict(self, annotation):
+    def get_annotation_task_dict(self, annotation, include_task_history_in_project=True):
+        """
+        Returns a dictionary with all information required rendering an annotation task
+        annotation:Annotation - The annotation to create an annotation task dictionary for
+        task_history_in_project:bool - Returns a list of annotation ids for this user in the project
+        """
         document = annotation.document
 
-        return {
+        output = {
             **self.get_annotation_task_project_dict(),
             "document_id": document.pk,
             "document_field_id": get_value_from_key_path(document.data, self.document_id_field),
             "document_data": document.data,
             "document_type": document.doc_type_str,
             "annotation_id": annotation.pk,
+            "annotation_data": annotation.data,
             "allow_document_reject": self.allow_document_reject,
             "annotation_timeout": annotation.times_out_at,
             "annotator_remaining_tasks": self.num_annotator_task_remaining(user=annotation.user),
             "annotator_completed_tasks": self.get_annotator_completed_documents_query(user=annotation.user).count(),
-            "annotator_completed_training_tasks": self.get_annotator_completed_documents_query(user=annotation.user, doc_type=DocumentType.TRAINING).count(),
-            "annotator_completed_test_tasks": self.get_annotator_completed_documents_query(user=annotation.user, doc_type=DocumentType.TEST).count(),
+            "annotator_completed_training_tasks": self.get_annotator_completed_documents_query(user=annotation.user,
+                                                                                               doc_type=DocumentType.TRAINING).count(),
+            "annotator_completed_test_tasks": self.get_annotator_completed_documents_query(user=annotation.user,
+                                                                                           doc_type=DocumentType.TEST).count(),
             "document_gold_standard_field": self.document_gold_standard_field,
+            "document_pre_annotation_field": self.document_pre_annotation_field,
         }
+
+        if include_task_history_in_project and document.doc_type is DocumentType.ANNOTATION:
+            # If specified, also returns a list of annotation ids for this user in the project
+            output["task_history"] = [annotation.pk for annotation in
+                                      Annotation.get_annotations_for_user_in_project(annotation.user.pk, self.pk)]
+
+        return output
 
     def get_annotation_task_project_dict(self):
 
@@ -543,7 +604,6 @@ class Project(models.Model):
             "project_config": self.configuration,
             "project_id": self.pk,
         }
-
 
     def decide_annotator_task_type_and_assign(self, user):
         """
@@ -666,12 +726,20 @@ class AnnotatorProject(models.Model):
 
     @property
     def num_annotations(self):
-        # Is this better as a prop method or as a normal property?
-        pass
+        """Number of annotations completed by this annotator in this project"""
+        count = 0
+        for d in self.project.documents.filter(doc_type=DocumentType.ANNOTATION):
+            count += d.annotations.filter(user=self.annotator).count()
+        return count
 
     def set_status(self, status):
         self.status = status
         self.save()
+
+    def get_stats(self):
+        return {
+            "annotations": self.num_annotations,
+        }
 
 
 class Document(models.Model):
@@ -754,7 +822,7 @@ class Document(models.Model):
 
     def get_listing(self, annotation_list=[]):
         """
-        Get minimal dictionary representation of document for rendering an object list
+        Get a dictionary representation of document for rendering
         """
         doc_out = {
             "id": self.pk,
@@ -766,7 +834,9 @@ class Document(models.Model):
             "pending": self.num_pending_annotations,
             "aborted": self.num_aborted_annotations,
             "doc_id": get_value_from_key_path(self.data, self.project.document_id_field),
-            "project_id": self.project.id
+            "project_id": self.project.id,
+            "data": self.data,
+            "doc_type": self.doc_type_str,
         }
 
         return doc_out
@@ -860,7 +930,21 @@ class Annotation(models.Model):
 
     user = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, related_name="annotations", null=True)
     document = models.ForeignKey(Document, on_delete=models.CASCADE, related_name="annotations")
-    data = models.JSONField(default=dict)
+    _data = models.JSONField(default=dict)
+
+    @property
+    def data(self):
+        ann_history = self.latest_annotation_history()
+        if ann_history:
+            return ann_history.data
+
+        return None
+
+    @data.setter
+    def data(self, value):
+        # The setter's value actually wraps the input inside a tuple for some reason
+        self._append_annotation_history(value)
+
     times_out_at = models.DateTimeField(default=None, null=True)
     created = models.DateTimeField(default=timezone.now)
     status = models.IntegerField(choices=ANNOTATION_STATUS, default=PENDING)
@@ -917,8 +1001,37 @@ class Annotation(models.Model):
     def user_allowed_to_annotate(self, user):
         return self.user.id == user.id
 
+    def change_annotation(self, data, by_user=None, time=timezone.now()):
+        if self.status != Annotation.COMPLETED:
+            raise RuntimeError("The annotation must be completed before it can be changed")
+
+        self._append_annotation_history(data, by_user, time)
+
+    def _append_annotation_history(self, data, by_user=None, time=timezone.now()):
+        if by_user is None:
+            by_user = self.user
+
+        AnnotationChangeHistory.objects.create(data=data,
+                                               time=time,
+                                               annotation=self,
+                                               changed_by=by_user)
+
+    def latest_annotation_history(self):
+        """
+        Convenience function for getting the latest annotation data from the change history.
+        Returns None if there's no annotations.
+        """
+        try:
+            last_item = self.change_history.last()
+            return last_item
+        except models.ObjectDoesNotExist:
+            return None
+
     def get_listing(self):
-        return {
+        """
+        Get a dictionary representation of the annotation for rendering.
+        """
+        output = {
             "id": self.pk,
             "annotated_by": self.user.username,
             "created": self.created,
@@ -926,8 +1039,11 @@ class Annotation(models.Model):
             "rejected": self.status_time if self.status == Annotation.REJECTED else None,
             "timed_out": self.status_time if self.status == Annotation.TIMED_OUT else None,
             "aborted": self.status_time if self.status == Annotation.ABORTED else None,
-            "times_out_at": self.times_out_at
+            "times_out_at": self.times_out_at,
+            "change_list": [change_history.get_listing() for change_history in self.change_history.all()],
         }
+
+        return output
 
     @staticmethod
     def check_for_timed_out_annotations(current_time=timezone.now()):
@@ -952,3 +1068,36 @@ class Annotation(models.Model):
 
         for annotation in pending_annotations:
             annotation.abort_annotation()
+
+    @staticmethod
+    def get_annotations_for_user_in_project(user_id, project_id, doc_type=DocumentType.ANNOTATION):
+        """
+        Gets a list of all completed and pending annotation tasks in the project project_id that belong to the
+        annotator with user_id.
+
+        Ordered by descending date and PK so the most recent entry is placed first.
+        """
+
+        return Annotation.objects.filter(document__project_id=project_id,
+                                         document__doc_type=doc_type,
+                                         user_id=user_id).distinct().filter(
+            Q(status=Annotation.COMPLETED) | Q(status=Annotation.PENDING)).order_by("-created", "-pk")
+
+
+class AnnotationChangeHistory(models.Model):
+    """
+    Model to store the changes in annotation when an annotator makes a change after initial submission
+    """
+    data = models.JSONField(default=dict)
+    time = models.DateTimeField(default=timezone.now)
+    annotation = models.ForeignKey(Annotation, on_delete=models.CASCADE, related_name="change_history", null=False)
+    changed_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, related_name="changed_annotations",
+                                   null=True)
+
+    def get_listing(self):
+        return {
+            "id": self.pk,
+            "data": self.data,
+            "time": self.time,
+            "changed_by": self.changed_by.username,
+        }

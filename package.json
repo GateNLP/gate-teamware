@@ -1,6 +1,6 @@
 {
   "name": "gate-teamware",
-  "version": "0.0.1",
+  "version": "0.2.0",
   "description": "A service for collaborative document annotation.",
   "main": "index.js",
   "scripts": {
@@ -12,11 +12,13 @@
     "serve:docs": "vuepress dev docs",
     "serve:frontend": "cd frontend && npm run serve",
     "serve:server": "python manage.py runserver",
+    "serve:db": "cross-env DJANGO_SETTINGS_MODULE=teamware.settings.base postgres -p 5432 -D pgsql/data",
     "serve:integration": "python manage.py runserver --settings='teamware.settings.integration'",
+    "serve:integrationdb": "cross-env DJANGO_SETTINGS_MODULE=teamware.settings.integration postgres -p 5432 -D pgsql/data",
     "serve:cypress": "npx cypress open",
-    "serve:frontendintegration": "run-p serve:frontend serve:integration",
+    "serve:frontendintegration": "run-p serve:frontend serve:integration serve:integrationdb",
     "serve:cypressintegration": "run-p serve:frontendintegration serve:cypress",
-    "serve": "run-p serve:frontend serve:server",
+    "serve": "run-p serve:db serve:frontend serve:server",
     "build:apidocs": "./manage.py build_api_docs docs/developerguide/api_docs.md",
     "prebuild:docs": "run-s build:apidocs",
     "build:docs": "vuepress build docs",
@@ -25,8 +27,9 @@
     "build": "run-s build:frontend build:server",
     "test:frontend": "cd frontend && npm run test",
     "test:frontend-cov": "cd frontend && npm run test:coverage",
-    "test:backend": "pytest -v",
-    "test:backend-cov": "pytest --cov=backend/ --cov-report=term-missing:skip-covered -v > pytest-coverage.txt",
+    "test:backend": "run-p serve:db test:pytest",
+    "test:pytest": "pytest -v",
+    "test:backend-cov": "pytest --cov=backend/ --cov-report=term-missing:skip-covered -v && EXITCODE=$? | tee pytest-coverage.txt && exit $EXITCODE",
     "test:cypress": "cypress run --env TESTENV=dev",
     "test:integration": "run-p --race serve:frontendintegration test:cypress",
     "test:ci_integration": "npm run build && run-p --race serve:integration test:cypress",
@@ -43,6 +46,7 @@
   },
   "homepage": "https://github.com/GateNLP/gate-teamware",
   "devDependencies": {
+    "cross-env": "^7.0.3",
     "cypress": "^7.1.0",
     "cypress-file-upload": "^5.0.8",
     "vuepress": "^1.8.2"

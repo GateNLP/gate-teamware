@@ -92,3 +92,34 @@ export async function toastError(title, errorObj, vueOrComponentInstance = null)
 export async function toastInfo(title, message, vueOrComponentInstance = null){
     await showToast(title, message, "info", toastDelay, false, vueOrComponentInstance)
 }
+
+
+export function flatten(obj, separator = ".", prefix = null){
+    const propName = (prefix) ? prefix + separator : ''
+    var ret = {}
+
+    for( let attr in obj){
+        if(Array.isArray(obj[attr])){
+            for( let i in obj[attr]){
+                if( typeof obj[attr][i] === "object" || Array.isArray(obj[attr][i])){
+                    const sub_ret = flatten(obj[attr][i], separator, propName + attr + separator+i)
+                    for( let sub_attr in sub_ret){
+                        ret[sub_attr] = sub_ret[sub_attr]
+                    }
+                } else {
+                    ret[propName + attr + separator+i] = obj[attr][i]
+                }
+            }
+        }else if(typeof obj[attr] === "object"){
+            const sub_ret = flatten(obj[attr], separator, propName + attr)
+            for( let sub_attr in sub_ret){
+                ret[sub_attr] = sub_ret[sub_attr]
+            }
+        }
+        else{
+            ret[propName + attr] = obj[attr]
+        }
+    }
+
+    return ret
+}

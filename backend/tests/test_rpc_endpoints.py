@@ -9,7 +9,7 @@ from django.test import TestCase, Client
 from django.utils import timezone
 import json
 
-from backend.models import Annotation, Document, DocumentType, Project, AnnotatorProject
+from backend.models import Annotation, Document, DocumentType, Project, AnnotatorProject, UserDocumentFormatPreference
 from backend.rpc import create_project, update_project, add_project_document, add_document_annotation, \
     get_possible_annotators, add_project_annotator, remove_project_annotator, get_project_annotators, \
     get_annotation_task, complete_annotation_task, reject_annotation_task, register, activate_account, \
@@ -18,8 +18,10 @@ from backend.rpc import create_project, update_project, add_project_document, ad
     clone_project, delete_project, get_projects, get_project_documents, get_user_annotated_projects, \
     get_user_annotations_in_project, add_project_test_document, add_project_training_document, \
     get_project_training_documents, get_project_test_documents, project_annotator_allow_annotation, \
-    annotator_leave_project
+    annotator_leave_project, login, change_annotation, delete_annotation_change_history, get_annotation_task_with_id, \
+    set_user_document_format_preference
 from backend.rpcserver import rpc_method
+from backend.errors import AuthError
 
 
 from backend.tests.test_rpc_server import TestEndpoint
@@ -74,6 +76,24 @@ class TestUserAuth(TestCase):
                           {"jsonrpc": "2.0", "method": "logout", "id": 20},
                           content_type="application/json")
         self.assertEqual(response.status_code, 200)
+
+class TestAppCreatedUserAccountsCannotLogin(TestEndpoint):
+
+    def test_app_created_user_accounts_cannot_login(self):
+
+        # Create a user programmatically, without password
+        created_user = get_user_model().objects.create(username="doesnotexist")
+
+        # Default password is blank ""
+        self.assertEqual("", created_user.password)
+
+        with self.assertRaises(AuthError, msg="Should raise an error if logging in with None as password"):
+            login(self.get_request(), {"username": "doesnotexist", "password": None})
+
+        with self.assertRaises(AuthError, msg="Should raise an error if logging in with blank as password"):
+            login(self.get_request(), {"username": "doesnotexist", "password": ""})
+
+
 
 class TestUserRegistration(TestEndpoint):
 
@@ -217,6 +237,16 @@ class TestUserConfig(TestEndpoint):
         set_user_receive_mail_notifications(self.get_loggedin_request(), True)
         user.refresh_from_db()
         self.assertEqual(user.receive_mail_notifications, True)
+
+    def test_change_user_document_format_preference(self):
+        user = self.get_default_user()
+        set_user_document_format_preference(self.get_loggedin_request(), "JSON")
+        user.refresh_from_db()
+        self.assertEqual(user.doc_format_pref, UserDocumentFormatPreference.JSON)
+
+        set_user_document_format_preference(self.get_loggedin_request(), "CSV")
+        user.refresh_from_db()
+        self.assertEqual(user.doc_format_pref, UserDocumentFormatPreference.CSV)
 
 
 
@@ -443,12 +473,6 @@ class TestProject(TestEndpoint):
 
         cloned_project_dict = clone_project(self.get_loggedin_request(), project.pk)
         cloned_project = Project.objects.get(pk=cloned_project_dict["id"])
-        self.assertNotEqual(project.pk, cloned_project.pk)
-        for field_name in Project.project_config_fields:
-            if field_name == "name":
-                self.assertEqual("Copy of " + getattr(project, field_name),  getattr(cloned_project, field_name))
-            else:
-                self.assertEqual(getattr(project, field_name), getattr(cloned_project, field_name))
 
         # Must not have associated documents
         self.assertEqual(0, cloned_project.num_training_documents)
@@ -556,8 +580,11 @@ class TestDocument(TestEndpoint):
         num_train_docs_per_project = 10
         num_test_docs_per_project = 15
         num_annotations_per_doc = 5
+
+        project_ids = []
         for i in range(num_projects):
             project = Project.objects.create(name=f"Project {i}", owner=self.get_default_user())
+            project_ids.append(project.id)
 
             # Annotation docs
             for j in range(num_docs_per_project):
@@ -576,8 +603,10 @@ class TestDocument(TestEndpoint):
                 for k in range(num_annotations_per_doc):
                     annotation = Annotation.objects.create(document=doc, user=self.get_default_user())
 
+        test_project_id = project_ids[0]
+
         # Gets all docs in a project
-        result = get_project_documents(self.get_loggedin_request(), 1)
+        result = get_project_documents(self.get_loggedin_request(), test_project_id)
         self.assertEqual(len(result["items"]), num_docs_per_project)
         self.assertEqual(result["total_count"], num_docs_per_project)
 
@@ -585,12 +614,12 @@ class TestDocument(TestEndpoint):
         page_size = 5
         num_pages = 4
         for i in range(num_pages):
-            result = get_project_documents(self.get_loggedin_request(), 1, i+1, page_size)
+            result = get_project_documents(self.get_loggedin_request(), test_project_id, i+1, page_size)
             self.assertEqual(len(result["items"]), page_size)
             self.assertEqual(result["total_count"], num_docs_per_project)
 
         # Gets all training docs in a project
-        result = get_project_training_documents(self.get_loggedin_request(), 1)
+        result = get_project_training_documents(self.get_loggedin_request(), test_project_id)
         self.assertEqual(len(result["items"]), num_train_docs_per_project)
         self.assertEqual(result["total_count"], num_train_docs_per_project)
 
@@ -598,12 +627,12 @@ class TestDocument(TestEndpoint):
         page_size = 5
         num_pages = 2
         for i in range(num_pages):
-            result = get_project_training_documents(self.get_loggedin_request(), 1, i + 1, page_size)
+            result = get_project_training_documents(self.get_loggedin_request(), test_project_id, i + 1, page_size)
             self.assertEqual(len(result["items"]), page_size)
             self.assertEqual(result["total_count"], num_train_docs_per_project)
 
         # Gets all test docs in a project
-        result = get_project_test_documents(self.get_loggedin_request(), 1)
+        result = get_project_test_documents(self.get_loggedin_request(), test_project_id)
         self.assertEqual(len(result["items"]), num_test_docs_per_project)
         self.assertEqual(result["total_count"], num_test_docs_per_project)
 
@@ -611,7 +640,7 @@ class TestDocument(TestEndpoint):
         page_size = 5
         num_pages = 3
         for i in range(num_pages):
-            result = get_project_test_documents(self.get_loggedin_request(), 1, i + 1, page_size)
+            result = get_project_test_documents(self.get_loggedin_request(), test_project_id, i + 1, page_size)
             self.assertEqual(len(result["items"]), page_size)
             self.assertEqual(result["total_count"], num_test_docs_per_project)
 
@@ -626,15 +655,15 @@ class TestAnnotation(TestEndpoint):
         proj = Project.objects.create(owner=self.get_default_user())
         doc = Document.objects.create(project=proj)
 
-        test_annote = {
-            "label1": "value1"
-        }
+        initial_annotation_data = {"label1": "Annotation content", "label2": "Someothercontent"}
 
-        annote_id = add_document_annotation(self.get_loggedin_request(), doc.pk, test_annote)
+        annote_id = add_document_annotation(self.get_loggedin_request(),
+                                            doc.pk,
+                                            initial_annotation_data)
 
         annotation = Annotation.objects.get(pk=annote_id)
         self.assertEqual(annotation.user.pk, self.get_default_user().pk)  # Annotation linked to user
-        self.assertEqual(annotation.data["label1"], "value1")  # Data check
+        self.assertDictEqual(annotation.data, initial_annotation_data)  # Data check
 
 
 class TestDocumentAndAnnotation(TestEndpoint):
@@ -673,7 +702,8 @@ class TestAnnotationExport(TestEndpoint):
         with open('examples/documents.json') as f:
             for input_document in json.load(f):
                 document = Document.objects.create(project=project, data=input_document)
-                Annotation.objects.create(user=user, document=document, data={"testannotation": "test"})
+                annotation = Annotation.objects.create(user=user, document=document)
+                annotation.data = {"testannotation": "test"}
 
         # test the endpoint
         response = c.post("/rpc/", {"jsonrpc": "2.0", "method": "get_annotations", "id": 20, "params": [project.id]},
@@ -734,13 +764,28 @@ class TestUserAnnotationList(TestEndpoint):
         # Create a project with user annotation
         project = Project.objects.create(name="Test project", owner=user)
         num_docs = 30
+        num_test_docs = 10
+        num_train_docs = 15
         num_annotations = 10
         current_num_annotation = 0
+
+
+        # Create documents with certain number of annotations
         for i in range(num_docs):
             doc = Document.objects.create(project=project)
             if current_num_annotation < num_annotations:
-                annotation = Annotation.objects.create(document=doc, user=user)
+                annotation = Annotation.objects.create(document=doc, user=user, status=Annotation.COMPLETED)
                 current_num_annotation += 1
+
+        # Create test and train documents with an annoation each
+        for i in range(num_test_docs):
+            doc = Document.objects.create(project=project, doc_type=DocumentType.TEST)
+            Annotation.objects.create(document=doc, user=user, status=Annotation.COMPLETED)
+
+        for i in range(num_train_docs):
+            doc = Document.objects.create(project=project, doc_type=DocumentType.TRAINING)
+            Annotation.objects.create(document=doc, user=user, status=Annotation.COMPLETED)
+
 
         # Create projects without annotations
         for i in range(10):
@@ -755,6 +800,8 @@ class TestUserAnnotationList(TestEndpoint):
         result = get_user_annotations_in_project(self.get_loggedin_request(), projects_list[0]["id"], 1)
         self.assertEqual(len(result["items"]), num_annotations)
         self.assertEqual(result["total_count"], num_annotations)
+        for doc in result["items"]:
+            self.assertEqual("Annotation", doc["doc_type"])
 
         # Gets paginated results
         page_size = 5
@@ -779,7 +826,7 @@ class TestUserManagement(TestEndpoint):
         user.is_staff = True
         user.save()
 
-        get_user_model().objects.create(username="ann1")
+        self.ann1 = get_user_model().objects.create(username="ann1")
         get_user_model().objects.create(username="ann2")
         get_user_model().objects.create(username="ann3")
 
@@ -804,7 +851,7 @@ class TestUserManagement(TestEndpoint):
         c = self.get_loggedin_client()
 
         data = {
-            "id": 2,
+            "id": self.ann1.id,
             "username": "ann1",
             "email": "ann1@test.com",
             "is_manager": True,
@@ -907,6 +954,40 @@ class TestAnnotationTaskManager(TestEndpoint):
         ann1.refresh_from_db()
         task_context = get_annotation_task(ann1_request)
         self.assertIsNone(task_context)
+
+    def test_get_annotation_task_with_id(self):
+        # Create users and project, add them as annotators
+        manager = self.get_default_user()
+        manager_request = self.get_loggedin_request()
+
+        ann1 = get_user_model().objects.create(username="ann1")
+        ann1_request = self.get_request()
+        ann1_request.user = ann1
+
+        proj = Project.objects.create(owner=manager)
+
+        annotation_data = {
+            "test_label1": "test_value1",
+            "test_label2": "test_value2",
+        }
+
+        # Create documents and annotations
+        num_docs = 10
+
+        for i in range(num_docs):
+            doc = Document.objects.create(project=proj)
+            anno = Annotation.objects.create(document=doc, user=ann1, status=Annotation.COMPLETED)
+            anno.data = annotation_data
+
+        ann1.refresh_from_db()
+        all_annotations = ann1.annotations.all()
+        for annotation in all_annotations:
+            result = get_annotation_task_with_id(ann1_request, annotation.id)
+            self.assertEqual(annotation.id, result["annotation_id"])
+            self.assertEqual(annotation.document.id, result["document_id"])
+            self.assertEqual(annotation.document.project.id, result["project_id"])
+            self.assertDictEqual(annotation_data, result["annotation_data"])
+
 
     def test_allowed_to_annotate(self):
         """
@@ -1420,6 +1501,99 @@ class TestAnnotationTaskManagerTrainTestMode(TestEndpoint):
                 num_completed_tasks += 1
 
         return num_completed_tasks
+
+class TestAnnotationChange(TestEndpoint):
+
+
+    def test_change_annotation_history(self):
+        # Create initial project with annotation
+        project = Project.objects.create(name="Test1")
+        doc = Document.objects.create(project=project)
+        annotation = Annotation.objects.create(document=doc,
+                                               user=self.get_default_user()
+                                               )
+
+        initial_annotation_data = {
+            "label": "Test annotation 1"
+        }
+
+        new_annotation_data = {
+            "label": "Changed annotation"
+        }
+
+        # Fails if tries to change before the annotation is marked as completed
+        with self.assertRaises(RuntimeError):
+            change_annotation(self.get_loggedin_request(), annotation_id=annotation.pk, new_data=new_annotation_data)
+
+
+        # Compete the annotation
+        annotation.complete_annotation(initial_annotation_data)
+        annotation.refresh_from_db()
+
+        # Checks that the data goes into the change list
+        self.assertEqual(1, annotation.change_history.all().count(), "Must already have 1 data history item")
+        self.assertDictEqual(initial_annotation_data, annotation.data)
+
+        # Tries to change annotation
+        change_annotation(self.get_loggedin_request(), annotation_id=annotation.pk, new_data=new_annotation_data)
+
+        self.assertEqual(2, annotation.change_history.all().count(), "Must have 2 data history items")
+        self.assertDictEqual(new_annotation_data, annotation.data)
+
+
+        # Fails for testing document, not allowed to change
+        test_doc = Document.objects.create(project=project, doc_type=DocumentType.TEST)
+        test_annotation = Annotation.objects.create(document=test_doc)
+        test_annotation.complete_annotation(initial_annotation_data)
+
+
+        with self.assertRaises(RuntimeError):
+            change_annotation(self.get_loggedin_request(), test_annotation.pk, new_annotation_data)
+
+        # Fails for training document, not allowed to change
+        train_doc = Document.objects.create(project=project, doc_type=DocumentType.TRAINING)
+        train_annotation = Annotation.objects.create(document=train_doc)
+        train_annotation.complete_annotation(initial_annotation_data)
+
+        with self.assertRaises(RuntimeError):
+            change_annotation(self.get_loggedin_request(), train_annotation.pk, new_annotation_data)
+
+    def test_delete_annotation_change_history(self):
+        # Create initial project with annotation
+        project = Project.objects.create(name="Test1")
+        doc = Document.objects.create(project=project)
+        annotation = Annotation.objects.create(document=doc,
+                                               user=self.get_default_user()
+                                               )
+
+        initial_annotation_data = {
+            "label": "Test annotation 1"
+        }
+
+        new_annotation_data = {
+            "label": "Changed annotation"
+        }
+
+        # Complete the annotation and change once
+        annotation.complete_annotation(initial_annotation_data)
+        annotation.change_annotation(new_annotation_data)
+
+        self.assertEqual(2, annotation.change_history.all().count(), "Must have 2 change entries")
+
+        delete_annotation_change_history(self.get_loggedin_request(),
+                                         annotation_change_history_id=annotation.change_history.first().pk)
+
+        # Raises an error if there's only one entry left, should not be able to delete
+        with self.assertRaises(RuntimeError):
+            delete_annotation_change_history(self.get_loggedin_request(),
+                                             annotation_change_history_id=annotation.change_history.first().pk)
+
+
+
+
+
+
+
 
 
 

@@ -101,14 +101,15 @@
         </b-form-checkbox>
       </b-form-group>
       <b-form-group label="Auto elevate to annotator"
-        description="Automatically allows annotation on real dataset after the training and testing stage. A disabled stage counts as having been completed.">
+                    description="Automatically allows annotation on real dataset after the training and testing stage. A disabled stage counts as having been completed.">
         <b-form-checkbox
             id="project-can-annotate-after-passing"
             v-model="local_project.can_annotate_after_passing_training_and_test"
             name="can-annotate-after-passing-checkbox"
             switch
         >
-          <span v-if="local_project.can_annotate_after_passing_training_and_test">Can</span><span v-else>Cannot</span> annotate after
+          <span v-if="local_project.can_annotate_after_passing_training_and_test">Can</span><span v-else>Cannot</span>
+          annotate after
           passing
         </b-form-checkbox>
       </b-form-group>
@@ -120,6 +121,29 @@
       <b-form-group label="Gold standard field"
                     description="The field in document's JSON that contains the ideal annotation values and explanation for the annotation.">
         <b-form-input v-model="local_project.document_gold_standard_field"></b-form-input>
+      </b-form-group>
+      <b-form-group label="Allow annotation change after submission"
+                    description="Allow annotators to change their annotations after submitting.">
+        <b-form-checkbox
+            id="project-allow-annotation-change-after-submission"
+            v-model="local_project.allow_annotation_change"
+            name="can-change-annotation-checkbox"
+            switch
+        >
+        </b-form-checkbox>
+      </b-form-group>
+      <b-form-group label="Pre-annotation"
+                    description="Pre-fill the form with annotation provided in the specified field.">
+        <b-input-group>
+          <b-input-group-prepend is-text>
+            Field name
+          </b-input-group-prepend>
+          <b-input v-model="local_project.document_pre_annotation_field" name="pre-annotation-field"></b-input>
+
+
+        </b-input-group>
+
+
       </b-form-group>
       <b-form-row>
         <b-col>
@@ -143,8 +167,11 @@
             is shown in the <a href="#annotation-output-preview">Annotation output preview</a> below.</p>
           <b-card>
             <AnnotationRenderer :config="local_project.configuration"
-                                :document="local_project.document_input_preview"
-                                @input="annotationOutputHandler"></AnnotationRenderer>
+                                :doc_preannotation_field="local_project.document_pre_annotation_field"
+                                :document="previewDocument"
+                                data-cy="annotation-renderer"
+                                @input="annotationOutputHandler"
+            ></AnnotationRenderer>
 
           </b-card>
         </b-col>
@@ -152,20 +179,41 @@
       <b-form-row>
         <b-col>
           <h5 class="mt-4" id="document-input-preview">Document input preview</h5>
-          <p class="form-text text-muted">An example of a document in JSON. You can modify the contents below to see
-            how your
-            document looks in the <a href="#annotation-preview">Annotation Preview</a>.</p>
-          <VJsoneditor v-model="local_project.document_input_preview" :options="{mode: 'code'}" :plus="false"
-                       height="400px"></VJsoneditor>
+          <div v-if="docFormatPref === 'JSON'">
+            <p class="form-text text-muted">An example of a document in JSON. You can modify the contents below to see
+              how your
+              document looks in the <a href="#annotation-preview">Annotation Preview</a>.</p>
+            <VJsoneditor v-model="local_project.document_input_preview" :options="{mode: 'code'}" :plus="false"
+                         height="400px"></VJsoneditor>
+
+          </div>
+          <div v-else>
+            <p class="form-text text-muted">Upload a csv to use as input to the
+              <a href="#annotation-preview">Annotation Preview</a>. Only one row is displayed at a time,
+              click on a different row to preview a different document.</p>
+
+            <CSVDisplay v-model="project.document_input_preview_csv"
+                        @selected-row-value="docPreviewTableRowSelectedHandler"></CSVDisplay>
+
+          </div>
+
+
         </b-col>
         <b-col>
           <h5 class="mt-4" id="annotation-output-preview">Annotation output preview</h5>
           <p class="form-text text-muted">
-            Live preview of the JSON annotation output after performing annotation in the <a
+            Live preview of the {{ docFormatPref }} annotation output after performing annotation in the <a
               href="#annotation-preview">Annotation preview</a>.
           </p>
-          <VJsoneditor v-model="annotationOutput" :options="{mode: 'preview', mainMenuBar: false}" :plus="false"
-                       height="400px"></VJsoneditor>
+
+          <VJsoneditor v-if="docFormatPref === 'JSON'" v-model="annotationOutput"
+                       :options="{mode: 'preview', mainMenuBar: false}" :plus="false"
+                       height="400px" data-role="annotation-output-json"></VJsoneditor>
+          <b-table v-else :items="jsonToTableData(annotationOutput)" data-role="annotation-output-csv">
+            <template #head()="{ column }">
+              {{ column }}
+            </template>
+          </b-table>
         </b-col>
       </b-form-row>
 
@@ -175,19 +223,21 @@
 </template>
 
 <script>
-import {mapActions, mapState} from "vuex";
+import {mapActions, mapGetters, mapState} from "vuex";
 import ProjectStatusBadges from "@/components/ProjectStatusBadges";
 import ProjectIcon from "@/components/ProjectIcon";
 import MarkdownEditor from "@/components/MarkdownEditor";
 import JsonEditor from "@/components/JsonEditor";
 import AnnotationRenderer from "@/components/AnnotationRenderer";
 import VJsoneditor from "v-jsoneditor";
-import {readFileAsync, toastError, toastSuccess} from "@/utils";
+import {flatten, readFileAsync, toastError, toastSuccess} from "@/utils";
+import CSVDisplay from "@/components/CSVDisplay";
 
 
 export default {
   name: "ProjectConfiguration",
   components: {
+    CSVDisplay,
     ProjectStatusBadges,
     ProjectIcon,
     MarkdownEditor, JsonEditor, AnnotationRenderer, VJsoneditor
@@ -204,6 +254,7 @@ export default {
         annotator_max_annotation: 0.6,
         allow_document_reject: true,
         document_input_preview: {},
+        document_input_preview_csv: "",
         is_configured: false,
         is_completed: false,
         has_training_stage: false,
@@ -211,10 +262,11 @@ export default {
         can_annotate_after_passing_training_and_test: false,
         min_test_pass_threshold: 0.8,
         document_id_field: "",
+        document_pre_annotation_field: ""
       },
       annotationOutput: {},
       configurationStr: "",
-
+      docPreviewCsvSelectedRowValue: null,
       loading: false,
     }
   },
@@ -232,6 +284,7 @@ export default {
     }
   },
   computed: {
+    ...mapGetters(["docFormatPref"]),
     loadingVariant() {
       if (this.loading) {
         return "secondary"
@@ -239,10 +292,20 @@ export default {
         return "primary"
       }
     },
+    previewDocument() {
+      if (this.docFormatPref === 'JSON') {
+        return this.local_project.document_input_preview
+      } else {
+        return this.docPreviewCsvSelectedRowValue
+      }
+    }
   },
   methods: {
     ...mapActions(["getProject",
       "updateProject", "importProjectConfiguration", "exportProjectConfiguration", "cloneProject"]),
+    jsonToTableData(data) {
+      return [flatten(data)]
+    },
     async saveProjectHandler() {
       this.setLoading(true)
       try {
@@ -313,6 +376,9 @@ export default {
     },
     annotationOutputHandler(value) {
       this.annotationOutput = value
+    },
+    docPreviewTableRowSelectedHandler(value) {
+      this.docPreviewCsvSelectedRowValue = value
     },
     async setLoading(isLoading) {
       this.loading = isLoading

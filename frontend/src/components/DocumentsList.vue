@@ -1,6 +1,6 @@
 <template>
   <b-overlay :show="isLoading">
-    <b-button-toolbar v-if="showMenuBar" class="mt-2 mb-2" >
+    <b-button-toolbar v-if="showMenuBar" class="mt-2 mb-2">
       <b-button-group>
         <b-button v-if="isPageSelected()"
                   :title="'Clear selection. (' + selectedDocs.size + ' documents and ' + selectedAnnotations.size + ' annotations selected)'"
@@ -38,7 +38,7 @@
           Delete
         </b-button>
         <b-button :variant="loadingVariant" :disabled="isLoading" @click="fetchDocuments">
-          <b-icon-arrow-clockwise ></b-icon-arrow-clockwise>
+          <b-icon-arrow-clockwise></b-icon-arrow-clockwise>
           Refresh
         </b-button>
         <b-button variant="primary" @click="uploadHandler" title="Upload documents">
@@ -83,7 +83,7 @@
                 <span @click="toggleDocument(doc)" style="cursor: pointer" class="mr-1">
                   <b-badge variant="primary" :class="{'docBgSelected': isDocSelected(doc)}">
                     <b-icon-file-earmark-check v-if="isDocSelected(doc)"
-                                             :class="{ 'docIcon': true, 'docIconSelected': isDocSelected(doc)}"></b-icon-file-earmark-check>
+                                               :class="{ 'docIcon': true, 'docIconSelected': isDocSelected(doc)}"></b-icon-file-earmark-check>
                   <b-icon-file-earmark-text-fill v-else
                                                  :class="{ 'docIcon': true, 'docIconSelected': isDocSelected(doc)}"></b-icon-file-earmark-text-fill>
                   </b-badge>
@@ -91,7 +91,10 @@
                 </span>
 
                 <strong>
-                  <span v-if="doc.doc_id" title="ID of the document. ID is obtained from the field specified in the project's configuration.">{{ doc.doc_id }}</span>
+                  <span v-if="doc.doc_id"
+                        title="ID of the document. ID is obtained from the field specified in the project's configuration.">{{
+                      doc.doc_id
+                    }}</span>
                   <b-badge v-else variant="warning" :title="`Specified ID field does not exist in document.`">
                     <b-icon-exclamation-triangle></b-icon-exclamation-triangle>
                   </b-badge>
@@ -131,13 +134,17 @@
 
           </div>
 
-          <AsyncJsonDisplay
-              class="mt-2"
-              :fetch-function="getDocumentContent"
-              :fetch-param="doc.id"
-              show-text="Show document data"
-              hide-text="Hide document data">
-          </AsyncJsonDisplay>
+
+          <div v-if="documentDisplayFormat === 'CSV'" class="mt-2 mb-2 p-2" data-role="document-display-json">
+            <b-table :items="jsonToTableData(doc.data)">
+              <template #head()="{ column }">
+                {{ column }}
+              </template>
+            </b-table>
+          </div>
+          <div v-else class="mt-2 mb-2 p-2 data-bg" data-role="document-display-json">
+            <vue-json-pretty :data="doc.data"></vue-json-pretty>
+          </div>
 
 
           <BCard v-for="anno in doc.annotations" :key="anno.id"
@@ -145,64 +152,17 @@
                  data-role="annotation-display-container">
 
             <BMedia>
-              <div class="mb-2">
-                <span @click="toggleAnnotation(anno, doc)" style="cursor: pointer" class="mr-1">
-                  <b-badge v-if="anno.completed" variant="success" :class="{ 'docBgSelected': isAnnotationSelected(anno)} " title="Annotation completed">
-                    <b-icon-pencil-fill :class="{ 'docIcon': true, 'docIconSelected': isAnnotationSelected(anno)}"></b-icon-pencil-fill>
-                  </b-badge>
-                  <b-badge v-else-if="anno.rejected" variant="danger" :class="{ 'docBgSelected': isAnnotationSelected(anno)} " title="Annotation rejected">
-                    <b-icon-x-square-fill :class="{ 'docIcon': true, 'docIconSelected': isAnnotationSelected(anno)}"></b-icon-x-square-fill>
-                  </b-badge>
-                  <b-badge v-else-if="anno.timed_out" variant="warning" :class="{ 'docBgSelected': isAnnotationSelected(anno)} " title="Annotation timed out">
-                    <b-icon-clock :class="{ 'docIcon': true, 'docIconSelected': isAnnotationSelected(anno)}"></b-icon-clock>
-                  </b-badge>
-                  <b-badge v-else-if="anno.aborted" variant="secondary" :class="{ 'docBgSelected': isAnnotationSelected(anno)} " title="Annotation aborted">
-                    <b-icon-stop-fill :class="{ 'docIcon': true, 'docIconSelected': isAnnotationSelected(anno)}"></b-icon-stop-fill>
-                  </b-badge>
-                  <b-badge v-else variant="primary" :class="{ 'docBgSelected': isAnnotationSelected(anno)} " title="Annotation still pending">
-                    <b-icon-play-fill :class="{ 'docIcon': true, 'docIconSelected': isAnnotationSelected(anno)}"></b-icon-play-fill>
-                  </b-badge>
-                </span>
-                <strong title="ID of the annotation object. Used internally by the application.">{{ anno.id }}</strong>
-              </div>
-              <div title="Annotated by">
-                <b-icon-person-fill></b-icon-person-fill>
-                {{ anno.annotated_by }}
-              </div>
-
-              <div>
-                <b-icon-clock></b-icon-clock>
-                Created: {{ anno.created | datetime }}
-              </div>
-              <div v-if="anno.completed">
-                <b-icon-clock></b-icon-clock>
-                Completed: {{ anno.completed | datetime }}
-              </div>
-              <div v-else-if="anno.rejected">
-                <b-icon-clock></b-icon-clock>
-                Rejected: {{ anno.rejected | datetime }}
-              </div>
-              <div v-else-if="anno.timed_out">
-                <b-icon-clock></b-icon-clock>
-                Time out: {{ anno.timed_out | datetime }}
-              </div>
-              <div v-else-if="anno.aborted">
-                <b-icon-clock></b-icon-clock>
-                Aborted at: {{ anno.aborted | datetime }}
-              </div>
-              <div v-else>
-                <b-icon-clock></b-icon-clock>
-                Will time out at: {{ anno.times_out_at | datetime }}
-              </div>
-
-              <AsyncJsonDisplay v-if="anno.completed"
-                                class="mt-2"
-                                :fetch-function="getAnnotationContent"
-                                :fetch-param="anno.id"
-                                show-text="Show annotation data"
-                                hide-text="Hide annotation data">
-
-              </AsyncJsonDisplay>
+              <AnnotationItem :annotation="anno"
+                              :document="doc"
+                              :project-config="projectConfig"
+                              :allow-annotation-edit="allowAnnotationEdit"
+                              :selected="isAnnotationSelected(anno)"
+                              :allow-change-delete="allowAnnotationChangeDelete"
+                              :document-display-format="documentDisplayFormat"
+                              @annotation-changed="fetchAnnotation"
+                              @selection-changed="toggleAnnotation"
+              >
+              </AnnotationItem>
             </BMedia>
 
           </BCard>
@@ -228,12 +188,23 @@ import Search from "@/components/Search";
 import DeleteModal from "@/components/DeleteModal";
 import _ from "lodash"
 import {toastError, toastSuccess} from "@/utils";
+import AnnotationRenderer from "@/components/AnnotationRenderer";
+import AnnotationItem from "@/components/AnnotationItem";
+import {flatten} from '@/utils';
 
 /**
  * Displays a list of documents, with builtin pagination.
  *
  * It's the responsibility of the parent component to respond to the `fetch` event to retrieve new
  * data when the page selection changes.
+ *
+ * Properties
+ * documents:array - An array of documents to be displayed
+ * isLoading:bool - Toggle showing loading status, cannot interact with the component when loading
+ * showMenuBar:bool - Shows the menu bar for performing operations related to documents, e.g. delete, export, etc.
+ * showFilters:bool - Show the filtering bar for searching/sorting documents
+ * allowAnnotationEdit:bool - Whether to allow user to edit the annotation (make a change in annotation history)
+ * allowAnnotationChangeDelete:bool - Whether to allow user to delete an annotation's change history
  *
  * Events
  * fetch(currentPage, pageSize) - The component emits a `fetch` event when page selection changes or refresh
@@ -245,7 +216,15 @@ import {toastError, toastSuccess} from "@/utils";
  */
 export default {
   name: "DocumentsList",
-  components: {Search, PaginationAsync, AsyncJsonDisplay, DeleteModal},
+  components: {
+    AnnotationItem,
+    AnnotationRenderer,
+    Search,
+    PaginationAsync,
+    AsyncJsonDisplay,
+    DeleteModal,
+    VueJsonPretty
+  },
   data() {
     return {
       searchStr: "",
@@ -279,11 +258,29 @@ export default {
       default: false,
     },
     showMenuBar: {
-      default: true
+      default: true,
     },
     showFilters: {
-      default: true
+      default: true,
     },
+    /**
+     * Between json or csv
+     */
+    documentDisplayFormat: {
+      default: "json"
+    },
+    allowAnnotationEdit: {
+      default: false,
+    },
+    allowAnnotationChangeDelete: {
+      default: false
+    },
+    /**
+     * Used for when user requests to edit annotation
+     */
+    projectConfig: {
+      default: null,
+    }
   },
   computed: {
     loadingVariant() {
@@ -296,32 +293,38 @@ export default {
 
   },
   methods: {
-    ...mapActions(["getDocumentContent", "getAnnotationContent"]),
-    pageSizeChangeHandler(newSize){
+    ...mapActions(["getDocumentContent", "getAnnotationContent", "changeAnnotation"]),
+    jsonToTableData(data) {
+      return [flatten(data)]
+    },
+    pageSizeChangeHandler(newSize) {
       this.itemsPerPage = newSize
       this.fetchDocuments()
     },
-    fetchDocuments(){
+    fetchDocuments() {
       this.$emit("fetch", this.currentPage, this.itemsPerPage)
     },
-    deleteHandler(){
+    fetchAnnotation(annotationId) {
+      this.$emit("fetch-annotation", annotationId)
+    },
+    deleteHandler() {
       this.$emit("delete", this.getSelectionList())
     },
-    uploadHandler(){
+    uploadHandler() {
       this.$emit("upload")
     },
-    exportHandler(){
+    exportHandler() {
       this.$emit("export", this.getSelectionList())
     },
-    getSelectionList(){
+    getSelectionList() {
       return {
-            documentIds: [...this.selectedDocs],
-            annotationIds: [...this.selectedAnnotations],
-          }
+        documentIds: [...this.selectedDocs],
+        annotationIds: [...this.selectedAnnotations],
+      }
     },
-    isPageSelected(){
-      for(const doc of this.documents){
-        if(!this.selectedDocs.has(doc.id)){
+    isPageSelected() {
+      for (const doc of this.documents) {
+        if (!this.selectedDocs.has(doc.id)) {
           return false
         }
       }
@@ -331,28 +334,27 @@ export default {
     searchDocs(searchStr) {
       this.searchStr = searchStr
     },
-    emitSelectionList(){
+    emitSelectionList() {
       // Forces vue to track the set change
       this.selectedDocs = new Set(this.selectedDocs)
       this.selectedAnnotations = new Set(this.selectedAnnotations)
 
       this.$emit("selection-changed", this.getSelectionList())
     },
-    selectDocument(doc, doSelect, emitEvent=true){
-      if(doSelect){
+    selectDocument(doc, doSelect, emitEvent = true) {
+      if (doSelect) {
         this.selectedDocs.add(doc.id)
-        for(let anno of doc.annotations){
+        for (let anno of doc.annotations) {
           this.selectedAnnotations.add(anno.id)
         }
-      }
-      else{
+      } else {
         this.selectedDocs.delete(doc.id)
-        for(let anno of doc.annotations){
+        for (let anno of doc.annotations) {
           this.selectedAnnotations.delete(anno.id)
         }
       }
 
-      if(emitEvent)
+      if (emitEvent)
         this.emitSelectionList()
 
     },
@@ -362,9 +364,9 @@ export default {
     isDocSelected(doc) {
       return this.selectedDocs.has(doc.id)
     },
-    selectAnnotation(anno, doSelect, doc, emitEvent=true){
+    selectAnnotation(anno, doSelect, doc, emitEvent = true) {
       //Can't change selection if document is already selected
-      if(this.isDocSelected(doc))
+      if (this.isDocSelected(doc))
         return
 
       if (doSelect)
@@ -373,7 +375,7 @@ export default {
         this.selectedAnnotations.delete(anno.id)
 
 
-      if(emitEvent)
+      if (emitEvent)
         this.emitSelectionList()
 
     },
@@ -383,46 +385,45 @@ export default {
     isAnnotationSelected(anno) {
       return this.selectedAnnotations.has(anno.id)
     },
-    clearDocumentSelection(doEmitEvent=true){
-      for(let doc of this.documents){
+    clearDocumentSelection(doEmitEvent = true) {
+      for (let doc of this.documents) {
         this.selectDocument(doc, false, false)
       }
-      if(doEmitEvent)
+      if (doEmitEvent)
         this.emitSelectionList()
     },
-    clearAnnotationSelection(doEmitEvent=true){
-      for(let doc in this.documents){
-        for(let anno in doc.annotations){
-          this.selectAnnotation(anno, false, doc,false)
+    clearAnnotationSelection(doEmitEvent = true) {
+      for (let doc in this.documents) {
+        for (let anno in doc.annotations) {
+          this.selectAnnotation(anno, false, doc, false)
         }
       }
 
-      if(doEmitEvent)
+      if (doEmitEvent)
         this.emitSelectionList()
 
     },
-    selectAllDocuments(doEmitEvent=true){
-      for(let doc of this.documents){
+    selectAllDocuments(doEmitEvent = true) {
+      for (let doc of this.documents) {
         this.selectDocument(doc, true, false)
       }
 
-      if(doEmitEvent)
+      if (doEmitEvent)
         this.emitSelectionList()
 
     },
-    selectAllAnnotations(doEmitEvent=true){
-      for(let doc of this.documents){
-        for(let anno of doc.annotations){
+    selectAllAnnotations(doEmitEvent = true) {
+      for (let doc of this.documents) {
+        for (let anno of doc.annotations) {
           this.selectAnnotation(anno, true, doc, false)
         }
       }
-      if(doEmitEvent)
+      if (doEmitEvent)
         this.emitSelectionList()
     },
-
   },
   watch: {
-    currentPage:{
+    currentPage: {
       handler() {
         this.fetchDocuments()
       }
@@ -445,7 +446,7 @@ export default {
   background: #b3b3b3;
 }
 
-.docBgSelected{
+.docBgSelected {
   background: #fff;
 }
 
@@ -454,7 +455,7 @@ export default {
   height: auto
 }
 
-.docIconSelected{
+.docIconSelected {
   color: black;
 }
 

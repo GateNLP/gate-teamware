@@ -16,7 +16,9 @@ export default new Vuex.Store({
             isManager: false,
             isAdmin: false,
             isActivated: false,
+            docFormatPref: "JSON",
         },
+
     },
     getters:{
         isAuthenticated: state => state.user.isAuthenticated,
@@ -24,6 +26,9 @@ export default new Vuex.Store({
         isAdmin: state => state.user.isAdmin,
         isActivated: state => state.user.isActivated,
         username: state => state.user.username,
+        docFormatPref(state){
+            return state.user.docFormatPref
+        },
     },
     mutations: {
         activateUser(state){
@@ -36,6 +41,9 @@ export default new Vuex.Store({
             state.user.isAdmin = params.isAdmin;
             state.user.isActivated = params.isActivated;
         },
+        updateDocFormatPref(state, preference){
+            state.user.docFormatPref = preference
+        }
     },
     actions: {
         updateUser({commit}, params) {
@@ -150,6 +158,16 @@ export default new Vuex.Store({
                 throw e
             }
         },
+        async setUserDocumentFormatPreference({dispatch, commit}, preference){
+            try{
+                commit("updateDocFormatPref", preference)
+                let response = await rpc.call("set_user_document_format_preference", preference)
+
+            }catch(e){
+                console.error(e)
+                throw e
+            }
+        },
         async is_authenticated({dispatch, commit}) {
             try{
                 let response = await rpc.call("is_authenticated");
@@ -164,6 +182,8 @@ export default new Vuex.Store({
         async getUser({dispatch, commit}) {
             try{
                 let user = await rpc.call("get_user_details");
+                commit("updateDocFormatPref", user.doc_format_pref)
+
                 return user
             }catch (e){
                 console.error(e);
@@ -484,6 +504,16 @@ export default new Vuex.Store({
                 throw e
             }
 
+
+        },
+         async getUserAnnotationTaskWithID({dispatch, commit}, annotationID) {
+            try{
+                let annotationTask = await rpc.call("get_annotation_task_with_id", annotationID)
+                return annotationTask
+            }catch(e){
+                console.error(e)
+                throw e
+            }
         },
         async completeUserAnnotationTask({dispatch, commit}, {annotationID, data, annotationTime}) {
 
@@ -505,18 +535,36 @@ export default new Vuex.Store({
             }
 
         },
-        async getDocumentContent({dispatch, commit}, id) {
+        async changeAnnotation({dispatch, commit}, {annotationID, newData}) {
             try{
-                return await rpc.call("get_document_content", id)
+                return await rpc.call("change_annotation", annotationID, newData)
             }catch(e){
                 console.error(e)
                 throw e
             }
 
         },
-        async getAnnotationContent({dispatch, commit}, id) {
+        async getDocument({dispatch, commit}, id) {
             try{
-                return await rpc.call("get_annotation_content", id)
+                return await rpc.call("get_document", id)
+            }catch(e){
+                console.error(e)
+                throw e
+            }
+
+        },
+        async getAnnotation({dispatch, commit}, id) {
+            try{
+                return await rpc.call("get_annotation", id)
+            }catch(e){
+                console.error(e)
+                throw e
+            }
+
+        },
+        async deleteAnnotationChangeHistory({dispatch, commit}, id) {
+            try{
+                return await rpc.call("delete_annotation_change_history", id)
             }catch(e){
                 console.error(e)
                 throw e

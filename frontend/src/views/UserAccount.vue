@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <h3>My Account</h3>
+    <h1>My Account</h1>
     <b-row class="mt-3">
       <b-col>
         <b>Username:</b> {{ user.username }}
@@ -87,24 +87,22 @@
 
       </b-col>
     </b-row>
-
-    <AccountActivationGenerator></AccountActivationGenerator>
-
-    <b-row class="my-3">
+    <b-row class="mt-3">
       <b-col>
-        <h3>My Annotations</h3>
+        <b-form inline>
+          <b class="mr-2">Document format preference:</b>
+          <b-form-radio-group v-model="user.doc_format_pref"
+                              name="document_format_pref"
+                              :options="doc_format_pref_options"
+                              @change="userDocumentFormatPreferenceHandler"></b-form-radio-group>
 
-        <div v-if="annotation_projects">
-          <div v-for="project in annotation_projects">
-            <UserAnnotatedProject :project="project"></UserAnnotatedProject>
-          </div>
-        </div>
-        <div v-else>
-          No annotations yet
-        </div>
+
+        </b-form>
 
       </b-col>
     </b-row>
+
+    <AccountActivationGenerator></AccountActivationGenerator>
 
   </div>
 </template>
@@ -116,9 +114,9 @@ import ProjectIcon from "@/components/ProjectIcon";
 import UserAnnotatedProject from "@/components/UserAnnotatedProject";
 
 export default {
-  name: "UserProfile",
-  title: "User Profile",
-  components: {UserAnnotatedProject, ProjectIcon, AccountActivationGenerator},
+  name: "UserAccount",
+  title: "My Account",
+  components: {AccountActivationGenerator},
   data() {
     return {
       error: "",
@@ -130,6 +128,7 @@ export default {
         created: null,
         email: null,
         receive_mail_notifications: false,
+        doc_format_pref: "JSON",
       },
       form: {
         email: null,
@@ -137,8 +136,10 @@ export default {
         confirmpassword: null,
       },
       activationEmailSent: false,
-      annotation_projects: [],
-
+      doc_format_pref_options: [
+          {text: "JSON", value: "JSON"},
+          {text: "CSV", value: "CSV"},
+      ]
     }
   },
   computed: {
@@ -146,7 +147,7 @@ export default {
   },
   methods: {
     ...mapActions(["getUser", "changeEmail", "changePassword",
-      "setUserReceiveMailNotification", "getUserAnnotatedProjects", "generateUserActivation", "testMakeToast"]),
+      "setUserReceiveMailNotification", "setUserDocumentFormatPreference", "generateUserActivation"]),
     async EmailSubmitHandler() {
       try{
         await this.changeEmail(this.form);
@@ -176,10 +177,16 @@ export default {
         toastError("Could not change user mail notification preference", e, this)
       }
     },
+    async userDocumentFormatPreferenceHandler(){
+      try{
+        await this.setUserDocumentFormatPreference(this.user.doc_format_pref)
+      }catch (e){
+        toastError("Could not change document format preference", e, this)
+      }
+    },
   },
   async mounted() {
     this.user = await this.getUser();
-    this.annotation_projects = await this.getUserAnnotatedProjects();
   },
   watch: {
     form: {

@@ -27,7 +27,8 @@ module.exports = {
                 children: [
                     'developerguide/',
                     'developerguide/testing',
-                    "developerguide/api_docs"
+                    'developerguide/releases',
+                    "developerguide/api_docs",
                 ]
             },
         ],

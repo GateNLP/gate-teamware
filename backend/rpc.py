@@ -24,7 +24,8 @@ from gatenlp import annotation_set
 
 from backend.errors import AuthError
 from backend.rpcserver import rpc_method, rpc_method_auth, rpc_method_manager, rpc_method_admin
-from backend.models import Project, Document, DocumentType, Annotation, AnnotatorProject
+from backend.models import Project, Document, DocumentType, Annotation, AnnotatorProject, AnnotationChangeHistory, \
+    UserDocumentFormatPreference
 from backend.utils.misc import get_value_from_key_path, insert_value_to_key_path
 from backend.utils.serialize import ModelSerializer
 
@@ -66,6 +67,12 @@ def is_authenticated(request):
 @rpc_method
 def login(request, payload):
     context = {}
+    if "username" not in payload:
+        raise RuntimeError("No username provided")
+
+    if "password" not in payload:
+        raise RuntimeError("No password provided")
+
     user = authenticate(username=payload["username"], password=payload["password"])
     if user is not None:
         djlogin(request, user)
@@ -261,6 +268,19 @@ def set_user_receive_mail_notifications(request, do_receive_notifications):
     user.receive_mail_notifications = do_receive_notifications
     user.save()
 
+@rpc_method_auth
+def set_user_document_format_preference(request, doc_preference):
+    user = request.user
+
+    # Convert to enum value
+    if doc_preference == "JSON":
+        user.doc_format_pref = UserDocumentFormatPreference.JSON
+    elif doc_preference == "CSV":
+        user.doc_format_pref = UserDocumentFormatPreference.CSV
+    else:
+        raise ValueError(f"Document preference value {doc_preference} is invalid")
+
+    user.save()
 
 
 #############################
@@ -286,6 +306,12 @@ def get_user_details(request):
 
     data["user_role"] = user_role
 
+    # Convert doc preference to string
+    if user.doc_format_pref == UserDocumentFormatPreference.JSON:
+        data["doc_format_pref"] = "JSON"
+    else:
+        data["doc_format_pref"] = "CSV"
+
     return data
 @rpc_method_auth
 def get_user_annotated_projects(request):
@@ -300,6 +326,8 @@ def get_user_annotated_projects(request):
         projects_list.append({
             "id": project.pk,
             "name": project.name,
+            "allow_annotation_change": project.allow_annotation_change,
+            "configuration": project.configuration,
         })
 
     return projects_list
@@ -325,7 +353,8 @@ def get_user_annotations_in_project(request, project_id, current_page=1, page_si
 
 
     project = Project.objects.get(pk=project_id)
-    user_annotated_docs = project.documents.filter(annotations__user_id=user.pk).distinct()
+    user_annotated_docs = project.documents.filter(doc_type=DocumentType.ANNOTATION,
+                                                   annotations__user_id=user.pk).distinct()
     total_count = user_annotated_docs.count()
 
     if user_annotated_docs.count() < 1:
@@ -393,17 +422,8 @@ def get_project(request, project_id):
 def clone_project(request, project_id):
     with transaction.atomic():
         current_project = Project.objects.get(pk=project_id)
-        new_project = Project.objects.create()
-        new_project.owner = request.user
-        for field_name in Project.project_config_fields:
-            if field_name == "name":
-                setattr(new_project, field_name, "Copy of " + getattr(current_project, field_name))
-            else:
-                setattr(new_project, field_name, getattr(current_project, field_name))
-        new_project.save()
-
+        new_project = current_project.clone(owner=request.user)
         return serializer.serialize(new_project, exclude_fields=set(["annotators", "annotatorproject"]))
-
 
 
 @rpc_method_manager
@@ -412,13 +432,13 @@ def import_project_config(request, pk, project_dict):
         serializer.deserialize(Project, {
             "id": pk,
             **project_dict
-        }, Project.project_config_fields)
+        }, Project.get_project_export_field_names())
 
 
 @rpc_method_manager
 def export_project_config(request, pk):
     proj = Project.objects.get(pk=pk)
-    return serializer.serialize(proj, Project.project_config_fields)
+    return serializer.serialize(proj, Project.get_project_export_field_names())
 
 @rpc_method_manager
 def get_projects(request, current_page=1, page_size=None, filters=None):
@@ -595,11 +615,12 @@ def add_project_training_document(request, project_id, document_data):
         return _add_project_document(project_id, document_data=document_data, doc_type=DocumentType.TRAINING)
 
 @rpc_method_manager
-def add_document_annotation(request, doc_id, annotation):
+def add_document_annotation(request, doc_id, annotation_data):
 
     with transaction.atomic():
         document = Document.objects.get(pk=doc_id)
-        annotation = Annotation.objects.create(document=document, data=annotation, user=request.user)
+        annotation = Annotation.objects.create(document=document, user=request.user)
+        annotation.data = annotation_data
         return annotation.pk
 
 
@@ -660,7 +681,8 @@ def get_project_annotators(request, proj_id):
     for ap in project_annotators:
         output.append({
             **serializer.serialize(ap.annotator, {"id", "username", "email"}),
-            **serializer.serialize(ap, exclude_fields={"annotator", "project"})
+            **serializer.serialize(ap, exclude_fields={"annotator", "project"}),
+            **ap.get_stats()
         })
     return output
 
@@ -725,13 +747,27 @@ def get_annotation_timings(request, proj_id):
 
     return annotation_timings
 
+@rpc_method_manager
+def delete_annotation_change_history(request, annotation_change_history_id):
+    annotation_change_history = AnnotationChangeHistory.objects.get(pk=annotation_change_history_id)
+    if request.user.is_associated_with_annotation(annotation_change_history.annotation):
+        if annotation_change_history.annotation.change_history.all().count() > 1:
+            annotation_change_history.delete()
+        else:
+            raise RuntimeError("Must have at least a single annotation change history for a completed annotation.")
+    else:
+        raise PermissionError("No permission to access the annotation history")
+
 ###############################
 ### Annotator methods       ###
 ###############################
 
 @rpc_method_auth
 def get_annotation_task(request):
-    """ Gets the annotator's current task """
+    """
+    Gets the annotator's current task, returns a dictionary about the annotation task that contains all the information
+    needed to render the Annotate view.
+    """
 
     with transaction.atomic():
 
@@ -750,11 +786,31 @@ def get_annotation_task(request):
         return project.get_annotator_task(user)
 
 
+@rpc_method_auth
+def get_annotation_task_with_id(request, annotation_id):
+    """
+    Get annotation task dictionary for a specific annotation_id, must belong to the annotator (or is a manager or above)
+    """
+
+    with transaction.atomic():
+        user = request.user
+        annotation = Annotation.objects.get(pk=annotation_id)
+        if not annotation.user_allowed_to_annotate(user):
+            raise PermissionError(
+                f"User {user.username} trying to complete annotation id {annotation_id} that doesn't belong to them")
+
+        if annotation.document and annotation.document.project:
+            return annotation.document.project.get_annotation_task_dict(annotation,
+                                                                        include_task_history_in_project=False)
+        else:
+            raise RuntimeError(f"Could not get the annotation task with id {annotation_id}")
 
 
 @rpc_method_auth
 def complete_annotation_task(request, annotation_id, annotation_data, elapsed_time=None):
-    """ Complete the annotator's current task, with option to get the next task """
+    """
+    Complete the annotator's current task
+    """
 
     with transaction.atomic():
 
@@ -772,7 +828,9 @@ def complete_annotation_task(request, annotation_id, annotation_data, elapsed_ti
 
 @rpc_method_auth
 def reject_annotation_task(request, annotation_id):
-    """  """
+    """
+    Reject the annotator's current task
+    """
 
     with transaction.atomic():
 
@@ -787,23 +845,43 @@ def reject_annotation_task(request, annotation_id):
         if annotation:
             annotation.reject_annotation()
 
+@rpc_method_auth
+def change_annotation(request, annotation_id, new_data):
+    """Adds annotation data to history"""
+    try:
+        annotation = Annotation.objects.get(pk=annotation_id)
+
+        if annotation.document.doc_type is not DocumentType.ANNOTATION:
+            raise RuntimeError("It not possible to change annotations created for testing or training documents.")
+
+
+        if annotation.user_allowed_to_annotate(request.user) or request.user.is_manager_or_above():
+            annotation.change_annotation(new_data, request.user)
+    except Annotation.DoesNotExist:
+        raise RuntimeError(f"Annotation with ID {annotation_id} does not exist")
+
+
 
 @rpc_method_auth
-def get_document_content(request, document_id):
+def get_document(request, document_id):
+    """ Obsolete: to be deleted"""
     doc = Document.objects.get(pk=document_id)
     if request.user.is_associated_with_document(doc):
-        return doc.data
+        return doc.get_listing(annotation_list=[anno.get_listing() for anno in doc.annotations.all()])
     else:
         raise PermissionError("No permission to access the document")
 
 
 @rpc_method_auth
-def get_annotation_content(request, annotation_id):
+def get_annotation(request, annotation_id):
+    """ Obsolete: to be deleted"""
     annotation = Annotation.objects.get(pk=annotation_id)
     if request.user.is_associated_with_annotation(annotation):
-        return annotation.data
+        return annotation.get_listing()
     else:
         raise PermissionError("No permission to access the annotation")
+
+
 
 @rpc_method_auth
 def annotator_leave_project(request):

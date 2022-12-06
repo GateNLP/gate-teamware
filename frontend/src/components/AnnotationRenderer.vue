@@ -28,6 +28,7 @@
         <BButton @click.prevent="submitHandler" class="mr-4" variant="success">Submit</BButton>
         <BButton @click.prevent="clearFormHandler" class="mr-4" variant="warning">Clear</BButton>
         <BButton v-if="allow_document_reject" @click.prevent="rejectHandler" variant="danger">Reject document</BButton>
+        <BButton v-if="allow_cancel" @click.prevent="cancelHandler" variant="danger">Cancel</BButton>
       </b-col>
     </b-row>
   </div>
@@ -43,9 +44,16 @@ import SelectorInput from "@/components/annotation/SelectorInput";
 import HtmlDisplay from "@/components/annotation/HtmlDisplay";
 import {DocumentType} from '@/enum/DocumentTypes';
 import MarkdownRenderer from "@/components/MarkdownRenderer";
+import _ from "lodash"
+import {getValueFromKeyPath} from "@/utils/dict";
 
 /**
  * Renders annotation display and input capture from the config property
+ *
+ * Events
+ * submit(annotationOutput, elapsedTime) - When user presses the submit button
+ * reject() - When user presses the reject button
+ * cancel() - When user presses the cancel button
  */
 export default {
   name: "AnnotationRenderer",
@@ -86,11 +94,43 @@ export default {
     doc_gold_field: {
       default: 'gold'
     },
+    /**
+     * This field will be used to provide pre-annotation
+     * i.e. pre-filling the form before it's presented to the user
+     */
+    doc_preannotation_field: {
+      default: ""
+    },
+    /**
+     * Adds Reject button if true
+     */
     allow_document_reject: {
       default: null
+    },
+    /**
+     * Adds a Cancel button if true
+     */
+    allow_cancel: {
+      default: null
+    },
+    clear_after_submit: {
+      default: true,
+      type: Boolean
     }
   },
+  computed: {
+    preAnnotationValues(){
+      if(this.document != null && this.doc_preannotation_field != null){
+        return  getValueFromKeyPath(this.document, this.doc_preannotation_field)
+      }
+      return null
+    }
+
+  },
   methods: {
+    setAnnotationData(data){
+      this.annotationOutput = data
+    },
     startTimer(){
       this.startTime = new Date();
     },
@@ -185,13 +225,15 @@ export default {
 
       if (validationPassed) {
         this.$emit('submit', this.annotationOutput, elapsedTime)
-        this.clearForm()
+        if(this.clear_after_submit)
+          this.clearForm()
         this.startTimer();
       }
     },
     clearForm() {
       this.annotationOutput = {}
       this.validation = {}
+      this.fillWithPreAnnotation()
 
     },
     clearFormHandler(e) {
@@ -199,6 +241,10 @@ export default {
     },
     rejectHandler(e){
       this.$emit('reject')
+      this.startTimer();
+    },
+    cancelHandler(e){
+      this.$emit('cancel')
       this.startTimer();
     },
     getAnswerBgColor(elemConfig){
@@ -238,6 +284,11 @@ export default {
       } else {
         return ""
       }
+    },
+    fillWithPreAnnotation(){
+      if(this.preAnnotationValues != null){
+          this.setAnnotationData(_.cloneDeep(this.preAnnotationValues))
+        }
     }
   },
   watch: {
@@ -245,6 +296,18 @@ export default {
       immediate: true,
       handler(newConfig) {
         this.generateValidationTracker(newConfig)
+      }
+    },
+    document: {
+      immediate: true,
+      handler(){
+        this.fillWithPreAnnotation()
+      }
+    },
+    doc_preannotation_field: {
+      immediate: true,
+      handler(){
+        this.fillWithPreAnnotation()
       }
     },
     annotationOutput: {
@@ -260,6 +323,7 @@ export default {
     }
   },
   mounted(){
+
     for (const prop in this.config){
       if(this.config[prop].type != 'html') {
         this.answerBgColor[this.config[prop].name] = "Default";

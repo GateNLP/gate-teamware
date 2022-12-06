@@ -20,19 +20,16 @@ BRANCH=$(git rev-parse --abbrev-ref HEAD)
 case $BRANCH in 
     master|main)
         # production build
-        DEPLOY_ENV=production
         MAIN_IMAGE=${MAIN_IMAGE:-teamware-backend}
         STATIC_IMAGE=${STATIC_IMAGE:-teamware-static}
         ;;
     dev)
         # staging build
-        DEPLOY_ENV=staging
         MAIN_IMAGE=${MAIN_IMAGE:-teamware-backend-staging}
         STATIC_IMAGE=${STATIC_IMAGE:-teamware-static-staging}
         ;;
     *)
         # other builds, e.g. in development
-        DEPLOY_ENV=development
         MAIN_IMAGE=${MAIN_IMAGE:-teamware-backend-dev}
         STATIC_IMAGE=${STATIC_IMAGE:-teamware-static-dev}
         ;;
@@ -48,7 +45,7 @@ cat > .env <<EOF
 
 # Database details
 PG_SUPERUSER_PASSWORD=${PG_SUPERUSER_PASSWORD:-$(openssl rand -base64 16)} # default: auto-generated
-DJANGO_DB_NAME=${DJANGO_DB_NAME:-annotations_db}
+DJANGO_DB_NAME=${DJANGO_DB_NAME:-teamware_db}
 DB_USERNAME=${DB_USERNAME:-gate}
 DB_PASSWORD=${DB_PASSWORD:-$(openssl rand -base64 16)} # default: auto-generated
 
@@ -56,6 +53,9 @@ DB_PASSWORD=${DB_PASSWORD:-$(openssl rand -base64 16)} # default: auto-generated
 DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-teamware.settings.deployment}
 DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY:-$(openssl rand -base64 42)} # default: auto-generated
 
+# Allowed host urls
+TEAMWARE_HOST_URL_PRODUCTION=${TEAMWARE_HOST_URL_PRODUCTION}
+TEAMWARE_HOST_URL_STAGING=${TEAMWARE_HOST_URL_STAGING}
 
 # Database backup user credentials
 DB_BACKUP_USER=${DB_BACKUP_USER:-backup}
@@ -67,9 +67,6 @@ BACKUPS_VOLUME=${BACKUPS_VOLUME:-/var/lib/teamware-backup/}
 # User permissions for the backup user on the host filesystem (user:group)
 BACKUPS_USER_GROUP=${BACKUPS_USER_GROUP:-0:0}
 
-# Set automatically as production, staging or development based on branch (master, dev, other)
-DEPLOY_ENV=$DEPLOY_ENV
-
 # Default credentials user for setting up database
 # Only used if no superusers are found in database
 SUPERUSER_EMAIL=${SUPERUSER_EMAIL:-gate+teamware@sheffield.ac.uk}
@@ -80,7 +77,8 @@ SUPERUSER_PASSWORD=${SUPERUSER_PASSWORD:-password}
 # If you are pushing images to a remote registry, set the registry names here
 # *including* the trailing slash
 #
-IMAGE_REGISTRY=${IMAGE_REGISTRY:-ghcr.io/gatenlp/} # leave blank for local images
+# leave blank for local images
+IMAGE_REGISTRY=${IMAGE_REGISTRY:-ghcr.io/gatenlp/}
 MAIN_IMAGE=$MAIN_IMAGE # Do not change
 STATIC_IMAGE=$STATIC_IMAGE # Do not change
 IMAGE_TAG=${IMAGE_TAG:-latest}

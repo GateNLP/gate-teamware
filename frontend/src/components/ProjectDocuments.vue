@@ -4,7 +4,12 @@
                    :documents="documents"
                    :num-total-documents="numTotalDocuments"
                    :is-loading="loading"
+                   :allow-annotation-edit="project.allow_annotation_change"
+                   :project-config="project.configuration"
+                   :allow-annotation-change-delete="true"
+                   :document-display-format="docFormatPref"
                    @fetch="refreshDocumentsHandler"
+                   @fetch-annotation="refreshAnnotationHandler"
                    @upload="showDocumentUploadModal = true"
                    @delete="deleteDocumentsAndAnnotationHandler"
                    @export="showDocumentExportModal = true"
@@ -12,9 +17,9 @@
     </DocumentsList>
 
     <DocumentUploader v-model="showDocumentUploadModal"
-                    :project-id="project.id"
-                    @uploading="documentStartUploadHandler"
-                    @completed="documentUploadHandler"></DocumentUploader>
+                      :project-id="project.id"
+                      @uploading="documentStartUploadHandler"
+                      @completed="documentUploadHandler"></DocumentUploader>
 
     <DocumentExporter v-model="showDocumentExportModal"
                       default-doc-type="annotation"
@@ -24,7 +29,7 @@
 </template>
 
 <script>
-import {mapActions, mapState} from "vuex";
+import {mapActions, mapGetters, mapState} from "vuex";
 import DocumentExporter from "@/components/DocumentExporter";
 import DocumentUploader from "@/components/DocumentUploader";
 import DocumentsList from "@/components/DocumentsList";
@@ -59,6 +64,7 @@ export default {
     }
   },
   computed: {
+    ...mapGetters(["docFormatPref"]),
     loadingVariant() {
       if (this.loading) {
         return "secondary"
@@ -80,8 +86,8 @@ export default {
 
   },
   methods: {
-    ...mapActions(["getProjectDocuments", "addProjectDocument",
-      "deleteDocumentsAndAnnotations",]),
+    ...mapActions(["getProjectDocuments", "addProjectDocument", "getAnnotation",
+      "deleteDocumentsAndAnnotations"]),
     isEverythingSelected() {
       return this.selectedDocuments.length >= this.numDocs &&
           this.selectedAnnotations.length >= this.numAnnotations
@@ -103,7 +109,36 @@ export default {
       }
       this.setLoading(false)
     },
-    async documentStartUploadHandler(e){
+    async refreshAnnotationHandler(annotationId) {
+      this.setLoading(true)
+
+      try {
+        const result = await this.getAnnotation(annotationId)
+
+        function replaceDocAnnotation(documents) {
+          for (let i = 0; i < documents.length; i++) {
+            for (let j = 0; j < documents[i].annotations.length; j++) {
+              if (documents[i].annotations[j].id === annotationId) {
+                // Replace
+                documents[i].annotations[j] = result
+                return
+              }
+            }
+          }
+        }
+        replaceDocAnnotation(this.documents)
+
+
+        this.$emit("updated")
+      } catch (e) {
+        toastError("Could not reload annotation", e, this)
+      }
+
+
+      this.setLoading(false)
+
+    },
+    async documentStartUploadHandler(e) {
 
     },
     async documentUploadHandler(e) {

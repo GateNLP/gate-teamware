@@ -1,9 +1,9 @@
 <template>
   <b-container>
-    <div v-if="annotationTask">
+    <div v-if="currentAnnotationTask">
       <b-row class="mt-4">
         <b-col cols="9">
-          <h1>Annotate: {{ annotationTask.project_name }}</h1>
+          <h1>Annotate: {{ currentAnnotationTask.project_name }}</h1>
 
         </b-col>
         <b-col cols="3" class="text-right">
@@ -13,7 +13,7 @@
         </b-col>
       </b-row>
 
-      <DeleteModal :title="'Leaving project ' + annotationTask.project_name"
+      <DeleteModal :title="'Leaving project ' + currentAnnotationTask.project_name"
                    v-model="showLeaveProjectModal"
                    operation-string="Leave project"
                    @delete="leaveProjectHandler">
@@ -23,61 +23,62 @@
 
 
       <b-card class="mb-4">
-        <div v-if="annotationTask.project_description && annotationTask.project_description.length > 0">
+        <div v-if="currentAnnotationTask.project_description && currentAnnotationTask.project_description.length > 0">
           <h3>Project description</h3>
-          <MarkdownRenderer :content="annotationTask.project_description"></MarkdownRenderer>
+          <MarkdownRenderer :content="currentAnnotationTask.project_description"></MarkdownRenderer>
         </div>
 
-        <div v-if="annotationTask.project_annotator_guideline && annotationTask.project_annotator_guideline.length > 0">
+        <div
+            v-if="currentAnnotationTask.project_annotator_guideline && currentAnnotationTask.project_annotator_guideline.length > 0">
           <h3>Annotator guideline</h3>
           <CollapseText>
-            <MarkdownRenderer :content="annotationTask.project_annotator_guideline"></MarkdownRenderer>
+            <MarkdownRenderer :content="currentAnnotationTask.project_annotator_guideline"></MarkdownRenderer>
           </CollapseText>
         </div>
 
 
       </b-card>
 
-      <div v-if="annotationTask.annotation_id" :class="getAnnotationContainerBgClass()">
+      <div v-if="currentAnnotationTask.annotation_id" :class="getAnnotationContainerBgClass()">
         <b-row>
           <b-col cols="9">
             <h2 :class="getAnnotationSectionHeaderClass()">
               Annotate a document
             </h2>
 
-            <b-badge v-if="annotationTask.document_type !== 'Annotation'"
+            <b-badge v-if="currentAnnotationTask.document_type !== 'Annotation'"
                      class="ml-2 " variant="dark" pill style="font-size: 1.2em">
-              {{ annotationTask.document_type }} stage
+              {{ currentAnnotationTask.document_type }} stage
             </b-badge>
 
           </b-col>
           <b-col class="text-right">
-            <b-badge :title="'Currently annotating document ID: '+annotationTask.document_field_id" class="mr-2">
-              #{{ annotationTask.document_field_id }}
+            <b-badge :title="'Currently annotating document ID: '+currentAnnotationTask.document_field_id" class="mr-2">
+              #{{ currentAnnotationTask.document_field_id }}
             </b-badge>
             <b-badge variant="success"
-                     :title="`You have completed ${annotationTask.annotator_completed_tasks} annotation task(s) in this project.`"
+                     :title="`You have completed ${currentAnnotationTask.annotator_completed_tasks} annotation task(s) in this project.`"
                      class="mr-2">
               <b-icon-check-square-fill></b-icon-check-square-fill>
-              {{ annotationTask.annotator_completed_tasks }}
+              {{ currentAnnotationTask.annotator_completed_tasks }}
             </b-badge>
             <b-badge variant="warning"
-                     :title="`You have ${annotationTask.annotator_remaining_tasks} remaining annotation task(s) in this project.`">
+                     :title="`You have ${currentAnnotationTask.annotator_remaining_tasks} remaining annotation task(s) in this project.`">
               <b-icon-pencil-fill></b-icon-pencil-fill>
-              {{ annotationTask.annotator_remaining_tasks }}
+              {{ currentAnnotationTask.annotator_remaining_tasks }}
             </b-badge>
           </b-col>
         </b-row>
 
         <b-card class="text-center" v-if="showStageIntroCard">
-          <div v-if="annotationTask.document_type === 'Training'">
+          <div v-if="currentAnnotationTask.document_type === 'Training'">
             <h3>Starting training stage</h3>
             <p>
               To familiarise you with the annotation process of this project, you will be annotating some
               example documents. Expected annotation results for each label will be provided.
             </p>
           </div>
-          <div v-else-if="annotationTask.document_type === 'Test'">
+          <div v-else-if="currentAnnotationTask.document_type === 'Test'">
             <h3>Starting test stage</h3>
             <p>
               In this stage, you will be tested to ensure that you can annotate documents in accordance with
@@ -94,15 +95,41 @@
           <b-button variant="primary" @click="showStageIntroCard = false">Start annotating</b-button>
         </b-card>
         <b-card v-else>
-          <AnnotationRenderer :config="annotationTask.project_config"
-                              :document="annotationTask.document_data"
-                              :document_type="annotationTask.document_type"
-                              :doc_gold_field="annotationTask.document_gold_standard_field"
-                              :allow_document_reject="annotationTask.allow_document_reject"
+          <AnnotationRenderer ref="annotationRenderer"
+                              :config="currentAnnotationTask.project_config"
+                              :document="currentAnnotationTask.document_data"
+                              :document_type="currentAnnotationTask.document_type"
+                              :doc_gold_field="currentAnnotationTask.document_gold_standard_field"
+                              :doc_preannotation_field="currentAnnotationTask.document_pre_annotation_field"
+                              :allow_document_reject="isLatestTask() && currentAnnotationTask.allow_document_reject"
+                              :clear_after_submit="clearFormAfterSubmit"
                               @submit="submitHandler"
                               @reject="rejectHandler"
           ></AnnotationRenderer>
+
+
         </b-card>
+
+        <b-button-toolbar v-if="'task_history' in annotationTask" class="mt-4">
+          <b-button-group>
+            <b-button :disabled="!hasPreviousTask()" @click="toPreviousTask" variant="primary" size="sm"
+                      title="Navigate to previous annotation task to modify your previous annotation.">
+              <b-icon-chevron-bar-left></b-icon-chevron-bar-left>
+              Previous task
+            </b-button>
+            <b-button :disabled="!hasNextTask()" @click="toNextTask" variant="primary" size="sm"
+                      title="Navigate to the next annotation task.">
+              Next task
+              <b-icon-chevron-bar-right></b-icon-chevron-bar-right>
+            </b-button>
+            <b-button :disabled="isLatestTask()" @click="toLatestTask" variant="primary" size="sm"
+                      title="Navigate to the current annotation task.">
+              Current task
+              <b-icon-chevron-double-right></b-icon-chevron-double-right>
+            </b-button>
+          </b-button-group>
+        </b-button-toolbar>
+
 
       </div>
       <div v-else>
@@ -143,7 +170,7 @@ import {mapActions, mapState} from "vuex";
 import AnnotationRenderer from "@/components/AnnotationRenderer";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
 import CollapseText from "@/components/CollapseText";
-import {toastError} from "@/utils";
+import {toastError, toastSuccess} from "@/utils";
 import {DocumentType} from '@/enum/DocumentTypes';
 import DeleteModal from "@/components/DeleteModal";
 
@@ -153,16 +180,21 @@ export default {
   components: {DeleteModal, CollapseText, MarkdownRenderer, AnnotationRenderer},
   data() {
     return {
+      clearFormAfterSubmit: true,
+      currentTaskIndex: 0,
       annotationTask: null,
+      currentAnnotationTask: null,
       DocumentType,
       showLeaveProjectModal: false,
       showStageIntroCard: false,
       showThankyouCard: false,
     }
   },
-  computed: {},
+
   methods: {
-    ...mapActions(["getUserAnnotationTask", "completeUserAnnotationTask", "rejectUserAnnotationTask", "annotatorLeaveProject"]),
+    ...mapActions(["getUserAnnotationTask", "getUserAnnotationTaskWithID",
+      "completeUserAnnotationTask", "rejectUserAnnotationTask", "annotatorLeaveProject",
+      "changeAnnotation"]),
     getAnnotationContainerBgClass() {
       return {
         "mt-4": true,
@@ -180,25 +212,106 @@ export default {
       }
 
     },
-    async submitHandler(value, time) {
-      try {
-        await this.completeUserAnnotationTask({
-          annotationID: this.annotationTask.annotation_id,
-          data: value,
-          annotationTime: time,
-        })
-
-      } catch (e) {
-        toastError("Could not get annotation task", e, this)
+    isLatestTask(){
+      return this.currentTaskIndex === 0
+    },
+    // Checks that there is previous task in the task_history
+    hasPreviousTask() {
+      if ("task_history" in this.annotationTask) {
+        return this.currentTaskIndex + 1 < this.annotationTask["task_history"].length
       }
-
-      try {
-        await this.getAnnotationTask()
-      } catch (e) {
-        toastError("Could not get annotation task", e, this)
-      }
+      return false
 
     },
+    // Checks that there is a next task in task_history
+    hasNextTask() {
+      if ("task_history" in this.annotationTask) {
+        return this.currentTaskIndex > 0
+      }
+      return false
+    },
+    // Go to previous task in the history
+    toPreviousTask() {
+      if (this.hasPreviousTask()) {
+        this.currentTaskIndex += 1
+        this.getCurrentTask()
+      }
+    },
+    // Goes to next task in history
+    toNextTask() {
+      if (this.hasNextTask()) {
+        this.currentTaskIndex -= 1
+        this.getCurrentTask()
+      }
+    },
+    // Goes to the latest task
+    toLatestTask() {
+      this.currentTaskIndex = 0
+      this.getCurrentTask()
+    },
+    async getCurrentTask() {
+      try {
+
+        if (this.annotationTask != null && "task_history" in this.annotationTask) {
+          const annotationId = this.annotationTask["task_history"][this.currentTaskIndex]
+
+
+          if (annotationId === this.annotationTask.id) {
+            this.currentAnnotationTask = this.annotationTask
+            this.clearFormAfterSubmit = true
+          } else {
+            this.currentAnnotationTask = await this.getUserAnnotationTaskWithID(annotationId)
+            this.clearFormAfterSubmit = false
+          }
+        } else {
+          this.currentAnnotationTask = this.annotationTask
+          this.clearFormAfterSubmit = true
+        }
+
+
+        //Fills the annotation renderer with data
+        if (this.$refs.annotationRenderer) {
+          this.$refs.annotationRenderer.clearForm()
+          if (this.currentAnnotationTask.annotation_data != null)
+            this.$refs.annotationRenderer.setAnnotationData(this.currentAnnotationTask.annotation_data)
+        }
+
+      } catch (e) {
+        toastError("Could not get annotation task", e, this)
+        console.log(e)
+      }
+    },
+    async submitHandler(value, time) {
+
+      if (this.isLatestTask()) {
+        // Complete a current task
+        try {
+
+          await this.completeUserAnnotationTask({
+            annotationID: this.annotationTask.annotation_id,
+            data: value,
+            annotationTime: time,
+          })
+
+          await this.getAnnotationTask()
+        } catch (e) {
+          toastError("Could not get annotation task", e, this)
+        }
+      } else {
+        // Change a previous annotation task
+        try {
+          await this.changeAnnotation({
+            annotationID: this.currentAnnotationTask.annotation_id,
+            newData: value
+          })
+          toastSuccess("Annotation changed", "Annotation for this document has been successfully changed.")
+        } catch (e) {
+          toastError("Could not  complete annotation task", e, this)
+        }
+
+      }
+    },
+
     async rejectHandler() {
       try {
         await this.rejectUserAnnotationTask(this.annotationTask.annotation_id)
@@ -212,13 +325,16 @@ export default {
         toastError("Could not get annotation task", e, this)
       }
 
-    },
+    }
+    ,
     async getAnnotationTask() {
       try {
 
         const previousTask = this.annotationTask
 
         this.annotationTask = await this.getUserAnnotationTask()
+        this.currentTaskIndex = 0
+        this.getCurrentTask()
 
         // Check that the user has not completed any task in this stage,
         // show intro card
@@ -250,7 +366,8 @@ export default {
         console.log("Still showing error for some reason")
         toastError("Could not get annotation task", e, this)
       }
-    },
+    }
+    ,
     async leaveProjectHandler() {
       try {
         await this.annotatorLeaveProject()

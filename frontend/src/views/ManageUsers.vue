@@ -1,7 +1,7 @@
 <template>
   <div class="container">
     <div class="row my-3">
-      <h3>Manage Users</h3>
+      <h1>Manage Users</h1>
     </div>
     <div class="row my-3">
 

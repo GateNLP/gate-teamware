@@ -14,7 +14,7 @@ GATE teamware provides a flexible web app platform for managing classification o
 * Import existing annotations as CSV or JSON.
 * Export annotations as CSV or JSON.
 * Annotation instructions and document rendering supports markdown and HTML.
-* Deploy with `kubernetes` or `docker-compose`.
+* Deploy with [kubernetes](https://kubernetes.io/) or [docker compose](https://docs.docker.com/compose/).
 
 # Running the app
 ## Requirements
@@ -44,8 +44,15 @@ Developer documentation is [provided here][dev-docs].
 # Contribution
 We welcome contributions to this open source project. Please [create a fork](https://docs.github.com/en/get-started/quickstart/fork-a-repo) of this repository and make a pull request against the `dev` branch with your changes.
 
+# Using Teamware
+Teamware is developed by the [GATE](https://gate.ac.uk) team, an academic research group at The University of Sheffield. As a result, future funding relies on evidence of the impact that the software provides. If you use Teamware, please let us know using the contact form at [gate.ac.uk](https://gate.ac.uk/g8/contact). Please include details on grants, publications, commercial products etc. Any information that can help us to secure future funding for our work is greatly appreciated.
 
+## Citation
+For published work that has used Teamware, please cite this repository. One way is to include a citation such as:
 
+> Karmakharm, T., Wilby, D., Roberts, I., & Bontcheva, K. (2022). GATE Teamware (Version 0.1.4) [Computer software]. https://github.com/GateNLP/gate-teamware
+
+Please use the `Cite this repository` button at the top of the [project's GitHub repository](https://github.com/GATENLP/gate-teamware) to get an up to date citation.
 
 
 [docs]: https://gatenlp.github.io/gate-teamware/
