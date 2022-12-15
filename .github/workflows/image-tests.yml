@@ -27,8 +27,6 @@ jobs:
           export MAIN_IMAGE=teamware-main
           export STATIC_IMAGE=teamware-static
 
-          export DJANGO_SETTINGS_MODULE=teamware.settings.test
-          
           ./generate-docker-env.sh
 
           # Remove container registry address
