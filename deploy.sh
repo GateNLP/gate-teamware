@@ -24,7 +24,7 @@ case $DEPLOY_ENV in
     ;;
 
   integration)
-    DJANGO_SETTINGS_MODULE=teamware.settings.integration
+    DJANGO_SETTINGS_MODULE=teamware.settings.docker-integration
     export DJANGO_SETTINGS_MODULE
     echo "Deploying with DJANGO_SETTINGS_MODULE: $DJANGO_SETTINGS_MODULE"
     ;;

@@ -3,7 +3,7 @@ Settings for integration testing
 
 Uses a clean database every time
 """
-from .base import *
+from .deployment import *
 
 DATABASES['default']['NAME'] = "teamware_integration_db"
 

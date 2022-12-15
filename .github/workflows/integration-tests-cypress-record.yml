@@ -7,7 +7,7 @@ env:
   MAIN_IMAGE: teamware-main
   STATIC_IMAGE: teamware-static
   DJANGO_DB_NAME: teamware_integration_db
-  DJANGO_SETTINGS_MODULE: teamware.settings.docker-test
+  DJANGO_SETTINGS_MODULE: teamware.settings.docker-integration
 
 jobs:
   build:
@@ -45,7 +45,7 @@ jobs:
       - name: Run integration tests with cypress
         uses: cypress-io/github-action@v4
         with:
-          start: /bin/bash deploy.sh production
+          start: /bin/bash deploy.sh integration
           wait-on: 'http://localhost:8076'
           config: baseUrl=http://localhost:8076
           record: true
