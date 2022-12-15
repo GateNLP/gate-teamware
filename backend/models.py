@@ -12,6 +12,7 @@ from django.utils import timezone
 from django.db.models import Q, F, Count
 
 from backend.utils.misc import get_value_from_key_path, insert_value_to_key_path
+from backend.utils.telemetry import TelemetrySender
 
 log = logging.getLogger(__name__)
 
@@ -269,6 +270,11 @@ class Project(models.Model):
         return self.annotators.filter(annotatorproject__status=AnnotatorProject.ACTIVE).count()
 
     @property
+    def num_all_annotators(self) -> int:
+        "Count of all annotators associated with project."
+        return self.annotators.filter().count()
+
+    @property
     def is_project_configured(self):
         return len(self.configuration) > 0 and self.num_documents > 0
 
@@ -284,6 +290,16 @@ class Project(models.Model):
             errors.append("No documents to annotate")
 
         return errors
+
+    def delete(self):
+        """
+        Overloaded delete method to optionally send project telemetry stats prior to deletion.
+        """
+
+        if settings.TELEMETRY_ON:
+            self.send_telemetry("deleted")
+
+        super().delete()
 
     def add_annotator(self, user):
 
@@ -671,10 +687,22 @@ class Project(models.Model):
         return None
 
     def check_project_complete(self):
-        """ Checks that all annotations have been completed, release all annotators from project. """
+        """
+        Checks that all annotations have been completed, release all annotators from project.
+        If complete, also send telemetry data.
+        """
         if self.is_completed:
             for annotator in self.annotators.all():
                 self.remove_annotator(annotator)
+            self.send_telemetry(status="complete")
+
+    def send_telemetry(self, status:str):
+        """
+        Sends telemetry data for the project depending on the status.
+        """
+        if settings.TELEMETRY_ON:
+            ts = TelemetrySender(project=self, status=status, data=self.get_telemetry_stats())
+            ts.send()
 
     def get_annotators_dict(self):
         return {
@@ -698,6 +726,25 @@ class Project(models.Model):
             "configuration_error": None if self.is_project_configured else self.project_configuration_error_message,
             "is_completed": self.is_completed,
             "num_annotators": self.num_annotators,
+        }
+
+    def get_telemetry_stats(self) -> dict:
+        """
+        Returns a dict of stats specifically for telemetry including no identifying information.
+        """
+        return {
+            "documents": self.num_documents,
+            "training_documents": self.num_training_documents,
+            "test_documents": self.num_test_documents,
+            "completed_tasks": self.num_completed_tasks,
+            "pending_tasks": self.num_pending_tasks,
+            "rejected_tasks": self.num_rejected_tasks,
+            "timed_out_tasks": self.num_timed_out_tasks,
+            "aborted_tasks": self.num_aborted_tasks,
+            "total_tasks": self.num_annotation_tasks_total,
+            "is_configured": self.is_project_configured,
+            "is_completed": self.is_completed,
+            "num_annotators": self.num_all_annotators,
         }
 
 
@@ -1101,13 +1148,3 @@ class AnnotationChangeHistory(models.Model):
             "time": self.time,
             "changed_by": self.changed_by.username,
         }
-
-
-class Telemetry(models.Model):
-    """
-    Model to store a small amount of telemetry information
-    """
-
-    sent = models.DateTimeField(default=timezone.now)
-    data = models.JSONField()
-    status = models.IntegerField()

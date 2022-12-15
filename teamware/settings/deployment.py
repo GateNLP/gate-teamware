@@ -49,3 +49,6 @@ DATABASES = {
         "PORT": os.environ.get("DB_PORT", "5432"),
     }
 }
+
+TELEMETRY_ON = True
+TELEMETRY_BASE_URL = 'https://127.0.0.1:8000'
