@@ -7,6 +7,7 @@ env:
   MAIN_IMAGE: teamware-main
   STATIC_IMAGE: teamware-static
   DJANGO_DB_NAME: teamware_integration_db
+  DJANGO_SETTINGS_MODULE: teamware.settings.docker-test
 
 jobs:
   build:
