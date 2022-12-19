@@ -296,10 +296,12 @@ class Project(models.Model):
         Overloaded delete method to optionally send project telemetry stats prior to deletion.
         """
 
-        if settings.TELEMETRY_ON:
-            self.send_telemetry("deleted")
+        try:
+            if settings.TELEMETRY_ON:
+                self.send_telemetry("deleted")
 
-        super().delete()
+        finally:
+            super().delete()
 
     def add_annotator(self, user):
 

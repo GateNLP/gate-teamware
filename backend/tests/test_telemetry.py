@@ -2,6 +2,7 @@ from urllib.parse import urljoin
 
 from django.test import TestCase
 from django.conf import settings
+import requests
 import requests_mock
 
 from backend.management.commands import load_test_fixture
@@ -62,7 +63,6 @@ class TestTelemetrySender(TestCase):
         proj = Project.objects.first()
         proj.delete()
 
-        
         # Assert that the http request was sent
         assert mocker.called == True
 
@@ -71,3 +71,31 @@ class TestTelemetrySender(TestCase):
 
         assert sent_data["status"] == "deleted"
         assert sent_data["documents"] == 20
+
+        # check that project is still deleted even if telemetry fails
+        with self.assertRaises(Project.DoesNotExist): 
+            Project.objects.get(id=proj.id)
+
+@requests_mock.Mocker()
+class TestFailingTelemetry(TestCase):
+
+    def setUp(self):
+        load_test_fixture.create_db_users_with_project_and_annotation()
+        settings.TELEMETRY_ON = True
+     
+    def test_failing_telemetry(self, mocker):
+
+        url = urljoin(settings.TELEMETRY_BASE_URL, settings.TELEMETRY_PATH) 
+
+        # set up mocker for http post request with timeout
+        mocker.post(url, exc=requests.exceptions.ConnectTimeout)
+
+        proj = Project.objects.first()
+
+        # delete a project, triggering a telemetry call
+        with self.assertRaises(requests.exceptions.ConnectTimeout):
+            proj.delete()
+
+        # check that project is still deleted even if telemetry fails
+        with self.assertRaises(Project.DoesNotExist): 
+            Project.objects.get(id=proj.id)
