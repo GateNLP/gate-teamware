@@ -271,7 +271,7 @@ class Project(models.Model):
 
     @property
     def num_all_annotators(self) -> int:
-        "Count of all annotators associated with project."
+        """Count of all annotators associated with project."""
         return self.annotators.filter().count()
 
     @property
@@ -703,7 +703,7 @@ class Project(models.Model):
         Sends telemetry data for the project depending on the status.
         """
         if settings.TELEMETRY_ON:
-            ts = TelemetrySender(project=self, status=status, data=self.get_telemetry_stats())
+            ts = TelemetrySender(status=status, data=self.get_telemetry_stats())
             ts.send()
 
     def get_annotators_dict(self):

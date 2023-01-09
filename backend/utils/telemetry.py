@@ -6,9 +6,8 @@ from django.conf import settings
 
 class TelemetrySender:
 
-    def __init__(self, project, status: str, data: dict) -> None:
+    def __init__(self, status: str, data: dict) -> None:
         self.url = urljoin(settings.TELEMETRY_BASE_URL, settings.TELEMETRY_PATH)
-        self.project = project
         self.data = data
         self.data.update({"status": status})
         self.http_status_code = None

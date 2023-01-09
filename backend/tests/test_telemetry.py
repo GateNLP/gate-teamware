@@ -17,11 +17,11 @@ class TestTelemetrySender(TestCase):
         settings.TELEMETRY_ON = True
      
     def test_telemetry_sender(self, mocker):
-        "Tests telemetry sender."
+        """Tests telemetry sender."""
 
         proj = Project.objects.first()
 
-        ts = TelemetrySender(proj, "completed", {})
+        ts = TelemetrySender("completed", {})
 
         mocker.post(ts.url, status_code=201) # set up mocker for http post request
         ts.send()
@@ -33,7 +33,7 @@ class TestTelemetrySender(TestCase):
 
 
     def test_project_completion_telemetry(self, mocker):
-        "Tests telemetry sending when project is completed."
+        """Tests telemetry sending when project is completed."""
 
         url = urljoin(settings.TELEMETRY_BASE_URL, settings.TELEMETRY_PATH)
         mocker.post(url, status_code=201)
@@ -55,7 +55,7 @@ class TestTelemetrySender(TestCase):
 
 
     def test_project_deletion_telemetry(self, mocker):
-        "Tests telemetry sending when project is deleted."
+        """Tests telemetry sending when project is deleted."""
         
         url = urljoin(settings.TELEMETRY_BASE_URL, settings.TELEMETRY_PATH)
         mocker.post(url, status_code=201)
