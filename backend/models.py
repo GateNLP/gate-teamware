@@ -696,7 +696,8 @@ class Project(models.Model):
         if self.is_completed:
             for annotator in self.annotators.all():
                 self.remove_annotator(annotator)
-            self.send_telemetry(status="complete")
+            if settings.TELEMETRY_ON:
+                self.send_telemetry(status="complete")
 
     def send_telemetry(self, status:str):
         """
