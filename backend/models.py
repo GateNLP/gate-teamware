@@ -297,7 +297,7 @@ class Project(models.Model):
         """
 
         try:
-            if settings.TELEMETRY_ON:
+            if settings.TELEMETRY_ON and self.num_all_annotators > 0:
                 self.send_telemetry("deleted")
 
         finally:

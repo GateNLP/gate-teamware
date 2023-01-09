@@ -13,7 +13,7 @@ from backend.models import Project
 class TestTelemetrySender(TestCase):
 
     def setUp(self):
-        load_test_fixture.create_db_users_with_project_and_annotation()
+        load_test_fixture.project_with_annotators()
         settings.TELEMETRY_ON = True
      
     def test_telemetry_sender(self, mocker):
@@ -51,7 +51,7 @@ class TestTelemetrySender(TestCase):
 
         assert sent_data["status"] == "complete"
         assert sent_data["documents"] == 20
-        assert sent_data["completed_tasks"] == 60
+        assert sent_data["completed_tasks"] == 80
 
 
     def test_project_deletion_telemetry(self, mocker):
@@ -80,7 +80,7 @@ class TestTelemetrySender(TestCase):
 class TestFailingTelemetry(TestCase):
 
     def setUp(self):
-        load_test_fixture.create_db_users_with_project_and_annotation()
+        load_test_fixture.project_with_annotators()
         settings.TELEMETRY_ON = True
      
     def test_failing_telemetry(self, mocker):
