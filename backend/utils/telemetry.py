@@ -9,7 +9,7 @@ class TelemetrySender:
     def __init__(self, status: str, data: dict) -> None:
         self.url = urljoin(settings.TELEMETRY_BASE_URL, settings.TELEMETRY_PATH)
         self.data = data
-        self.data.update({"status": status})
+        self.data.update({"product": "teamware", "status": status})
         self.http_status_code = None
 
     def send(self):

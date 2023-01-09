@@ -49,6 +49,7 @@ class TestTelemetrySender(TestCase):
         # get the data that was sent
         sent_data = mocker.last_request.json()
 
+        assert sent_data["product"] == "teamware"
         assert sent_data["status"] == "complete"
         assert sent_data["documents"] == 20
         assert sent_data["completed_tasks"] == 80
@@ -69,6 +70,7 @@ class TestTelemetrySender(TestCase):
         # get the data that was sent
         sent_data = mocker.last_request.json()
 
+        assert sent_data["product"] == "teamware"
         assert sent_data["status"] == "deleted"
         assert sent_data["documents"] == 20
 
