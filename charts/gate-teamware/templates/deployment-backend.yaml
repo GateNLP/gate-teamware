@@ -129,6 +129,9 @@ spec:
                 key: refresh-token
           {{- end }}{{/* if backend gmail */}}
           {{- end }}{{/* with .Values.email */}}
+          {{- with .extraEnv }}
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
           {{- if and $.Values.email.smtp.security $.Values.email.smtp.clientCertSecret }}
           volumeMounts:
           - name: email-client-cert
