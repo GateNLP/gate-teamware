@@ -81,8 +81,9 @@ backend:
   podSecurityContext: {}
     # fsGroup: 2000
 
-  # extra environment variable settings to be passed to the django container
+  # extra environment variable settings and command arguments to be passed to the django container
   extraEnv: []
+  extraArgs: []
 
   securityContext: {}
     # capabilities:

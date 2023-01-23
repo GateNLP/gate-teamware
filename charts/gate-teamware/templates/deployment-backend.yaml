@@ -42,6 +42,9 @@ spec:
             - name: http
               containerPort: 8000
               protocol: TCP
+          {{- with .extraArgs }}
+          args: {{- toYaml . | nindent 10 }}
+          {{- end }}
           env:
           - name: DJANGO_SETTINGS_MODULE
             value: teamware.settings.deployment
