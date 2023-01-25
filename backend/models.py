@@ -1,4 +1,5 @@
 import math
+import uuid
 
 from django.conf import settings
 import logging
@@ -126,6 +127,7 @@ class Project(models.Model):
     Model to store annotation projects.
     """
     name = models.TextField(default="New project")
+    uuid = models.UUIDField(primary_key = False, default = uuid.uuid4, editable = False)
     description = models.TextField(default="")
     annotator_guideline = models.TextField(default="")
     created = models.DateTimeField(default=timezone.now)
@@ -736,6 +738,7 @@ class Project(models.Model):
         Returns a dict of stats specifically for telemetry including no identifying information.
         """
         return {
+            "uuid": str(self.uuid),
             "documents": self.num_documents,
             "training_documents": self.num_training_documents,
             "test_documents": self.num_test_documents,

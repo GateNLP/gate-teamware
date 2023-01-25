@@ -50,6 +50,7 @@ class TestTelemetrySender(TestCase):
         sent_data = mocker.last_request.json()
 
         assert sent_data["product"] == "teamware"
+        assert sent_data.get("uuid", None) is not None
         assert sent_data["status"] == "complete"
         assert sent_data["documents"] == 20
         assert sent_data["completed_tasks"] == 80
