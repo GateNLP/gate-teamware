@@ -172,7 +172,7 @@ class Project(models.Model):
 
     @classmethod
     def get_project_export_field_names(cls):
-        fields = Project.get_project_config_fields({"owner", "id", "created"})
+        fields = Project.get_project_config_fields({"owner", "id", "created", "uuid"})
         return [field.name for field in fields]
 
 
@@ -180,7 +180,7 @@ class Project(models.Model):
         """
         Clones the Project object, does not retain documents and annotator membership
         """
-        exclude_fields = { "name", "owner", "id", "created" }
+        exclude_fields = { "name", "owner", "id", "created", "uuid" }
 
         # Setting project name
         new_project_name = new_name if new_name is not None else ""
