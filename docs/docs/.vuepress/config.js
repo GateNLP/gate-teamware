@@ -23,6 +23,7 @@ module.exports = context => ({
                 '',
                 'testing',
                 'releases',
+                'documentation',
                 "api_docs",
 
             ],

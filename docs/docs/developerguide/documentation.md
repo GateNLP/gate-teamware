@@ -1,13 +1,24 @@
-# Documentation versioning guide
+# Managing and versioning documentation
 
-Documentation versioning is managed by the custom node script located at `docs/manage_versions.js`. Versions of the
-documentation can be archived and the entire documentation site can be built using the script.
+Documentation versioning is managed by the custom node script located at `docs/manage_versions.js`. Versions of the documentation can be archived and the entire documentation site can be built using the script.
 
 Various configuration parameters used for management of documentation versioning can be found in `docs/docs.config.js`.
 
 ## Editing the documentation
 
 The latest version of the documentation is located at `/docs/docs`. The archived (versioned) documentation are located in `/docs/versioned/version_number`.
+
+Use the following command to live preview the latest version of the documentation:
+
+```
+npm run serve:docs
+```
+
+Note that this will not work with other versioned docs as they are managed as a separate site. To live preview versioned documentation use the command (replace version_num with the version you'd like to preview):
+
+```
+vuepress dev docs/versioned/version_num
+```
 
 ## Creating a new documentation version
 
@@ -29,5 +40,3 @@ To build the documentation site, the previous documentation build command is use
 ```
 npm run build:docs
 ```
-
-Each set of documentation are built separately as a vuepress site
