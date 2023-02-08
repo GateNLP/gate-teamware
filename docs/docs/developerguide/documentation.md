@@ -40,3 +40,7 @@ To build the documentation site, the previous documentation build command is use
 ```
 npm run build:docs
 ```
+
+## Implementation of the version selector UI
+
+A partial override of the default Vuepress theme was needed to add a custom component the navigation bar. The modified version of the `NavBar` component can be found in `/docs/docs/.vuepress/theme/components/NavBar.vue`. The modified NavBar uses the `VersionSelector` (`/docs/docs/.vuepress/theme/components/VersionSelector.vue`) component which reads from the `.vuepress/versions.json` from each set of documentation.   
