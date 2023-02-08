@@ -1,5 +1,5 @@
 <template>
-<div>
+<div style="font-weight: bold !important;">
   <b-select :options="versionOptions" v-model="currentVersion" @change="versionChangeHandler">
   </b-select>
 </div>

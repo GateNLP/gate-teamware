@@ -6,13 +6,13 @@ module.exports = context => ({
     base: versionData.base,
     themeConfig: {
         nav: [
-          { text: 'Home', link: '/' },
-          { text: 'User Guide', link: '/userguide/' },
-          { text: 'Developer Guide', link: '/developerguide/' }
+            {text: 'Home', link: '/'},
+            {text: 'Annotators', link: '/annotatorguide/'},
+            {text: 'Managers & Admins', link: '/manageradminguide/overview'},
+            {text: 'Developer', link: '/developerguide/'}
         ],
         sidebar: {
-            '/userguide/': [
-                "",
+            '/manageradminguide/': [
                 "overview",
                 "project_management",
                 "project_config",

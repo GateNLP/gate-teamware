@@ -4,7 +4,7 @@
 
 A web application for collaborative document annotation.
 
-Test change documentation, something changed for dev version 0.2.5
+This is a documentation for Teamware version: <strong><DisplayVersion></DisplayVersion></strong>
 
 ## Key Features
 * Free and open source software.
