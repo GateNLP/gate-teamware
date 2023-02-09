@@ -56,4 +56,4 @@ Please use the `Cite this repository` button at the top of the [project's GitHub
 
 
 [docs]: https://gatenlp.github.io/gate-teamware/
-[dev-docs]: https://gatenlp.github.io/gate-teamware/developerguide/
+[dev-docs]: https://gatenlp.github.io/gate-teamware/development/developerguide/
