@@ -22,15 +22,22 @@ vuepress dev docs/versioned/version_num
 
 ## Creating a new documentation version
 
-To create a new documentation, run the following command and replacing `version_num` with the version number: 
+To create a version of the documentation, run the command: 
 
 ```
-npm run docs:create_version -- version_num
+npm run docs:create_version
 ```
 
-This creates a copy of the current set of documentation in `/docs/docs` and places it at `/docs/versioned/version_num`. 
+This creates a copy of the current set of documentation in `/docs/docs` and places it at `/docs/versioned/version_num`. The version number in `package.json` is used for the documentation version.
 
-Each set of documentation can be considered as a separate vuepress site. Each one has a `.vuepress/versions.json` file that contains the listing of all versions, allowing them to link to each other.  
+Each set of documentation can be considered as a separate vuepress site. Each one has a `.vuepress/versions.json` file that contains the listing of all versions, allowing them to link to each other.
+
+Note: Versions can also be created manually by running the command:
+
+```
+# Replace version_num with the version you'd like to create
+node docs/manage_versions.js create version_num 
+```
 
 
 ## Building documentation site
