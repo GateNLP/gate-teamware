@@ -24,6 +24,14 @@
         <b-form-radio value="gate">GATE</b-form-radio>
       </b-form-radio-group>
     </b-form-group>
+    <b-form-group v-if="exportType === 'json' || exportType === 'jsonl'"
+                  label="Anonymize Annotators"
+                  :description="anonymizeAnnotatorsDescription">
+      <b-form-radio-group v-model="anonymizeAnnotators">
+        <b-form-radio value="anonymize">Yes</b-form-radio>
+        <b-form-radio value="deanonymize">No</b-form-radio>
+      </b-form-radio-group>
+    </b-form-group>
     <template v-slot:modal-footer>
       <div style="display: flex">
         <b-button class="mr-2" @click="showModal = false">Close</b-button>
@@ -44,9 +52,10 @@ export default {
       documentType: "all",
       exportType: "json",
       jsonExportFormat: "raw",
+      anonymizeAnnotators: "anonymize",
       rawJsonExportDescription: "Export as JSON in the same format that's uploaded. Additional field named 'annotation_sets' is added for storing annotations. If you've originally uploaded in GATE format then choose this option.",
-      gateJsonExportDescription: "Convert documents to GATE JSON format and export. A 'name' field is added that takes the ID value from the ID field specified in te project config. Fields apart from 'text' and the ID field specified in the project config are placed in the 'features' field. An 'annotation_sets' field is added for storing annotations."
-
+      gateJsonExportDescription: "Convert documents to GATE JSON format and export. A 'name' field is added that takes the ID value from the ID field specified in te project config. Fields apart from 'text' and the ID field specified in the project config are placed in the 'features' field. An 'annotation_sets' field is added for storing annotations.",
+      anonymizeAnnotatorsDescription: "Anonymizing annotators exports anonymous user IDs in place of usernames."
     }
   },
   props: {
@@ -92,6 +101,12 @@ export default {
         ){
           return true
         }
+
+        if( (exportType === "json" || exportType === "jsonl") &&
+            (anonymizeAnnotators === true || anonymizeAnnotators === false )
+        ){
+          return true
+        }
       }
 
       return false
@@ -100,7 +115,7 @@ export default {
   methods: {
     async exportDocumentsHandler() {
       if(this.isExportConfigValid){
-        window.location.href = `/download_annotations/${this.projectId}/${this.documentType}/${this.exportType}/${this.jsonExportFormat}/500/`
+        window.location.href = `/download_annotations/${this.projectId}/${this.documentType}/${this.exportType}/${this.jsonExportFormat}/500/${this.anonymizeAnnotators}/`
       }
     },
   },
