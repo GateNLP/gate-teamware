@@ -24,8 +24,7 @@
         <b-form-radio value="gate">GATE</b-form-radio>
       </b-form-radio-group>
     </b-form-group>
-    <b-form-group v-if="exportType === 'json' || exportType === 'jsonl'"
-                  label="Anonymize Annotators"
+    <b-form-group label="Anonymize Annotators"
                   :description="anonymizeAnnotatorsDescription">
       <b-form-radio-group v-model="anonymizeAnnotators">
         <b-form-radio value="anonymize">Yes</b-form-radio>
@@ -102,9 +101,7 @@ export default {
           return true
         }
 
-        if( (exportType === "json" || exportType === "jsonl") &&
-            (anonymizeAnnotators === true || anonymizeAnnotators === false )
-        ){
+        if( (anonymizeAnnotators === true || anonymizeAnnotators === false ) ){
           return true
         }
       }

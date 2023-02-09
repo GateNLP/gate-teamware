@@ -878,7 +878,11 @@ class Document(models.Model):
                     else:
                         annotation_dict[a_key] = a_value
                 annotation_dict["duration_seconds"] = annotation.time_to_complete
-                annotation_sets[annotation.user.username] = annotation_dict
+
+                if anonymize:
+                    annotation_sets[str(annotation.user.id)] = annotation_dict
+                else:
+                    annotation_sets[annotation.user.username] = annotation_dict
 
             doc_dict["annotations"] = annotation_sets
 

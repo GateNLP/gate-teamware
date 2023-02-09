@@ -102,7 +102,7 @@ class DownloadAnnotationsView(View):
         elif export_type == "jsonl":
             self.write_docs_as_jsonl(file, documents, json_format, anonymize)
         elif export_type == "csv":
-            self.write_docs_as_csv(file, documents)
+            self.write_docs_as_csv(file, documents, anonymize)
 
 
     def write_docs_as_json(self, file, documents, json_format, anonymize):
@@ -119,11 +119,11 @@ class DownloadAnnotationsView(View):
             file.write(json.dumps(doc_dict) + "\n")
         file.flush()
 
-    def write_docs_as_csv(self, file, documents):
+    def write_docs_as_csv(self, file, documents, anonymize):
         doc_dict_list = []
         keys_list = []
         for document in documents:
-            doc_dict_list.append(self.flatten_json(document.get_doc_annotation_dict("csv"), "."))
+            doc_dict_list.append(self.flatten_json(document.get_doc_annotation_dict("csv", anonymize), "."))
 
         for doc_dict in doc_dict_list:
             keys_list = self.insert_missing_key(keys_list, doc_dict)
