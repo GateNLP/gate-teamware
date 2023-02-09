@@ -1,8 +1,10 @@
 # GATE Teamware
 
-![](../frontend/public/static/img/gate-teamware-logo.svg "GATE Teamware")
+![GATE Teamware logo](./img/gate-teamware-logo.svg "GATE Teamware logo")
 
 A web application for collaborative document annotation.
+
+This is a documentation for Teamware version: <strong><DisplayVersion></DisplayVersion></strong>
 
 ## Key Features
 * Free and open source software.
