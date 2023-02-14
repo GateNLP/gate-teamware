@@ -199,7 +199,6 @@ postgresql:
   auth:
     database: teamware_db
     username: gate
-    existingSecret: postgres-credentials
 
   # Additional useful settings include persistence.storageClass and persistence.size
 

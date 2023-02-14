@@ -64,6 +64,7 @@ helm upgrade --install gate-teamware ./gate-teamware/ \
 
 **Breaking changes**
 
+- `postgresql.auth.existingSecret` is no longer set by default in `values.yaml`.  For new installations this means it is no longer necessary to pre-create the `postgres-credentials` secret before installing the Teamware chart, but for existing installations you must _explicitly_ set `postgresql.auth.existingSecret=postgres-credentials` in your override values when upgrading, rather than depending on that being the default setting.
 - Default `imageRegistry` is now `ghcr.io/gatenlp/` - if you were previously relying on the default empty registry setting (so the deployments were just configured with `teamware-backend:{version}` and you were side-loading the images onto your cluster nodes) then you will need to set `imageRegistry: ""` in your override values when upgrading.
 
 ### Version 0.2.0
