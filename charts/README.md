@@ -60,6 +60,12 @@ helm upgrade --install gate-teamware ./gate-teamware/ \
 
 ## Changelog
 
+### Version 0.2.1
+
+**Breaking changes**
+
+- Default `imageRegistry` is now `ghcr.io/gatenlp/` - if you were previously relying on the default empty registry setting (so the deployments were just configured with `teamware-backend:{version}` and you were side-loading the images onto your cluster nodes) then you will need to set `imageRegistry: ""` in your override values when upgrading.
+
 ### Version 0.2.0
 
 **Breaking changes**

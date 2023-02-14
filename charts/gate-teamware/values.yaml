@@ -21,8 +21,7 @@ superuser:
 
 # Docker registry prefix from which the backend and staticFiles images will be
 # pulled - if specified, this value _must_ end with a forward slash, e.g.
-# imageRegistry: "ghcr.io/gatenlp/"
-imageRegistry: ""
+imageRegistry: "ghcr.io/gatenlp/"
 
 migrations:
   # Whether to run a job at chart install time to perform the Django migrations -
