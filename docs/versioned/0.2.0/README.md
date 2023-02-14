@@ -15,9 +15,9 @@ This is a documentation for Teamware version: <strong><DisplayVersion></DisplayV
 * Annotation instructions and document rendering supports markdown and HTML.
 
 ## Getting started
-A quickstart guide for annotators is [available here](userguide/quickstart.html).
+A quickstart guide for annotators is [available here](annotatorguide).
 
-To use an existing instance of GATE Teamware as a project manager or admin, find instructions in the [User Guide](userguide/overview.html).
+To use an existing instance of GATE Teamware as a project manager or admin, find instructions in the [Managers and Admins guide](manageradminguide).
 
 Documentation on deploying your own instance can be found in the [Developer Guide](developerguide).
 

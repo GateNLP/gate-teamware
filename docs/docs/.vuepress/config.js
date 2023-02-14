@@ -8,12 +8,12 @@ module.exports = context => ({
         nav: [
             {text: 'Home', link: '/'},
             {text: 'Annotators', link: '/annotatorguide/'},
-            {text: 'Managers & Admins', link: '/manageradminguide/overview'},
+            {text: 'Managers & Admins', link: '/manageradminguide/'},
             {text: 'Developer', link: '/developerguide/'}
         ],
         sidebar: {
             '/manageradminguide/': [
-                "overview",
+                "",
                 "project_management",
                 "project_config",
                 "documents_annotations_management",
