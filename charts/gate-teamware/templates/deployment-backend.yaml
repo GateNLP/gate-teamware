@@ -42,6 +42,9 @@ spec:
             - name: http
               containerPort: 8000
               protocol: TCP
+          {{- with .extraArgs }}
+          args: {{- toYaml . | nindent 10 }}
+          {{- end }}
           env:
           - name: DJANGO_SETTINGS_MODULE
             value: teamware.settings.deployment
@@ -129,6 +132,9 @@ spec:
                 key: refresh-token
           {{- end }}{{/* if backend gmail */}}
           {{- end }}{{/* with .Values.email */}}
+          {{- with .extraEnv }}
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
           {{- if and $.Values.email.smtp.security $.Values.email.smtp.clientCertSecret }}
           volumeMounts:
           - name: email-client-cert
