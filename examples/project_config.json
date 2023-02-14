@@ -23,6 +23,7 @@
     "title": "Test checkbox input",
     "description": "Test checkbox description",
     "type": "checkbox",
+    "orientation": "vertical",
     "options": {
       "val1": "Value 1",
       "val2": "Value 2",

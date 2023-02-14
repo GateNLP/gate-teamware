@@ -1,6 +1,6 @@
 <template>
   <InputErrorDisplay :state="state" :msg-error="msgError" :msg-success="msgSuccess">
-    <b-form-checkbox-group v-model="inputVal" :name="config.name" :options="options" :state="state"></b-form-checkbox-group>
+    <b-form-checkbox-group v-model="inputVal" :name="config.name" :options="options" :state="state" :stacked="config.orientation === 'vertical'"></b-form-checkbox-group>
   </InputErrorDisplay>
 </template>
 

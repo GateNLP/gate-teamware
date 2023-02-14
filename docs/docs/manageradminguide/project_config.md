@@ -278,6 +278,7 @@ Configuration, showing the same field/column in document as-is or as HTML:
         "name": "mylabel",
         "type": "radio",
         "optional": true, //Optional - Set if validation is not required
+        "orientation": "vertical", //Optional - default is "horizontal"
         "options": [ // The options that the user is able to select from
                 {"value": "value1", "label": "Text to show user 1"},
                 {"value": "value2", "label": "Text to show user 2"},
@@ -303,6 +304,7 @@ Configuration, showing the same field/column in document as-is or as HTML:
         "name": "mylabel",
         "type": "checkbox",
         "optional": true, //Optional - Set if validation is not required
+        "orientation": "horizontal", //Optional - "horizontal" (default) or "vertical"
         "options": [ // The options that the user is able to select from
                 {"value": "value1", "label": "Text to show user 1"},
                 {"value": "value2", "label": "Text to show user 2"},

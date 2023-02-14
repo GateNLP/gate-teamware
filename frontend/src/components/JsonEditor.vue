@@ -118,6 +118,26 @@ export default {
                   },
                   "required": ["options"]
                 }
+              },
+              {
+                // checkbox and radio may have "orientation" of "vertical" or "horizontal"
+                "if": {
+                  "properties": {
+                    "type": {
+                      "anyOf": [
+                        {"const": "checkbox"},
+                        {"const": "radio"}
+                      ]
+                    }
+                  }
+                },
+                "then": {
+                  "properties": {
+                    "orientation": {
+                      "enum": ["vertical", "horizontal"]
+                    }
+                  }
+                }
               }
             ],
             "required": ["name", "type"],
