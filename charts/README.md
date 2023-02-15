@@ -106,6 +106,19 @@ helm upgrade --install gate-teamware ./gate-teamware/ \
        --namespace {ns} --values {override-values-file}
 ```
 
+However the snapshot chart will still run the latest _release_ of Teamware by default - to use the latest _snapshot_ images (`ghcr.io/gatenlp/teamware-{backend|static}:dev`) you will need to set the image tags to `dev` and pull policy to `Always` in your override values file:
+
+```yaml
+backend:
+  image:
+    tag: "dev"
+    pullPolicy: Always
+
+staticFiles:
+  image:
+    tag: "dev"
+    pullPolicy: Always
+```
 
 ## Changelog
 
