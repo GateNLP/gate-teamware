@@ -26,4 +26,4 @@ appVersion: "0.2.0"
 dependencies:
 - name: postgresql
   repository: https://charts.bitnami.com/bitnami
-  version: 11.1.28 # chart version 11.1.28 wraps Postgresql version 14
+  version: 11.x # chart version 11.x wraps Postgresql version 14.x
