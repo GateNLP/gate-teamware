@@ -54,17 +54,17 @@ class TestDownloadAnnotations(TestEndpoint):
     def test_json_export(self):
         client = self.get_loggedin_client()
 
-        response = client.get(f"/download_annotations/{self.project.id}/training/json/raw/{self.num_docs_per_file}/")
+        response = client.get(f"/download_annotations/{self.project.id}/training/json/raw/{self.num_docs_per_file}/anonymize/")
         self.check_json_export_from_response(response,
                                              num_documents_expected=self.num_training_docs,
                                              num_documents_per_file=self.num_docs_per_file)
 
-        response = client.get(f"/download_annotations/{self.project.id}/test/json/raw/{self.num_docs_per_file}/")
+        response = client.get(f"/download_annotations/{self.project.id}/test/json/raw/{self.num_docs_per_file}/anonymize/")
         self.check_json_export_from_response(response,
                                              num_documents_expected=self.num_test_docs,
                                              num_documents_per_file=self.num_docs_per_file)
 
-        response = client.get(f"/download_annotations/{self.project.id}/annotation/json/raw/{self.num_docs_per_file}/")
+        response = client.get(f"/download_annotations/{self.project.id}/annotation/json/raw/{self.num_docs_per_file}/anonymize/")
         self.check_json_export_from_response(response,
                                              num_documents_expected=self.num_docs,
                                              num_documents_per_file=self.num_docs_per_file)
@@ -95,17 +95,17 @@ class TestDownloadAnnotations(TestEndpoint):
     def test_jsonl_export(self):
 
         client = self.get_loggedin_client()
-        response = client.get(f"/download_annotations/{self.project.id}/training/jsonl/raw/{self.num_docs_per_file}/")
+        response = client.get(f"/download_annotations/{self.project.id}/training/jsonl/raw/{self.num_docs_per_file}/anonymize/")
         self.check_jsonl_export_from_response(response,
                                               num_documents_expected=self.num_training_docs,
                                               num_documents_per_file=self.num_docs_per_file)
 
-        response = client.get(f"/download_annotations/{self.project.id}/test/jsonl/raw/{self.num_docs_per_file}/")
+        response = client.get(f"/download_annotations/{self.project.id}/test/jsonl/raw/{self.num_docs_per_file}/anonymize/")
         self.check_jsonl_export_from_response(response,
                                               num_documents_expected=self.num_test_docs,
                                               num_documents_per_file=self.num_docs_per_file)
 
-        response = client.get(f"/download_annotations/{self.project.id}/annotation/jsonl/raw/{self.num_docs_per_file}/")
+        response = client.get(f"/download_annotations/{self.project.id}/annotation/jsonl/raw/{self.num_docs_per_file}/anonymize/")
         self.check_jsonl_export_from_response(response,
                                               num_documents_expected=self.num_docs,
                                               num_documents_per_file=self.num_docs_per_file)
@@ -130,17 +130,17 @@ class TestDownloadAnnotations(TestEndpoint):
     def test_csv_export(self):
 
         client = self.get_loggedin_client()
-        response = client.get(f"/download_annotations/{self.project.id}/training/csv/raw/{self.num_docs_per_file}/")
+        response = client.get(f"/download_annotations/{self.project.id}/training/csv/raw/{self.num_docs_per_file}/anonymize/")
         self.check_csv_export_from_response(response,
                                               num_documents_expected=self.num_training_docs,
                                               num_documents_per_file=self.num_docs_per_file)
 
-        response = client.get(f"/download_annotations/{self.project.id}/test/csv/raw/{self.num_docs_per_file}/")
+        response = client.get(f"/download_annotations/{self.project.id}/test/csv/raw/{self.num_docs_per_file}/anonymize/")
         self.check_csv_export_from_response(response,
                                               num_documents_expected=self.num_test_docs,
                                               num_documents_per_file=self.num_docs_per_file)
 
-        response = client.get(f"/download_annotations/{self.project.id}/annotation/csv/raw/{self.num_docs_per_file}/")
+        response = client.get(f"/download_annotations/{self.project.id}/annotation/csv/raw/{self.num_docs_per_file}/anonymize/")
         self.check_csv_export_from_response(response,
                                               num_documents_expected=self.num_docs,
                                               num_documents_per_file=self.num_docs_per_file)

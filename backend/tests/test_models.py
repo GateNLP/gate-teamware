@@ -1133,3 +1133,35 @@ class TestDocumentAnnotationModelExport(TestCase):
             for set_key in anno_set_dict:
                 self.assertTrue(isinstance(anno_set_dict[set_key]["text1"], str))
                 self.assertTrue(isinstance(anno_set_dict[set_key]["checkbox1"], str))
+
+    def test_export_raw_anonymized(self):
+
+        for document in self.project.documents.all():
+            doc_dict = document.get_doc_annotation_dict("raw", anonymize=True)
+            
+            for aset_key, aset_data in doc_dict["annotation_sets"].items():
+                self.assertTrue(isinstance(aset_data.get("name", None), int))
+
+    def test_export_raw_deanonymized(self):
+
+        for document in self.project.documents.all():
+            doc_dict = document.get_doc_annotation_dict("raw", anonymize=False)
+            
+            for aset_key, aset_data in doc_dict["annotation_sets"].items():
+                self.assertTrue(isinstance(aset_data.get("name", None), str))
+
+    def test_export_gate_anonymized(self):
+
+        for document in self.project.documents.all():
+            doc_dict = document.get_doc_annotation_dict("gate", anonymize=True)
+
+            for aset_key, aset_data in doc_dict["annotation_sets"].items():
+                self.assertTrue(isinstance(aset_data.get("name", None), int))
+
+    def test_export_gate_deanonymized(self):
+
+        for document in self.project.documents.all():
+            doc_dict = document.get_doc_annotation_dict("gate", anonymize=False)
+
+            for aset_key, aset_data in doc_dict["annotation_sets"].items():
+                self.assertTrue(isinstance(aset_data.get("name", None), str))

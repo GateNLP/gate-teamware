@@ -37,9 +37,10 @@ class MainView(View):
 class DownloadAnnotationsView(View):
 
 
-    def get(self, request, project_id, doc_type, export_type, json_format, entries_per_file):
+    def get(self, request, project_id, doc_type, export_type, json_format, entries_per_file, anonymize="anonymize"):
+        anonymize = False if anonymize=="deanonymize" else True
         if request.user.is_manager or request.user.is_staff or request.user.is_superuser:
-            response = StreamingHttpResponse(self.generate_download(project_id, doc_type, export_type, documents_per_file=entries_per_file))
+            response = StreamingHttpResponse(self.generate_download(project_id, doc_type, export_type, json_format, anonymize, documents_per_file=entries_per_file))
 
             export_format_extension = ""
             if export_type == "json" or export_type == "jsonl":
@@ -55,7 +56,7 @@ class DownloadAnnotationsView(View):
 
         return HttpResponse("No permission to access this endpoint", status=401)
 
-    def generate_download(self, project_id, doc_type="all", export_type="json", json_format="raw", chunk_size=512, documents_per_file=500):
+    def generate_download(self, project_id, doc_type="all", export_type="json", json_format="raw", anonymize=True, chunk_size=512, documents_per_file=500):
 
         project = Project.objects.get(pk=project_id)
 
@@ -82,7 +83,7 @@ class DownloadAnnotationsView(View):
                         slice_docs = all_docs[start_index:end_index]
 
                         with tempfile.NamedTemporaryFile("w+") as f:
-                            self.write_docs_to_file(f, slice_docs, export_type, json_format)
+                            self.write_docs_to_file(f, slice_docs, export_type, json_format, anonymize)
                             zip.write(f.name, f"project-{project_id}-{doc_type}-{slice_index:04d}.{export_type}")
 
             # Stream file output
@@ -95,34 +96,34 @@ class DownloadAnnotationsView(View):
                 else:
                     break
 
-    def write_docs_to_file(self, file, documents, export_type, json_format):
+    def write_docs_to_file(self, file, documents, export_type, json_format, anonymize):
         if export_type == "json":
-            self.write_docs_as_json(file, documents, json_format)
+            self.write_docs_as_json(file, documents, json_format, anonymize)
         elif export_type == "jsonl":
-            self.write_docs_as_jsonl(file, documents, json_format)
+            self.write_docs_as_jsonl(file, documents, json_format, anonymize)
         elif export_type == "csv":
-            self.write_docs_as_csv(file, documents)
+            self.write_docs_as_csv(file, documents, anonymize)
 
 
-    def write_docs_as_json(self, file, documents, json_format):
+    def write_docs_as_json(self, file, documents, json_format, anonymize):
         doc_dict_list = []
         for document in documents:
-            doc_dict_list.append(document.get_doc_annotation_dict(json_format))
+            doc_dict_list.append(document.get_doc_annotation_dict(json_format, anonymize))
 
         file.write(json.dumps(doc_dict_list))
         file.flush()
 
-    def write_docs_as_jsonl(self, file, documents, json_format):
+    def write_docs_as_jsonl(self, file, documents, json_format, anonymize):
         for document in documents:
-            doc_dict = document.get_doc_annotation_dict(json_format)
+            doc_dict = document.get_doc_annotation_dict(json_format, anonymize)
             file.write(json.dumps(doc_dict) + "\n")
         file.flush()
 
-    def write_docs_as_csv(self, file, documents):
+    def write_docs_as_csv(self, file, documents, anonymize):
         doc_dict_list = []
         keys_list = []
         for document in documents:
-            doc_dict_list.append(self.flatten_json(document.get_doc_annotation_dict("csv"), "."))
+            doc_dict_list.append(self.flatten_json(document.get_doc_annotation_dict("csv", anonymize), "."))
 
         for doc_dict in doc_dict_list:
             keys_list = self.insert_missing_key(keys_list, doc_dict)

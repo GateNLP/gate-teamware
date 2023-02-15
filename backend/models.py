@@ -894,7 +894,7 @@ class Document(models.Model):
 
         return doc_out
 
-    def get_doc_annotation_dict(self, json_format="raw"):
+    def get_doc_annotation_dict(self, json_format="raw", anonymize=True):
         """
         Get dictionary of document and its annotations for export
         """
@@ -931,7 +931,11 @@ class Document(models.Model):
                     else:
                         annotation_dict[a_key] = a_value
                 annotation_dict["duration_seconds"] = annotation.time_to_complete
-                annotation_sets[annotation.user.username] = annotation_dict
+
+                if anonymize:
+                    annotation_sets[str(annotation.user.id)] = annotation_dict
+                else:
+                    annotation_sets[annotation.user.username] = annotation_dict
 
             doc_dict["annotations"] = annotation_sets
 
@@ -941,7 +945,7 @@ class Document(models.Model):
             for annotation in annotations:
                 a_data = annotation.data
                 annotation_set = {
-                    "name": annotation.user.username,
+                    "name": annotation.user.id if anonymize else annotation.user.username,
                     "annotations": [
                         {
                             "type": "Document",
