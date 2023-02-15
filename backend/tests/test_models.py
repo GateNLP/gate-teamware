@@ -807,7 +807,7 @@ class TestProjectModel(ModelTestCase):
         clone_prefix = "Test project prefix "
 
         # Check fields must match exactly
-        fields = Project.get_project_config_fields({"name", "owner", "id", "created"})
+        fields = Project.get_project_config_fields({"name", "owner", "id", "created", "uuid"})
         field_name_set = set()
         for field in fields:
             field_name_set.add(field.name)

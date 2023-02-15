@@ -26,6 +26,8 @@ jobs:
         run: |
           export MAIN_IMAGE=teamware-main
           export STATIC_IMAGE=teamware-static
+
+          export DJANGO_SETTINGS_MODULE=teamware.settings.docker-test
           
           ./generate-docker-env.sh
 

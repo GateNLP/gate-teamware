@@ -231,4 +231,7 @@ GMAIL_API_CLIENT_SECRET = os.getenv('DJANGO_GMAIL_API_CLIENT_SECRET', 'google_as
 GMAIL_API_REFRESH_TOKEN = os.getenv('DJANGO_GMAIL_API_REFRESH_TOKEN', 'google_assigned_token')
 
 
-
+# Telemetry settings
+TELEMETRY_ON = False
+TELEMETRY_BASE_URL = 'https://reports.gate.ac.uk/'
+TELEMETRY_PATH = 'phone_home'
