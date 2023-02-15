@@ -46,6 +46,9 @@ backend:
     # Overrides the image tag whose default is the chart appVersion.
     tag: ""
   replicaCount: 1
+  # Kubernetes secret holding the randomly generated Django secret key.  This MUST exist before
+  # installing the chart, and must have an entry named "secret-key" whose value is a random string
+  # at least 50 characters in length
   djangoSecret: ""
   service:
     type: ClusterIP
@@ -162,7 +165,15 @@ ingress:
   annotations: {}
     # kubernetes.io/tls-acme: "true"
   tls:
+    # Should the ingress controller serve over https: (true) or http: (false).
+    # If set to false you will also need to override publicUrl above, as the
+    # default for that assumes https:
     enabled: true
+    # Kubernetes secret holding the TLS certificate for the public hostname.
+    # An empty value means that no secretName will be set on the ingress,
+    # whether or not this is valid and how it behaves depends on the specific
+    # ingress controller in use - for ingress-nginx it will use the default
+    # certificate of the controller.
     secret: ""
 
 email:
@@ -174,7 +185,10 @@ email:
   # verify the email address?
   activationEnabled: false
   smtp:
+    # SMTP server name, if backend: "smtp"
     host: ""
+    # Port number - typically 25 or 587 for SMTP with no encryption or with
+    # STARTTLS, or 465 for "SMTPS" immediate TLS-on-connect.
     port: "587"
     # username, if SMTP server requires authentication
     user: ""
@@ -200,7 +214,9 @@ postgresql:
     database: teamware_db
     username: gate
 
-  # Additional useful settings include persistence.storageClass and persistence.size
+  # Additional useful settings include persistence.storageClass and persistence.size.
+  # If upgrading from an earlier version of this chart, you may also need to set
+  # auth.existingSecret: postgres-credentials
 
 # Configure regular database backups to S3 (or compatible) storage
 backup:
@@ -212,7 +228,8 @@ backup:
   region: ""
   # Bucket to which the backups should be stored
   bucketName: ""
-  # common key prefix for all the backups
+  # common key prefix for all the backups - the schedule name will be added
+  # after this prefix to construct the full target location
   keyPrefix: ""
   # Kubernetes secret with keys "access-key-id" and "secret-key" that have
   # write access to the specified bucket
