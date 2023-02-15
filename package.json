@@ -1,6 +1,6 @@
 {
   "name": "gate-teamware",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "A service for collaborative document annotation.",
   "main": "index.js",
   "scripts": {

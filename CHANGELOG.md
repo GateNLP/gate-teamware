@@ -5,7 +5,7 @@
 ### Changed
 ### Fixed
 
-## [0.2.1]
+## [0.3.0]
 ### Added
 - Telemetry data sending ([#270](https://github.com/GateNLP/gate-teamware/pull/270))
 - Upgrade Docker actions ([#272](https://github.com/GateNLP/gate-teamware/pull/272))
