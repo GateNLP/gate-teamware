@@ -12,7 +12,11 @@ To set up a new installation of teamware:
 - Create a suitable namespace in the cluster, and install any necessary `imagePullSecrets` - this may require additional admin privileges
 - Create the random secret described above
   - if your cluster has `kubernetes-secret-generator` installed then the supplied `django-secret.yaml` file in this directory will generate a suitable Django secret key with `kubectl create -f django-secret.yaml -n {namespace}`
-  - if not, you can create a random secret on the command line with something like `kubectl create secret generic -n {namespace} django-secret --from-literal="secret-key=$( openssl rand -base64 42 )"`
+  - if not, you can create a random secret on the command line with something like 
+    ```
+    kubectl create secret generic -n {namespace} django-secret \
+      --from-literal="secret-key=$( openssl rand -base64 42 )"
+    ```
 - Create a suitable YAML file to override any defaults from `gate-teamware/values.yaml`.
 
 Things you will commonly need to override include:
@@ -67,7 +71,7 @@ By default the chart uses the publicly available Teamware images published on `g
 
 The images to be run are specified in three parts, the top-level `imageRegistry` key in the values file is the registry prefix (by default `ghcr.io/gatenlp/`) which _must_ end with a slash, then `backend` and `staticFiles` each have `image.repository` for the image name (default "teamware-backend" and "teamware-static" respectively) and `image.tag` for the tag, which defaults to match the chart "appVersion" number, plus `pullPolicy` (default "IfNotPresent") and `pullSecrets` (if you are using a private registry whose credentials are not already configured on the default ServiceAccount for this namespace).  So if you store your images in a private registry but still name them `teamware-backend` and `teamware-static` then the only thing you should need to override is the `imageRegistry`.
 
-The chart also supports running regular backups of the database to S3 (or a compatible storage system), these can be configured using the settings under the `backup` section, see `gate-teamware/values.yaml` for more details.
+The chart also supports running regular backups of the database to S3 (or a compatible storage system), these can be configured using the settings under the `backup` section, see [`values.yaml`](gate-teamware/values.yaml) for more details.
 
 ## Install/upgrade
 
