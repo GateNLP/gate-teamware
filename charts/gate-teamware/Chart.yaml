@@ -1,6 +1,6 @@
 apiVersion: v2
 name: gate-teamware
-description: A Helm chart for Kubernetes
+description: A web application for collaborative document annotation.
 
 # A chart can be either an 'application' or a 'library' chart.
 #
