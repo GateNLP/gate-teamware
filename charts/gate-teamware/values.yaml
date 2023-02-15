@@ -161,6 +161,14 @@ serviceAccount:
 
 
 ingress:
+  # Should we create an ingress to route requests in to Teamware?  If you set this
+  # to false then it is your responsibility to set up appropriate routing, so that
+  # {publicUrl}/static/* goes to the "static" service and all other requests to
+  # {publicUrl} go to the backend service.  Typically this will be done either by
+  # deploying another reverse proxy deployment as a LoadBalancer service, or by
+  # setting the service type of both the static and backend services to NodePort
+  # and using a separate gateway external to the cluster.
+  enabled: true
   className: ""
   annotations: {}
     # kubernetes.io/tls-acme: "true"
