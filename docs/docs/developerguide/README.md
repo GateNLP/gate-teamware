@@ -181,10 +181,74 @@ This will first launch the database container, then via Django's `dbshell` comma
 
 
 ## Deployment using Kubernetes
-Helm charts and instructions for deploying teamware via Kubernetes are available in the `charts/` folder.
 
-*More documentation to follow*
+A Helm chart to deploy Teamware on Kubernetes is published to the GATE team public charts repository.  The chart requires [Helm](https://helm.sh) version 3.7 or later, and is compatible with Kubernetes version 1.23 or later.  Earlier Kubernetes versions back to 1.19 _may_ work provided autoscaling is not enabled, but these have not been tested.
 
+The following quick start instructions assume you have a compatible Kubernetes cluster and a working installation of `kubectl` and `helm` (3.7 or later) with permission to create all the necessary resource types in your target namespace.
+
+First generate a random "secret key" for the Django application.  This must be at least 50 random characters, a quick way to do this is
+
+```
+# 42 random bytes base64 encoded becomes 56 random characters
+kubectl create secret generic -n {namespace} django-secret \
+   --from-literal="secret-key=$( openssl rand -base64 42 )"
+```
+
+Add the GATE charts repository to your Helm configuration:
+
+```
+helm repo add gate https://repo.gate.ac.uk/repository/charts
+helm repo update
+```
+
+Create a `values.yaml` file with the key settings required for teamware.  The following is a minimal set of values for a typical installation:
+
+```yaml
+# Public-facing web hostname of the teamware application, the public
+# URL will be https://{hostName}
+hostName: teamware.example.com
+
+email:
+  # "From" address on emails sent by Teamware
+  adminAddress: admin@teamware.example.com
+  # Send email via an SMTP server - alternatively "gmail" to use GMail API
+  backend: "smtp"
+  smtp:
+    host: mail.example.com
+    # You will also need to set user and passwordSecret if your
+    # mail server requires authentication
+
+migrations:
+  # Apply database migrations when installing the chart - this is
+  # necessary on the first installation to create the initial DB
+  run: true
+
+backend:
+  # Name of the random secret you created above
+  djangoSecret: django-secret
+
+# Initial "super user" created on the first install.  These are just
+# the *initial* settings, you can (and should!) change the password
+# once Teamware is up and running
+superuser:
+  email: me@example.com
+  username: admin
+  password: changeme
+```
+
+Some of these may be omitted or others may be required depending on the setup of your specific cluster - see the [chart README](https://github.com/GateNLP/charts/blob/main/gate-teamware/README.md) and the chart's own values file (which you can retrieve with `helm show values gate/gate-teamware`) for full details.  In particular these values assume:
+
+- your cluster has an ingress controller, with a default ingress class configured, and that controller has a default TLS certificate that is compatible with your chosen hostname (e.g. a `*.example.com` wildcard)
+- your cluster has a default storageClass configured to provision PVCs, and at least 8 GB of available PV capacity
+- you can send email via an SMTP server with no authentication
+- you do not need to back up your PostgreSQL database - the chart does include the option to store backups in Amazon S3 or another compatible object store, see the full README for details
+
+Once you have created your values file, you can install the chart or upgrade an existing installation using
+
+```
+helm upgrade --install gate-teamware gate/gate-teamware \
+       --namespace {namespace} --values teamware-values.yaml
+```
 
 ## Configuration
 
@@ -197,6 +261,8 @@ and this must be overridden depending on use.
 A SQLite3 database is used during development and during integration testing.
 
 For staging and production, postgreSQL is used, running from a `postgres-12` docker container. Settings are found in `teamware/settings/base.py` and `deployment.py` as well as being set as environment variables by `./generate-docker-env.sh` and passed to the container as configured in `docker-compose.yml`.
+
+In Kubernetes deployments the PostgreSQL database is installed using the Bitnami `postresql` public chart. 
 
 
 ### Sending E-mail 
