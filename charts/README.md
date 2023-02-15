@@ -75,19 +75,37 @@ The chart also supports running regular backups of the database to S3 (or a comp
 
 ## Install/upgrade
 
-With the configured values file in place, installing or upgrading the chart uses the standard Helm command:
+The chart is published to the public GATE charts repository.  Add this repository to your Helm:
 
 ```
-helm upgrade --install gate-teamware ./gate-teamware/ \
+helm repo add gate https://repo.gate.ac.uk/repository/charts
+helm repo update
+```
+
+With the configured values file in place, installing or upgrading the chart uses the standard Helm command
+
+```
+helm upgrade --install gate-teamware gate/gate-teamware \
        --namespace {ns} --values {override-values-file}
 ```
+
+The first `gate-teamware` above is the Helm "release name", the `gate/gate-teamware` is the chart reference in the `gate` repo that you added above.  You can deploy several instances of the chart to the same namespace provided you use different release names (and different values files, in particular the public URL and Django secret key).
 
 e.g.
 
 ```
-helm upgrade --install gate-teamware ./gate-teamware/ \
+helm upgrade --install gate-teamware gate/gate-teamware \
        --namespace teamware-prod --values prod-values.yaml
 ```
+
+For developers you can deploy snapshot versions of the chart directly from a clone of the `gate-teamware` GitHub repository using
+
+```
+cd charts
+helm upgrade --install gate-teamware ./gate-teamware/ \
+       --namespace {ns} --values {override-values-file}
+```
+
 
 ## Changelog
 
