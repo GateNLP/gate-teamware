@@ -1,10 +1,10 @@
 {
- "current": "0.2.0",
- "base": "/gate-teamware/0.2.0/",
+ "current": "0.2.1",
+ "base": "/gate-teamware/0.2.1/",
  "versions": [
   {
-   "text": "0.2.0",
-   "value": "/gate-teamware/0.2.0/"
+   "text": "0.2.1",
+   "value": "/gate-teamware/0.2.1/"
   },
   {
    "text": "development",

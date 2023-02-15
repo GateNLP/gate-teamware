@@ -32,4 +32,4 @@ repository-code: https://github.com/GateNLP/gate-teamware
 title: GATE Teamware
 type: software
 url: https://gatenlp.github.io/gate-teamware/
-version: 0.2.0
+version: 0.2.1
