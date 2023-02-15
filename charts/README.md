@@ -3,9 +3,9 @@ Helm Chart for Teamware
 
 This directory contains a Helm chart to deploy GATE Teamware to a Kubernetes cluster.  The chart has been developed against Kubernetes 1.23 and may not be compatible with earlier versions, and requires Helm version 3.7 or later.
 
-## Prerequisites
+## Configuration
 
-In order to run under Kubernetes there are a few prerequisites that must be satisfied first.  Most important, Kubernetes clusters cannot generally work with locally built images, so the `backend` and `static` images must be pushed to a remote Docker registry, such as Docker Hub or `ghcr.io`, and the registry name passed to helm when installing or upgrading the chart.  Secondly, the chart relies on a pre-existing "secret" in the Kubernetes namespace where the chart will be installed, holding the randomly-generated Django `SECRET_KEY` value.  The [kubernetes-secret-generator](https://github.com/mittwald/kubernetes-secret-generator) tool is useful for this.
+The chart relies on a pre-existing "secret" in the Kubernetes namespace where the chart will be installed, holding the randomly-generated Django `SECRET_KEY` value.  The [kubernetes-secret-generator](https://github.com/mittwald/kubernetes-secret-generator) tool is useful for this.
 
 To set up a new installation of teamware:
 
