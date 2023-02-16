@@ -1,8 +1,10 @@
 # GATE Teamware
 
-![](../frontend/public/static/img/gate-teamware-logo.svg "GATE Teamware")
+![GATE Teamware logo](./img/gate-teamware-logo.svg "GATE Teamware logo")
 
 A web application for collaborative document annotation.
+
+This is a documentation for Teamware version: <strong><DisplayVersion></DisplayVersion></strong>
 
 ## Key Features
 * Free and open source software.
@@ -13,9 +15,9 @@ A web application for collaborative document annotation.
 * Annotation instructions and document rendering supports markdown and HTML.
 
 ## Getting started
-A quickstart guide for annotators is [available here](userguide/quickstart.html).
+A quickstart guide for annotators is [available here](annotatorguide).
 
-To use an existing instance of GATE Teamware as a project manager or admin, find instructions in the [User Guide](userguide/overview.html).
+To use an existing instance of GATE Teamware as a project manager or admin, find instructions in the [Managers and Admins guide](manageradminguide).
 
 Documentation on deploying your own instance can be found in the [Developer Guide](developerguide).
 

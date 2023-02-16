@@ -11,5 +11,6 @@ Note: Releases are always made from the `master` branch of the repository.
    - Include the changes in the `CHANGELOG.md` file, each main item should have a link to the originating PR e.g. \[#123\](https://github.com/GateNLP/gate-teamware/pull/123).
    - Also add to release notes later.
 1. **Update and check the version numbers** - from the teamware directory run `python version.py check` to check whether all version numbers are up to date. If not, update the master `VERSION` file and run `python version.py update` to update all other version numbers and commit the result. Note that `version.py` requires `pyyaml` for reading `CITATION.cff`, `pyyaml` is included in Teamware's dependencies.
+1. **Create a version of the documentation** - Run `npm run docs:create_version`, this will archive the current version of the documentation using the version number in `package.json`.  
 1. **Create a pull request from `dev` to `master`** including any changes to `CHANGELOG.md`, `VERSION`.
 1. **Creating a release** - Create a release via the GitHub interface, the relevant commit can be tagged at this stage or prior to creating the release.
