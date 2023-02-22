@@ -98,9 +98,10 @@ def register(request, payload):
     username = payload.get("username")
     password = payload.get("password")
     email = payload.get("email")
+    agreed_privacy_policy = True
 
     if not get_user_model().objects.filter(username=username).exists():
-        user = get_user_model().objects.create_user(username=username, password=password, email=email)
+        user = get_user_model().objects.create_user(username=username, password=password, email=email, agreed_privacy_policy=agreed_privacy_policy)
         _generate_user_activation(user)
         djlogin(request, user)
         context["username"] = payload["username"]
