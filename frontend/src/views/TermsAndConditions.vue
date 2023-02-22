@@ -1,5 +1,5 @@
 <template>
-  <div class="container">
+  <div class="container" v-if="!privacyPolicyDetails.CUSTOM_TC_DOCUMENT">
     
     <h1>Terms & Conditions</h1>
     <p>
@@ -93,6 +93,10 @@
     </div>
     </p>
 
+  </div>
+
+  <div class="container" v-else>
+    <span v-html="privacyPolicyDetails.CUSTOM_TC_DOCUMENT"></span>
   </div>
 </template>
 <script>

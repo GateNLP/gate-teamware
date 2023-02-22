@@ -239,12 +239,15 @@ TELEMETRY_PATH = 'phone_home'
 """
 Privacy Policy Settings
 """
+
+CUSTOM_PP_DOCUMENT_PATH = 'privacy-policy.html'
+CUSTOM_TC_DOCUMENT_PATH = 'terms-and-conditions.html'
+
 PRIVACY_POLICY = {
     'HOST_NAME': os.getenv('PP_HOST_NAME', 'No host name configured.'),
     'HOST_ADDRESS': os.getenv('PP_HOST_ADDRESS', 'No address configured.'),
     'HOST_CONTACT': os.getenv('PP_HOST_CONTACT', 'No contact link configured.'),
     'ADMIN_NAME': os.getenv('PP_ADMIN_NAME', 'No host name configured.'),
     'ADMIN_ADDRESS': os.getenv('PP_ADMIN_ADDRESS', 'No address configured.'),
-    'ADMIN_CONTACT': os.getenv('PP_ADMIN_CONTACT', 'No contact link configured.'),
-    'ADMIN_CONTACT': os.getenv('PP_ADMIN_CONTACT', 'No contact link configured.'),
+    'ADMIN_CONTACT': os.getenv('PP_ADMIN_CONTACT', 'No contact link configured.')
 }

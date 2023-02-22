@@ -3,6 +3,7 @@ import logging
 import datetime
 
 import json
+import os
 from urllib.parse import urljoin
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model, login as djlogin, logout as djlogout
@@ -26,7 +27,7 @@ from backend.errors import AuthError
 from backend.rpcserver import rpc_method, rpc_method_auth, rpc_method_manager, rpc_method_admin
 from backend.models import Project, Document, DocumentType, Annotation, AnnotatorProject, AnnotationChangeHistory, \
     UserDocumentFormatPreference
-from backend.utils.misc import get_value_from_key_path, insert_value_to_key_path
+from backend.utils.misc import get_value_from_key_path, insert_value_to_key_path, read_custom_document
 from backend.utils.serialize import ModelSerializer
 
 log = logging.getLogger(__name__)
@@ -948,7 +949,17 @@ def admin_update_user_password(request, username, password):
 
 @rpc_method
 def get_privacy_policy_details(request):
-    return settings.PRIVACY_POLICY
+
+    details = settings.PRIVACY_POLICY
+
+    custom_docs = {
+        'CUSTOM_PP_DOCUMENT': read_custom_document(settings.CUSTOM_PP_DOCUMENT_PATH) if os.path.isfile(settings.CUSTOM_PP_DOCUMENT_PATH) else None,
+        'CUSTOM_TC_DOCUMENT': read_custom_document(settings.CUSTOM_TC_DOCUMENT_PATH) if os.path.isfile(settings.CUSTOM_TC_DOCUMENT_PATH) else None
+    }
+
+    details.update(custom_docs)
+
+    return details
 
 
 ###############################

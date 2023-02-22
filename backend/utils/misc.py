@@ -39,3 +39,13 @@ def insert_value_to_key_path(obj_dict, key_path, value, delimiter="."):
             return True
 
     return False
+
+
+def read_custom_document(path):
+    """
+    Reads in a text file and returns as a string.
+    Primarily used for reading in custom privacy policy and/or terms & conditions documents.
+    """
+    with open(path) as file:
+        doc_str = file.read()
+    return doc_str

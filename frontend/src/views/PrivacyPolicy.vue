@@ -1,5 +1,5 @@
 <template>
-  <div class="container">
+  <div class="container" v-if="!privacyPolicyDetails.CUSTOM_PP_DOCUMENT">
     <h1>{{ productName }} Privacy Policy</h1>
 
     <p>Last updated: {{ lastUpdated }}</p>
@@ -122,6 +122,10 @@
       ICO website: <a href="https://www.ico.org.uk">https://www.ico.org.uk</a><br>
     </p>
 
+  </div>
+
+  <div class="container" v-else>
+    <span v-html="privacyPolicyDetails.CUSTOM_PP_DOCUMENT"></span>
   </div>
 </template>
 <script>
