@@ -72,6 +72,15 @@ export default new Vuex.Store({
             await rpc.call("logout");
             commit("updateUser", params);
         },
+        async getPrivacyPolicyDetails() {
+            try{
+                let response = await rpc.call("get_privacy_policy_details");
+                return response
+            }catch (e){
+                console.error(e)
+                throw e
+            }
+        },
         async register({dispatch, commit}, params) {
             try{
                 const payload = {

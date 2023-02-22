@@ -235,3 +235,16 @@ GMAIL_API_REFRESH_TOKEN = os.getenv('DJANGO_GMAIL_API_REFRESH_TOKEN', 'google_as
 TELEMETRY_ON = False
 TELEMETRY_BASE_URL = 'https://reports.gate.ac.uk/'
 TELEMETRY_PATH = 'phone_home'
+
+"""
+Privacy Policy Settings
+"""
+PRIVACY_POLICY = {
+    'HOST_NAME': os.getenv('PP_HOST_NAME', 'No host name configured.'),
+    'HOST_ADDRESS': os.getenv('PP_HOST_ADDRESS', 'No address configured.'),
+    'HOST_CONTACT': os.getenv('PP_HOST_CONTACT', 'No contact link configured.'),
+    'ADMIN_NAME': os.getenv('PP_ADMIN_NAME', 'No host name configured.'),
+    'ADMIN_ADDRESS': os.getenv('PP_ADMIN_ADDRESS', 'No address configured.'),
+    'ADMIN_CONTACT': os.getenv('PP_ADMIN_CONTACT', 'No contact link configured.'),
+    'ADMIN_CONTACT': os.getenv('PP_ADMIN_CONTACT', 'No contact link configured.'),
+}

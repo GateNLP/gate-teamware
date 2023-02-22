@@ -941,6 +941,15 @@ def admin_update_user_password(request, username, password):
     user.save()
 
 
+##################################
+### Privacy Policy/T&C Methods ###
+##################################
+
+@rpc_method
+def get_privacy_policy_details(request):
+    return settings.PRIVACY_POLICY
+
+
 ###############################
 ### Utility Methods         ###
 ###############################
