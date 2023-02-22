@@ -80,15 +80,15 @@
     <div style="width: 100%; overflow: hidden;">
       <div style="width: 600px; float: left;">
         <h3>Host</h3>
-        Name: {{ privacyPolicyDetails.HOST_NAME }}<br>
-        Address: {{ privacyPolicyDetails.HOST_ADDRESS }}<br>
-        Contact: {{ privacyPolicyDetails.HOST_CONTACT }}<br>
-      </div>
-      <div style="margin-left: 620px;">
-        <h3>Administrator</h3>
-        Name: {{ privacyPolicyDetails.ADMIN_NAME }}<br>
-        Address: {{ privacyPolicyDetails.ADMIN_ADDRESS }}<br>
-        Contact: {{ privacyPolicyDetails.ADMIN_CONTACT }}<br>
+          <p>Name: {{ privacyPolicyDetails.HOST_NAME }}</p>
+          <p>Address: {{ privacyPolicyDetails.HOST_ADDRESS }}</p>
+          <p>Contact: <span v-html="privacyPolicyDetails.HOST_CONTACT"></span></p>
+        </div>
+        <div style="margin-left: 620px;">
+          <h3>Administrator</h3>
+          <p>Name: {{ privacyPolicyDetails.ADMIN_NAME }}</p>
+          <p>Address: {{ privacyPolicyDetails.ADMIN_ADDRESS }}</p>
+          <p>Contact: <span v-html="privacyPolicyDetails.ADMIN_CONTACT"></span></p>
       </div>
     </div>
     </p>
