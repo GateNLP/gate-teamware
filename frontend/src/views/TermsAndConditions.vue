@@ -12,8 +12,8 @@
     <p>
     <h2>Definitions</h2>
     <ul>
-    <li><strong>Host</strong>: The individual or organisation responsible for maintaining the deployment {{ productName }} either on their own hardware or that of a third-party provider. The host may also be responsible for installing {{ productName }}, updating, running and ceasing the running of {{ productName }} at ~URL~.</li>
-    <li><strong>Administrator</strong>: The individual(s) or team of individuals responsible for the creation and management of user accounts and projects across ~URL~.</li>
+    <li><strong>Host</strong>: The individual or organisation responsible for maintaining the deployment {{ productName }} either on their own hardware or that of a third-party provider. The host may also be responsible for installing {{ productName }}, updating, running and ceasing the running of {{ productName }} at {{ privacyPolicyDetails.URL }}.</li>
+    <li><strong>Administrator</strong>: The individual(s) or team of individuals responsible for the creation and management of user accounts and projects across {{ privacyPolicyDetails.URL }}.</li>
     </ul>
     </p>
     <p>
@@ -91,6 +91,7 @@
           <p>Contact: <span v-html="privacyPolicyDetails.ADMIN_CONTACT"></span></p>
       </div>
     </div>
+    <br><br>
     </p>
 
   </div>

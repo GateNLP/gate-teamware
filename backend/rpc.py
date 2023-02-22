@@ -959,6 +959,12 @@ def get_privacy_policy_details(request):
 
     details.update(custom_docs)
 
+    url = {
+        'URL': request.headers['Host']
+    }
+
+    details.update(url)
+
     return details
 
 
