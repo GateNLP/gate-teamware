@@ -218,11 +218,6 @@ email:
     # You will also need to set user and passwordSecret if your
     # mail server requires authentication
 
-migrations:
-  # Apply database migrations when installing the chart - this is
-  # necessary on the first installation to create the initial DB
-  run: true
-
 backend:
   # Name of the random secret you created above
   djangoSecret: django-secret
