@@ -5,6 +5,10 @@
 ### Changed
 ### Fixed
 
+## [0.3.1]
+### Fixed
+- Missed underscore in documentation link ([#292](https://github.com/GateNLP/gate-teamware/pull/292))
+
 ## [0.3.0]
 ### Added
 - Telemetry data sending ([#270](https://github.com/GateNLP/gate-teamware/pull/270))
