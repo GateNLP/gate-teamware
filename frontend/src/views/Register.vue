@@ -19,7 +19,7 @@
         <b-form-input type="password" v-model="form.confirmpassword" placeholder="Type password again to confirm"/>
       </b-form-group>
 
-      <p>By registering to use Teamware, you confirm that you have read and agreed to Teamware's <a href="/privacypolicy" target="_blank">privacy policy</a> and <a href="/terms" target="_blank">terms & conditions</a>.</p>
+      <p>By registering to use Teamware, you confirm that you are over 18 years of age and have read and agreed to Teamware's <a href="/privacypolicy" target="_blank">privacy policy</a> and <a href="/terms" target="_blank">terms & conditions</a>.</p>
       
       <transition name="fade">
         <div class="alert alert-warning" role="alert" v-if="error">
