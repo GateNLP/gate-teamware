@@ -272,7 +272,7 @@ export default {
         //Fills the annotation renderer with data
         if (this.$refs.annotationRenderer) {
           this.$refs.annotationRenderer.clearForm()
-          if (this.currentAnnotationTask.annotation_data != null)
+          if (this.currentAnnotationTask && this.currentAnnotationTask.annotation_data != null)
             this.$refs.annotationRenderer.setAnnotationData(this.currentAnnotationTask.annotation_data)
         }
 
