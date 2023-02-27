@@ -36,7 +36,7 @@ Open `127.0.0.1:8076` (the default IP & port) in your browser. The initial admin
 
 *Notes on deployment*:
 * A development server can be run without docker, see the [developer documentation][dev-docs] for more info.
-* The app can also be deployed on a kubernetes cluster, helm charts are available in the `charts/` directory.
+* [A Helm chart](https://github.com/GateNLP/charts/tree/main/gate-teamware) is available to deploy GATE Teamware on a kubernetes cluster.
 
 # Development
 Developer documentation is [provided here][dev-docs].
