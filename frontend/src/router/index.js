@@ -83,6 +83,12 @@ const routes = [
         component: () => import('../views/ManageUsers'),
         meta: {requiresAdmin: true},
     },
+    {
+        path: '/cookies',
+        name: 'Cookies',
+        component: () => import('../views/Cookies'),
+        meta: {guest: true},
+    },
 
 ]
 
