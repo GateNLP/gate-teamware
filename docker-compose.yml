@@ -15,6 +15,12 @@ services:
       - SUPERUSER_USERNAME
       - SUPERUSER_PASSWORD
       - SUPERUSER_EMAIL
+      - PP_HOST_NAME
+      - PP_HOST_ADDRESS
+      - PP_HOST_CONTACT
+      - PP_ADMIN_NAME
+      - PP_ADMIN_ADDRESS
+      - PP_ADMIN_CONTACT
     depends_on:
       - db
 

@@ -101,6 +101,14 @@ DJANGO_EMAIL_PORT=${DJANGO_EMAIL_PORT:-587}
 DJANGO_EMAIL_HOST_USER=${DJANGO_EMAIL_HOST_USER:-username}
 DJANGO_EMAIL_HOST_PASSWORD=${DJANGO_EMAIL_HOST_PASSWORD:-password}
 
+# Privacy Policy and T&C Details
+PP_HOST_NAME=${PP_HOST_NAME:-"\"GATE\""}
+PP_HOST_ADDRESS=${PP_HOST_ADDRESS:-"\"Department of Computer Science, The University of Sheffield, Regent Court, 211 Portobello, Sheffield, S1 4DP. UK\""}
+PP_HOST_CONTACT=${PP_HOST_CONTACT:-"\"<a href='https://gate.ac.uk/g8/contact' target='_blank'>Contact GATE</a>\""}
+PP_ADMIN_NAME=${PP_ADMIN_NAME:-"\"GATE\""}
+PP_ADMIN_ADDRESS=${PP_ADMIN_ADDRESS:-"\"Department of Computer Science, The University of Sheffield, Regent Court, 211 Portobello, Sheffield, S1 4DP. UK\""}
+PP_ADMIN_CONTACT=${PP_ADMIN_CONTACT:-"\"<a href='https://gate.ac.uk/g8/contact' target='_blank'>Contact GATE</a>\""}
+
 # If the mail server requires an encrypted connection, we must specify what
 # kind. Options are tls (= STARTTLS on port 25 or 587) or ssl (= "SMTPS", i.e.
 # implicit TLS on connect, usually on port 465)
