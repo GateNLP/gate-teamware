@@ -120,7 +120,7 @@ To run separately:
   ```
 
 ## Deployment using Docker
-Deployment is via [docker-compose](https://docs.docker.com/compose/), using [NGINX](https://www.nginx.com/) to serve static content, a separate [postgreSQL](https://hub.docker.com/_/postgres) service containing the database and a database backup service (see `docker-compose.yml` for details).
+Teamware can be deployed via [docker-compose](https://docs.docker.com/compose/), using [NGINX](https://www.nginx.com/) to serve static content, a separate [postgreSQL](https://hub.docker.com/_/postgres) service containing the database and a database backup service (see `docker-compose.yml` for details).
 
 1. Run `./generate-docker-env.sh` to create a `.env` file containing randomly generated secrets which are mounted as environment variables into the container. See [below](#env-config) for details.
 
@@ -218,6 +218,20 @@ email:
     # You will also need to set user and passwordSecret if your
     # mail server requires authentication
 
+privacyPolicy:
+# Contact details of the host and administrator of the teamware instance, if no admin defined, defaults to the host values.
+  host:
+    # Name of the host
+    name: "Service Host"
+    # Host's physical address
+    address: "123 Example Street, City. Country."
+    # A method of contacting the host, field supports HTML for e.g. linking to a form
+    contact: "<a href='mailto:info@examplehost.com'>Email</a>"
+  admin:
+    name: "Service Host"
+    address: "123 Example Street, City. Country."
+    contact: "<a href='mailto:info@examplehost.com'>Email</a>"
+
 backend:
   # Name of the random secret you created above
   djangoSecret: django-secret
@@ -304,3 +318,44 @@ This package includes the script linked in the documentation above, which simpli
   DJANGO_GMAIL_API_CLIENT_SECRET='google_assigned_secret'
   DJANGO_GMAIL_API_REFRESH_TOKEN='google_assigned_token'
   ```
+
+
+#### Teamware Privacy Policy and Terms & Conditions
+
+Teamware includes a default privacy policy and terms & conditions, which are required for running the application.
+
+The default privacy policy is compliant with UK GDPR regulations, which may comply with the rights of users of your deployment, however it is your responsibility to ensure that this is the case.
+
+If the default privacy policy covers your use case, then you will need to include configuration for a few contact details.
+
+Contact details are required for the **host** and the **administrator**: the **host** is the organisation or individual responsible for managing the deployment of the teamware instance and the **administrator** is the organisation or individual responsible for managing users, projects and data on the instance. In many cases these roles will be filled by the same organisation or individual, so in this case specifying just the **host** details is sufficient.
+
+For deployment from source, set the following environment variables:
+
+* `PP_HOST_NAME`
+* `PP_HOST_ADDRESS`
+* `PP_HOST_CONTACT`
+* `PP_ADMIN_NAME`
+* `PP_ADMIN_ADDRESS`
+* `PP_ADMIN_CONTACT`
+
+For deployment using docker-compose, set these values in `.env`.
+
+##### Including a custom Privacy Policy and/or Terms & Conditions
+
+If the default privacy policy or terms & conditions do not cover your use case, you can easily replace these with your own documents.
+
+If deploying from source, include HTML files in the project root with the exact names `privacy-policy.html` and/or `terms-and-conditions.html` which will be rendered at the corresponding pages on the running web app.
+
+If deploying with docker compose, place files with these names at the same location as the `docker-compose.yml` file before running `./deploy.sh` as above.
+
+An example custom privacy policy file contents might look like:
+
+```html
+<h1>Organisation X Teamware Privacy Policy</h2>
+...
+...
+<h2>Definitions of Roles and Terminology</h2>
+...
+...
+```
