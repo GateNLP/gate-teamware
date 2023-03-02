@@ -5,6 +5,7 @@
         <b-navbar-nav align="right" :small=true>
           <b-nav-text>v{{ appVersion }}</b-nav-text>
           <b-nav-item to="/privacypolicy">Privacy Policy</b-nav-item>
+          <b-nav-item to="/cookies">Cookies Policy</b-nav-item>
           <b-nav-item to="/terms">Terms & Conditions</b-nav-item>
           <b-nav-item to="/about">About</b-nav-item>
         </b-navbar-nav>
