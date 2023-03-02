@@ -11,11 +11,11 @@ import InputErrorDisplay from "@/components/annotation/InputErrorDisplay";
 export default {
   name: "SelectorInput",
   components: {InputErrorDisplay},
-  props: ["value", "config", "state", "msgError", "msgSuccess"],
+  props: ["value", "config", "document", "state", "msgError", "msgSuccess"],
   computed: {
     options(){
       if(this.config && this.config.options){
-        return generateBVOptions(this.config.options)
+        return generateBVOptions(this.config.options, this.document)
       }
       return null
     },
