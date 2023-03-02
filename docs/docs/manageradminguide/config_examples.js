@@ -156,6 +156,32 @@ export default {
         }
     ],
 
+    configDbpediaExample: [
+        {
+            "name": "uri",
+            "type": "radio",
+            "title": "Select the most appropriate URI",
+            "options":[
+                {"fromDocument": "candidates"},
+                {"value": "none", "label": "None of the above"},
+                {"value": "unknown", "label": "Cannot be determined without more context"}
+            ]
+        }
+    ],
+    docDbpediaExample: {
+        "text": "President Bush visited the air base yesterday...",
+        "candidates": [
+            {
+                "value": "http://dbpedia.org/resource/George_W._Bush",
+                "label": "George W. Bush (Jnr)"
+            },
+            {
+                "value": "http://dbpedia.org/resource/George_H._W._Bush",
+                "label": "George H. W. Bush (Snr)"
+            }
+        ]
+    },
+
 
     doc1: {text: "Sometext with <strong>html</strong>"},
     doc2: {

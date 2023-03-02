@@ -375,6 +375,52 @@ the order in which keys are added.
 
 </AnnotationRendererPreview>
 
+### Dynamic options for radio, checkbox and selector
+
+All the examples above have a "static" list of available options for the radio, checkbox and selector widgets, where the complete options list is enumerated in the project configuration and every document offers the same set of options.  However it is also possible to take some or all of the options from the _document_ data rather than the _configuration_ data.  For example:
+
+<AnnotationRendererPreview :config="configs.configDbpediaExample" :document="configs.docDbpediaExample">
+
+**Project configuration**
+
+```json
+[
+  {
+    "name": "uri",
+    "type": "radio",
+    "title": "Select the most appropriate URI",
+    "options":[
+      {"fromDocument": "candidates"},
+      {"value": "none", "label": "None of the above"},
+      {"value": "unknown", "label": "Cannot be determined without more context"}
+    ]
+  }
+]
+```
+
+**Document**
+
+```json
+{
+  "text": "President Bush visited the air base yesterday...",
+  "candidates": [
+    {
+      "value": "http://dbpedia.org/resource/George_W._Bush",
+      "label": "George W. Bush (Jnr)"
+    },
+    {
+      "value": "http://dbpedia.org/resource/George_H._W._Bush",
+      "label": "George H. W. Bush (Snr)"
+    }
+  ]
+}
+```
+
+</AnnotationRendererPreview>
+
+`"fromDocument"` is a dot-separated property path leading to the location within each document where the additional options can be found, for example `"fromDocument":"candidates"` looks for a top-level property named `candidates` in each document, `"fromDocument": "options.custom"` would look for a property named `options` which is itself an object with a property named `custom`.  Once the target property is located in the document it is assumed to be the same format as the static `"options"` configuration, i.e. either an array where each element is an object with `value` and `label`, or a dictionary mapping values to labels.  As a convenience for users we also support an array of plain strings, in which case the string will be used as both the value _and_ the label for this option.
+
+Static and `fromDocument` options may be freely interspersed in any order, so you can have a fully-dynamic set of options by specifying _only_ a `fromDocument` entry with no static options, or you can have static options that are listed first followed by dynamic options, or dynamic options first followed by static, etc.
 
 <script>
 import configs from './config_examples';
