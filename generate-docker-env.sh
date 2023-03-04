@@ -55,8 +55,9 @@ DB_PASSWORD=${DB_PASSWORD:-$(openssl rand -base64 16)} # default: auto-generated
 DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-teamware.settings.deployment}
 DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY:-$(openssl rand -base64 42)} # default: auto-generated
 
-# Allowed host urls
-TEAMWARE_HOST_URL_PRODUCTION=${TEAMWARE_HOST_URL_PRODUCTION}
+# Allowed host urls - DJANGO_ALLOWED_HOSTS for production deployment,
+# TEAMWARE_HOST_URL_STAGING overrides this for staging deployment
+DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS:-$TEAMWARE_HOST_URL_PRODUCTION}
 TEAMWARE_HOST_URL_STAGING=${TEAMWARE_HOST_URL_STAGING}
 
 # Database backup user credentials
