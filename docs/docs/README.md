@@ -21,6 +21,23 @@ To use an existing instance of GATE Teamware as a project manager or admin, find
 
 Documentation on deploying your own instance can be found in the [Developer Guide](developerguide).
 
+## Installation Guide
+
+### Quick Start
+
+The simplest way to deploy your own copy of GATE Teamware is to use Docker Compose on Linux or Mac.  Installation on Windows is possible but not officially supported - you need to be able to run `bash` shell scripts for the quick-start installer.
+
+1. Install Docker - [Docker Engine](https://docs.docker.com/engine/) for Linux servers or [Docker Desktop](https://docs.docker.com/desktop/) for Mac.
+2. Install [Docker Compose](https://github.com/docker/compose), if your Docker does not already include it (Compose is included by default with Docker Desktop)
+3. Download the [installation script](https://gate.ac.uk/get-teamware.sh) into an empty directory, run it and follow the instructions.
+
+```
+mkdir gate-teamware
+cd gate-teamware
+curl -LO https://gate.ac.uk/get-teamware.sh
+bash ./get-teamware.sh
+```
+
 ## Bug reports and feature requests
 Please make bug reports and feature requests as Issues on the [GATE Teamware GitHub repo](https://github.com/GATENLP/gate-teamware).
 
