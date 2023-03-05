@@ -108,7 +108,11 @@ fi
 set +a
 
 # Download install package
-"${CURL[@]}" https://gate.ac.uk/teamware/install.tar.gz | tar xzf -
+if [ "$IMAGE_TAG" = "latest" -o "$IMAGE_TAG" = "dev" ]; then
+  "${CURL[@]}" https://github.com/GateNLP/gate-teamware/releases/latest/download/install.tar.gz | tar xzf -
+else
+  "${CURL[@]}" https://github.com/GateNLP/gate-teamware/releases/download/v${IMAGE_TAG}/install.tar.gz | tar xzf -
+fi
 
 # Create backup folder
 mkdir backups
