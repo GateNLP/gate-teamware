@@ -92,7 +92,7 @@ SUPERUSER_PASSWORD=${SUPERUSER_PASSWORD:-password}
 # *including* the trailing slash
 #
 # leave blank for local images
-IMAGE_REGISTRY=${IMAGE_REGISTRY:-ghcr.io/gatenlp/}
+IMAGE_REGISTRY=${IMAGE_REGISTRY-ghcr.io/gatenlp/}
 MAIN_IMAGE=$MAIN_IMAGE # Do not change
 STATIC_IMAGE=$STATIC_IMAGE # Do not change
 IMAGE_TAG=${IMAGE_TAG:-latest}
@@ -112,19 +112,19 @@ DJANGO_GMAIL_API_REFRESH_TOKEN=${DJANGO_GMAIL_API_REFRESH_TOKEN:-google_assigned
 # Settings for SMTP email
 DJANGO_EMAIL_HOST=${DJANGO_EMAIL_HOST:-smtp.example.com}
 DJANGO_EMAIL_PORT=${DJANGO_EMAIL_PORT:-587}
-DJANGO_EMAIL_HOST_USER=${DJANGO_EMAIL_HOST_USER:-username}
-DJANGO_EMAIL_HOST_PASSWORD=${DJANGO_EMAIL_HOST_PASSWORD:-password}
+DJANGO_EMAIL_HOST_USER=${DJANGO_EMAIL_HOST_USER-username}
+DJANGO_EMAIL_HOST_PASSWORD=${DJANGO_EMAIL_HOST_PASSWORD-password}
 
 # If the mail server requires an encrypted connection, we must specify what
 # kind. Options are tls (= STARTTLS on port 25 or 587) or ssl (= "SMTPS", i.e.
 # implicit TLS on connect, usually on port 465)
-DJANGO_EMAIL_SECURITY=${DJANGO_EMAIL_SECURITY:-tls}
+DJANGO_EMAIL_SECURITY=${DJANGO_EMAIL_SECURITY-tls}
 
 # If the server requires you to identify yourself with a client certificate,
 # Add these variables at the bottom of this file, after the DO NOT EDIT line
 #
 # DJANGO_EMAIL_CLIENT_KEY=/path/to/private.key
-# DJANGO_EMAIL_CLIENT_CERTIFICATE=-/path/to/certificate.pem
+# DJANGO_EMAIL_CLIENT_CERTIFICATE=/path/to/certificate.pem
 
 # Privacy Policy and T&C Details
 PP_HOST_NAME="${PP_HOST_NAME:-GATE}"
