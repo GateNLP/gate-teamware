@@ -83,7 +83,7 @@ BACKUPS_USER_GROUP=${BACKUPS_USER_GROUP:-0:0}
 
 # Default credentials user for setting up database
 # Only used if no superusers are found in database
-SUPERUSER_EMAIL=${SUPERUSER_EMAIL:-gate+teamware@sheffield.ac.uk}
+SUPERUSER_EMAIL=${SUPERUSER_EMAIL:-teamware@example.com}
 SUPERUSER_USERNAME=${SUPERUSER_USERNAME:-admin}
 SUPERUSER_PASSWORD=${SUPERUSER_PASSWORD:-password}
 
