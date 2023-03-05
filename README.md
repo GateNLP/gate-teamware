@@ -33,6 +33,8 @@ curl -LO https://gate.ac.uk/get-teamware.sh
 bash ./get-teamware.sh
 ```
 
+[A Helm chart](https://github.com/GateNLP/charts/tree/main/gate-teamware) is also available to allow deployment on Kubernetes.
+
 ## Building locally
 Follow these steps to run the app on your local machine using `docker-compose`:
 1. Clone this repository by running `git clone https://github.com/GateNLP/gate-teamware.git` and move into the `gate-teamware` directory.
