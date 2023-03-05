@@ -38,7 +38,7 @@ jobs:
           cat .env
 
           # Build the test image with npm and pytest installed
-          docker build -t teamware-main:latest --target test .
+          docker buildx build --load -t teamware-main:latest --target test .
 
           # Export the environment variables
           source .env
