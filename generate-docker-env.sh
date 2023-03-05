@@ -35,6 +35,17 @@ case $BRANCH in
         ;;
 esac
 
+# If backups directory exists but user/group is not set, set it to match the
+# actual ownership of the directory
+if [ -d "${BACKUPS_VOLUME:=./backups/}" ]; then
+  if [ -z "$BACKUPS_USER_GROUP" ]; then
+    # stat -c works with GNU stat, stat -f is the equivalent in BSD stat (e.g. Mac OS).
+    # If neither of these work then the variable will be left empty and will be
+    # defaulted to 0:0
+    BACKUPS_USER_GROUP=`stat -c '%u:%g' "$BACKUPS_VOLUME" 2>/dev/null || stat -f '%u:%g' "$BACKUPS_VOLUME" 2>/dev/null`
+  fi
+fi
+
 # Populate .env with either existing or default values of the environment variables
 exec 3> .env
 
@@ -65,7 +76,7 @@ DB_BACKUP_USER=${DB_BACKUP_USER:-backup}
 DB_BACKUP_PASSWORD=${DB_BACKUP_PASSWORD:-$(openssl rand -base64 16)} # default: auto-generated
 
 # Path to backup location
-BACKUPS_VOLUME=${BACKUPS_VOLUME:-/var/lib/teamware-backup/}
+BACKUPS_VOLUME=${BACKUPS_VOLUME}
 
 # User permissions for the backup user on the host filesystem (user:group)
 BACKUPS_USER_GROUP=${BACKUPS_USER_GROUP:-0:0}
