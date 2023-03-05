@@ -15,7 +15,7 @@ if [ -f .env ]; then
 fi
 
 # get current branch
-BRANCH=$(git rev-parse --abbrev-ref HEAD)
+BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo main)
 
 case $BRANCH in 
     master|main)
