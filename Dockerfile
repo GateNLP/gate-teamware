@@ -1,4 +1,5 @@
-FROM node:14-buster-slim as nodebuilder
+# Node build currently only works on amd64
+FROM --platform=linux/amd64 node:14-buster-slim as nodebuilder
 RUN mkdir /app/
 WORKDIR /app/
 COPY package.json package-lock.json ./
@@ -9,11 +10,12 @@ RUN npm run build
 
 
 FROM python:3.9-slim-buster AS backend
+ARG TARGETARCH
 ENV PYTHONUNBUFFERED 1
 RUN apt-get --allow-releaseinfo-change update && \
     apt-get -y install gcc libpq-dev libmagic1 postgresql-client && \
     rm -rf /var/lib/apt/lists/*
-ADD https://github.com/krallin/tini/releases/download/v0.19.0/tini /sbin/tini
+ADD https://github.com/krallin/tini/releases/download/v0.19.0/tini-$TARGETARCH /sbin/tini
 RUN addgroup --gid 1001 "gate" && \
       adduser --disabled-password --gecos "GATE User,,," \
         --home /app --ingroup gate --uid 1001 gate && \
