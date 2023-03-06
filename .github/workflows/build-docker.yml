@@ -16,6 +16,14 @@ jobs:
         name: Checkout
         uses: actions/checkout@v2
       -
+        name: Buildx cache
+        uses: actions/cache@v3
+        with:
+          path: buildx-cache
+          key: ${{ runner.os }}-buildx-${{ hashFiles('buildx-cache/**') }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+      -
         name: Docker meta (backend)
         id: metaBackend
         uses: docker/metadata-action@v4
@@ -57,8 +65,8 @@ jobs:
           push: true
           tags: ${{ steps.metaBackend.outputs.tags }}
           labels: ${{ steps.metaBackend.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=local,src=buildx-cache
+          cache-to: type=local,dest=buildx-cache-out,mode=max
           platforms: linux/amd64,linux/arm64
       -
         name: Build and push static files
@@ -69,6 +77,8 @@ jobs:
           push: true
           tags: ${{ steps.metaStatic.outputs.tags }}
           labels: ${{ steps.metaStatic.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=local,src=buildx-cache-out
           platforms: linux/amd64,linux/arm64
+      -
+        name: Clean up cache
+        run: rm -rf buildx-cache && mv buildx-cache-out buildx-cache

@@ -21,6 +21,17 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Buildx cache
+        uses: actions/cache@v3
+        with:
+          path: buildx-cache
+          key: ${{ runner.os }}-buildx-${{ hashFiles('buildx-cache/**') }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
       - name: Generate env
         shell: bash
         run: |
@@ -31,18 +42,17 @@ jobs:
 
           # Display the environment variable file for the logs
           cat .env
-
-      - name: Set up Docker cache
-        uses: satackey/action-docker-layer-caching@v0.0.11
-        continue-on-error: true
-        with:
-          key: integration-test-docker-cache-{hash}
-          restore-keys: |
-            integration-test-docker-cache-
       
-      - uses: docker-practice/actions-setup-docker@master
-      - run: |
+      - name: Build images
+        run: |
+          BUILDX_ARGS_BACKEND="--cache-from type=local,src=buildx-cache --cache-to type=local,dest=buildx-cache-out,mode=max"
+          export BUILDX_ARGS_BACKEND
+          BUILDX_ARGS_FRONTEND="--cache-from type=local,src=buildx-cache-out"
+          export BUILDX_ARGS_FRONTEND
+          
           ./build-images.sh
+          
+          rm -rf buildx-cache && mv buildx-cache-out buildx-cache
           
       - uses: actions/setup-node@v1
         with:
