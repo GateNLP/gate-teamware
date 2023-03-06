@@ -10,6 +10,7 @@ services:
       - DJANGO_SETTINGS_MODULE
       - DJANGO_SECRET_KEY
       - DJANGO_DB_NAME
+      - DJANGO_APP_URL
       - DB_USERNAME
       - DB_PASSWORD
       - SUPERUSER_USERNAME

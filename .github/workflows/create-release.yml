@@ -36,7 +36,7 @@ jobs:
         run: |
           IMAGE_TAG="{{ github.ref_name }}"
           sed "s/DEFAULT_IMAGE_TAG=latest/DEFAULT_IMAGE_TAG=${IMAGE_TAG#v}/" install/get-teamware.sh > ./get-teamware.sh
-          tar cvzf install.tar.gz README.md docker-compose.yml generate-docker-env.sh create-django-db.sh nginx custom-policies
+          tar cvzf install.tar.gz README.md docker-compose*.yml generate-docker-env.sh create-django-db.sh nginx custom-policies Caddyfile
 
       - name: Create release
         uses: softprops/action-gh-release@v1

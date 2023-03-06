@@ -87,6 +87,9 @@ DJANGO_SECRET_KEY=`quote_string "${DJANGO_SECRET_KEY:-$(openssl rand -base64 42)
 DJANGO_ALLOWED_HOSTS=`quote_string "${DJANGO_ALLOWED_HOSTS:-$TEAMWARE_HOST_URL_PRODUCTION}"`
 TEAMWARE_HOST_URL_STAGING=`quote_string "${TEAMWARE_HOST_URL_STAGING}"`
 
+# Public app URL, used to build links in activation emails
+DJANGO_APP_URL=`quote_string "${DJANGO_APP_URL:-http://${DJANGO_ALLOWED_HOSTS:-localhost}:8076}"`
+
 # Database backup user credentials
 DB_BACKUP_USER=${DB_BACKUP_USER:-backup}
 DB_BACKUP_PASSWORD=`quote_string "${DB_BACKUP_PASSWORD:-$(openssl rand -base64 16)}"` # default: auto-generated

@@ -54,7 +54,22 @@ fi
 set -a
 echo 'GATE Teamware needs to know the public host name at which it will be accessed'
 echo 'by users - only connections to that host name or "localhost" are accepted.'
-read -e -p 'Public hostname of GATE Teamware (e.g. teamware.example.com): ' DJANGO_ALLOWED_HOSTS
+read -e -p 'Public hostname of GATE Teamware [default localhost]: ' DJANGO_ALLOWED_HOSTS
+if [ -z "$DJANGO_ALLOWED_HOSTS" ]; then
+  DJANGO_ALLOWED_HOSTS=localhost
+fi
+
+read -e -p 'Will users connect to GATE Teamware via https? [Y/n]: ' IS_HTTPS
+
+case $IS_HTTPS in
+  [Nn]*)
+    unset IS_HTTPS
+    ;;
+  *)
+    DJANGO_APP_URL=https://${DJANGO_ALLOWED_HOSTS}
+    ;;
+esac
+
 read -e -p 'Email address of initial "admin" user [default "teamware@example.com"]: ' SUPERUSER_EMAIL
 read -e -p 'Initial password for "admin" user [default "password"]: ' SUPERUSER_PASSWORD
 
@@ -119,34 +134,57 @@ mkdir backups
 
 # Double check permissions on the files that will be bind-mounted
 chmod 755 nginx create-django-db.sh custom-policies
-chmod 644 nginx/*.template
+chmod 644 nginx/*.template Caddyfile
 
 echo "Generating configuration file"
 
 source ./generate-docker-env.sh
+
+if [ "${COMPOSE[0]/ /_}" = "${COMPOSE[0]}" ]; then
+  # docker or compose path does not contain any spaces
+  COMPOSE_CMDLINE="${COMPOSE[*]}"
+else
+  # path to docker contains spaces, so must be quoted
+  COMPOSE_CMDLINE="\"${COMPOSE[0]}\" ${COMPOSE[*]:1}"
+fi
 
 cat <<EOF
 
 Your GATE Teamware installation is ready to use, your configuration has been
 written to the file ".env", which you can edit as required.
 
-To start up GATE Teamware, run:
+To start up GATE Teamware for local experimentation, run:
 
-EOF
-if [ "${COMPOSE[0]/ /_}" = "${COMPOSE[0]}" ]; then
-  # docker or compose path does not contain any spaces
-  echo "${COMPOSE[*]} up -d"
-else
-  # path to docker contains spaces, so must be quoted
-  echo "\"${COMPOSE[0]}\" ${COMPOSE[*]:1} up -d"
-fi
-
-cat <<EOF
+  $COMPOSE_CMDLINE up -d
 
 By default the application is accessible at http://localhost:8076 - to change
-the port number you will need to edit docker-compose.yml.  We strongly
-recommend that public access be via secure HTTPS, for which you will need
-to deploy a separate front end proxy forwarding to the GATE Teamware
-application; configuration of such a proxy is beyond the scope of this quick
-start script.
+the port number you will need to edit docker-compose.yml.
+
 EOF
+
+if [ "$DJANGO_ALLOWED_HOSTS" = "localhost" ]; then
+  cat <<EOF
+You can use
+
+  $COMPOSE_CMDLINE -f docker-compose.yml -f docker-compose-https.yml up -d
+
+to include a simple HTTPS reverse proxy server that uses a locally-generated
+certificate - for production use you should edit DJANGO_ALLOWED_HOSTS and
+DJANGO_APP_URL in your .env file and set up a proper reverse proxy.
+EOF
+else
+  cat <<EOF
+Public access should be via HTTPS.  If the host where you are running Teamware
+is directly accessible from the internet at
+
+  https://$DJANGO_ALLOWED_HOSTS
+
+then you can use
+
+  $COMPOSE_CMDLINE -f docker-compose.yml -f docker-compose-https.yml up -d
+
+to include a simple HTTPS reverse proxy server that obtains certificates from
+LetsEncrypt.  If this host is not internet-accessible you will need to set up
+your own reverse proxy server elsewhere.
+EOF
+fi

@@ -1,0 +1,12 @@
+#
+# This is a configuration file for https://caddyserver.com to implement
+# a very simple HTTPS reverse proxy in the docker-compose stack.
+#
+{$DJANGO_ALLOWED_HOSTS}
+
+handle /static/* {
+  reverse_proxy nginx:80
+}
+handle * {
+  reverse_proxy backend:8000
+}

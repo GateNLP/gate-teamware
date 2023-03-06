@@ -38,6 +38,8 @@ curl -LO https://gate.ac.uk/get-teamware.sh
 bash ./get-teamware.sh
 ```
 
+This will make the Teamware application available as `http://localhost:8076`, with the option to expose it as a public `https://` URL if your server is directly internet-accessible - for production use we recommend deploying Teamware with a suitable internet-facing reverse proxy, or use Kubernetes as described below.
+
 ### Deployment using Kubernetes
 
 A Helm chart to deploy Teamware on Kubernetes is published to the GATE team public charts repository.  The chart requires [Helm](https://helm.sh) version 3.7 or later, and is compatible with Kubernetes version 1.23 or later.  Earlier Kubernetes versions back to 1.19 _may_ work provided autoscaling is not enabled, but these have not been tested.
