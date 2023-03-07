@@ -116,6 +116,9 @@ MAIN_IMAGE=$MAIN_IMAGE # Do not change
 STATIC_IMAGE=$STATIC_IMAGE # Do not change
 IMAGE_TAG=${IMAGE_TAG:-latest}
 
+# Require email activation for new user accounts?
+DJANGO_ACTIVATION_WITH_EMAIL=${DJANGO_ACTIVATION_WITH_EMAIL:-no}
+
 #
 # Email sending configuration
 #

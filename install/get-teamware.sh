@@ -74,9 +74,9 @@ read -e -p 'Email address of initial "admin" user [default "teamware@example.com
 read -e -p 'Initial password for "admin" user [default "password"]: ' SUPERUSER_PASSWORD
 
 echo ''
-echo 'GATE Teamware needs to be able to send outgoing email for user registration,'
-echo 'password resets, etc.  You can configure an SMTP server here, or edit your'
-echo 'settings later to use the GMail API.'
+echo 'GATE Teamware needs to be able to send outgoing email for password resets, etc.'
+echo 'You can configure an SMTP server here, or edit your settings later to use the'
+echo 'GMail API.'
 read -e -p 'SMTP server hostname: ' DJANGO_EMAIL_HOST
 read -e -p 'SMTP server port number [default 587, may be 25 or 465]: ' DJANGO_EMAIL_PORT
 read -e -p 'SMTP server username, if required: ' DJANGO_EMAIL_HOST_USER
@@ -84,7 +84,7 @@ read -e -s -p 'SMTP server password, if required: ' DJANGO_EMAIL_HOST_PASSWORD
 echo "" # read -s doesn't add a line break
 read -e -p 'Does SMTP server require a secure connection? [Y/n]: ' EMAIL_SECURE
 
-case $EMAIL_SECURE in
+case "$EMAIL_SECURE" in
   [Nn]*)
     DJANGO_EMAIL_SECURITY=
     ;;
@@ -119,6 +119,23 @@ else
   # assume it's an email
   PP_HOST_CONTACT="<a href='mailto:${PP_HOST_EMAIL_OR_URL}'>Email $PP_HOST_NAME</a>"
 fi
+
+echo ''
+echo 'GATE Teamware normally requires new users to confirm their email address'
+echo 'by clicking a link in an activation email.  If you are just testing GATE'
+echo 'Teamware locally you may wish to disable this so new accounts are active'
+echo 'immediately.'
+read -e -p 'Require new users to confirm their email address? [Y/n]: ' EMAIL_ACTIVATION
+
+case "$EMAIL_ACTIVATION" in
+  [Nn]*)
+    DJANGO_ACTIVATION_WITH_EMAIL=no
+    ;;
+
+  *)
+    DJANGO_ACTIVATION_WITH_EMAIL=yes
+    ;;
+esac
 
 set +a
 
