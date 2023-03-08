@@ -22,8 +22,7 @@ services:
       - PP_ADMIN_ADDRESS
       - PP_ADMIN_CONTACT
     volumes:
-      - ./privacy-policy.html:/app/privacy-policy.html
-      - ./terms-and-conditions.html:/app/terms-and-conditions.html
+      - ./custom-policies:/app/custom-policies/privacy-policy.html
     depends_on:
       - db
 
