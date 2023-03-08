@@ -112,7 +112,9 @@ export default {
                               {
                                 "type": "object",
                                 "properties": {
-                                  "fromDocument": {"type": "string"}
+                                  "fromDocument": {"type": "string"},
+                                  "separator": {"type": "string"},
+                                  "valueLabelSeparator": {"type": "string"}
                                 },
                                 "required": ["fromDocument"]
                               }

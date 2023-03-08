@@ -12,9 +12,51 @@ export function generateBVOptions(options, document) {
                 // the whole path is found as a top-level property name then use
                 // it, i.e. try opt['foo.bar.baz'] first, then opt.foo.bar.baz
                 // second
-                let propertyValue = (propertyPath in document) ?
+                let optionsFromDocument = (propertyPath in document) ?
                     document[propertyPath] : getValueFromKeyPath(document, propertyPath);
-                optionsList.push(...generateBVOptions(propertyValue));
+
+                if(typeof optionsFromDocument === "string") {
+                    // single string - treat it as a delimited list of options where
+                    // each option may be a pair of value and label.  For example,
+                    // with the default delimiters
+                    //
+                    // orange=Orange; kiwi=Kiwi fruit
+                    //
+                    // maps to
+                    //
+                    // [{"value":"orange", "label":"Orange"},
+                    //  {"value":"kiwi", "label":"Kiwi fruit"}]
+                    //
+                    // Whitespace around the delimiters is ignored
+                    const optionSeparator = (typeof option.separator === 'string' ? option.separator : ';');
+                    if (optionSeparator) {
+                        optionsFromDocument = optionsFromDocument.split(optionSeparator);
+                    } else {
+                        optionsFromDocument = [optionsFromDocument];
+                    }
+                    optionsFromDocument = optionsFromDocument.map(s => s.trim());
+
+                    const valueLabelSeparator =
+                        (typeof option.valueLabelSeparator === 'string' ? option.valueLabelSeparator : '=');
+                    if(valueLabelSeparator) {
+                        optionsFromDocument = optionsFromDocument.map(opt => {
+                            // can't use String.prototype.split here as we want everything after the first
+                            // occurrence of the separator to be used as the value, even when that includes
+                            // more instances of the separator string
+                            const sepIndex = opt.indexOf(valueLabelSeparator);
+                            if(sepIndex >= 0) {
+                                return {
+                                    value: opt.substring(0, sepIndex).trim(),
+                                    label: opt.substring(sepIndex + valueLabelSeparator.length).trim(),
+                                };
+                            } else {
+                                // no separator - use whole item as both value and label
+                                return opt;
+                            }
+                        });
+                    }
+                }
+                optionsList.push(...generateBVOptions(optionsFromDocument));
             } else if (option !== null && typeof option !== "undefined") {
                 // single option
                 if (typeof option === 'string') {
