@@ -4,9 +4,8 @@
 
     <p>Last updated: {{ lastUpdated }}</p>
     
-    <p>
     <h2>Definitions of Roles and Terminology</h2>
-
+    <p>
     For the purposes of this privacy policy the following roles are defined. Note that in some cases, the Host and Administrator (and/or the Project Manager) may constitute the same individual or organisation.
 
     <ul>
@@ -18,8 +17,8 @@
     <li><strong>Annotator</strong>: The default user account type for individuals registering with a {{ productName }} instance, used primarily for users who are assigned annotation tasks. Annotators do not have access to manage projects or users. Note that the act of annotation can also be performed by users who are project managers or administrators.</li>
     </ul>
     </p>
-    <p>
     <h2>Contact Details</h2>
+    <p>
     <div style="width: 100%; overflow: hidden;">
         <div style="width: 600px; float: left;">
           <h3>Host</h3>
@@ -35,22 +34,22 @@
         </div>
     </div>
     </p>
+    <h2>The type of personal information we collect</h2>
     <p>
-      <h2>The type of personal information we collect</h2>
-      We collect the following information:
+    We collect the following information:
       <ul>
       <li><strong>User Credentials</strong>: used for administrating user accounts: Email address, username, password. Passwords are not stored or accessible as plain text.</li>
       <li><strong>Document and Annotations</strong>: Documents are the text files uploaded by project managers and annotations are the labels given to them during the annotation process by annotators. Project managers are responsible for both of these types of data and administrating what is stored. Since annotations may contain free text input for annotators to fill in, it is the responsibility of project managers to warn annotators against entering any personal information into fields like this. Project managers are also responsible for meeting the requirements of the rights of users, explained below in “Your data protection rights”.</li>
       </ul>
     </p>
 
+    <h2>How and why {{ productName }} collects personal information</h2>
     <p>
-      <h2>How and why {{ productName }} collects personal information</h2>
       Under the UK General Data Protection Regulation (UK GDPR), the lawful bases we rely on for processing this information are:
     </p>
 
+    <h3>To carry out our contract with you</h3>
     <p>
-      <h3>To carry out our contract with you</h3>
       When you register for a {{ productName }} account, {{ productName }} collects your username, email address and password which are used to: 
       allow you to log in and use {{ productName }} securely; verify your identity before using the service; contact you if required regarding 
       your data, account or updates to the terms of service.
@@ -59,9 +58,10 @@
       data is stored for the purposes of managing annotation tasks and providing {{ productName }}’s functionality.
     </p>
 
+    <h3>When we believe it is in our legitimate interests</h3>
     <p>
-      <h3>When we believe it is in our legitimate interests</h3>
-      When you use {{ productName }} the host stores your IP address in the form of request logs. Logs are not shared.
+      When you use {{ productName }} the host stores your IP address in the form of request logs, which are used to monitor and diagnose any issues with the web service. 
+      Such logs are not shared except if necessary to comply with a legal obligation, and are deleted once they are no longer required, typically within a few weeks of their creation.
     
       When {{ productName }} projects are either completed or deleted, aggregated, anonymous data including the number of documents, 
       number of annotators, number of annotations are sent to the developers of {{ productName }}, GATE. {{ productName }} is provided as free, 
@@ -69,8 +69,8 @@
       allowing us to support its development and maintenance.
     </p>
 
+    <h2>How we store personal information</h2>
     <p>
-      <h2>How we store personal information</h2>
 
       Your information is securely stored.
 
@@ -78,9 +78,8 @@
       Once an instance is no longer running, data will be kept for a duration according to the agreement between the host and administrator.
     </p>
 
+    <h2>Your data protection rights</h2>
     <p>
-      <h2>Your data protection rights</h2>
-
       Under data protection law, you have rights including:<br>
       
       <strong>Your right of access</strong> - You have the right to ask the host or administrator(s) for copies of your personal information.<br>
@@ -88,7 +87,7 @@
       <strong>Your right to rectification</strong> - You have the right to ask the host or administrator(s) to rectify personal information you think is inaccurate. 
       You also have the right to ask the host or administrator(s) to complete information you think is incomplete.<br>
 
-      <strong>Your right to erasure</strong> - You have the right to the host or administrator(s) to erase your personal information in certain circumstances. 
+      <strong>Your right to erasure</strong> - You have the right to ask the host or administrator(s) to erase your personal information in certain circumstances. 
       Please use the facilities within {{ productName }} to delete your account if required, at which point any annotations or documents will remain, but your account will be anonymised.<br>
 
       <strong>Your right to restriction of processing</strong> - You have the right to ask us to restrict the processing of your personal information in certain circumstances.<br>
@@ -103,8 +102,8 @@
 
     </p>
 
+    <h2>How to complain</h2>
     <p>
-      <h2>How to complain</h2>
       If you have any concerns about the use of your personal information in {{ productName }}, 
       you can make a complaint to the host and or administrator at the contact details above.
       You can also complain to the Information Commissioner’s Office (ICO) if you are unhappy with how your data is used.

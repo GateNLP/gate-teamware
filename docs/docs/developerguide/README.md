@@ -228,9 +228,9 @@ privacyPolicy:
     # A method of contacting the host, field supports HTML for e.g. linking to a form
     contact: "<a href='mailto:info@examplehost.com'>Email</a>"
   admin:
-    name: "Service Host"
-    address: "123 Example Street, City. Country."
-    contact: "<a href='mailto:info@examplehost.com'>Email</a>"
+    name: "Dr. Service Admin"
+    address: "Department of Example Studies, University of Example, City. Country."
+    contact: "<a href='mailto:s.admin@example.ac.uk'>Email</a>"
 
 backend:
   # Name of the random secret you created above
@@ -324,7 +324,7 @@ This package includes the script linked in the documentation above, which simpli
 
 Teamware includes a default privacy policy and terms & conditions, which are required for running the application.
 
-The default privacy policy is compliant with UK GDPR regulations, which may comply with the rights of users of your deployment, however it is your responsibility to ensure that this is the case.
+The default privacy policy is intended to be compliant with UK GDPR regulations, which may comply with the rights of users of your deployment, however it is your responsibility to ensure that this is the case.
 
 If the default privacy policy covers your use case, then you will need to include configuration for a few contact details.
 

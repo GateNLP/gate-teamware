@@ -9,8 +9,8 @@
     <br>
     By using {{ productName }}, you indicate that you have read and understand these Terms and Conditions and agree to abide by them at all times.
     </p>
-    <p>
     <h2>Definitions</h2>
+    <p>
     <ul>
     <li><strong>Host</strong>: The individual or organisation responsible for maintaining the deployment {{ productName }} either on their own hardware or that of a third-party provider. The host may also be responsible for installing {{ productName }}, updating, running and ceasing the running of {{ productName }} at {{ privacyPolicyDetails.URL }}.</li>
     <li><strong>Administrator</strong>: The individual(s) or team of individuals responsible for the creation and management of user accounts and projects across {{ privacyPolicyDetails.URL }}.</li>
@@ -21,8 +21,8 @@
     All content published and made available using {{ productName }} is the property of the Host, Administrator and {{ productName }}’s creators. 
     This includes but is not limited to images, text logos, documents, downloadable files and anything that contributes to the composition of our Site.
     </p>
-    <p>
     <h2>Acceptable Use</h2>
+    <p>
     As a user of {{ productName }}, you agree to use {{ productName }} legally, not to use {{ productName }} for illegal purposes, and not to:
     <br>
     <ul>
@@ -35,8 +35,8 @@
     </ul>
     If it is believed that you are using {{ productName }} illegally or in a manner that violates these Terms and Conditions, the Host reserves the right to limit, suspend or terminate your access to {{ productName }}. The Host also reserves the right to take any legal steps necessary to prevent you from accessing {{ productName }}.
     </p>
-    <p>
     <h2>User Contributions</h2>
+    <p>
     Users may post the following information on {{ productName }}:
     <ul>
     <li>Documents; and</li>
@@ -44,8 +44,8 @@
     </ul>
     By adding information to {{ productName }}, you agree to not act illegally or violate these Terms and Conditions.
     </p>
-    <p>
     <h2>Accounts</h2>
+    <p>
     When you create a {{ productName }} account, you agree to the following:
     <br>
     You are solely responsible for your account and the security and privacy of your account, including passwords or sensitive information attached to that account; and
@@ -57,24 +57,24 @@
     <h2>Limitation of Liability</h2>
     The Host and our directors, officers, agents, employees, subsidiaries, and affiliates will not be liable for any actions, claims, losses, damages, liabilities and expenses including legal fees from your use of {{ productName }}.
     </p>
-    <p>
     <h2>Indemnity</h2>
+    <p>
     Except where prohibited by law, by using {{ productName }} you indemnify and hold harmless the Host and our directors, officers, agents, employees, subsidiaries, and affiliates from any actions, claims, losses, damages, liabilities and expenses including legal fees arising out of your use of {{ productName }} or your violation of these Terms and Conditions.
     </p>
-    <p>
     <h2>Applicable Law</h2>
+    <p>
     These Terms and Conditions are governed by the laws of the Country of England.
     </p>
-    <p>
     <h2>Severability</h2>
+    <p>
     If at any time any of the provisions set forth in these Terms and Conditions are found to be inconsistent of invalid under applicable laws, those provisions will be deemed void and will be removed from these Terms and Conditions. All other provisions will not be affected by the removal and the rest of these Terms and Conditions will still be considered valid.
     </p>
-    <p>
     <h2>Changes</h2>
+    <p>
     These Terms and Conditions may be amended from time to time in order to maintain compliance with the law and to reflect any changes to the way we operate {{ productName }} and the way we expect users to behave using {{ productName }}. We will notify users by email of changes to these Terms and Conditions or post a notice on the site.
     </p>
-    <p>
     <h2>Contact Details</h2>
+    <p>
     Please contact us if you have any questions or concerns. Our contact details are as follows:
     <br><br>
     <div style="width: 100%; overflow: hidden;">
