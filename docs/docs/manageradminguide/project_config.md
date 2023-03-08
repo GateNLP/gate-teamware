@@ -346,7 +346,7 @@ Configuration, showing the same field/column in document as-is or as HTML:
 
 </AnnotationRendererPreview>
 
-### Alternative way to provide options for radio, checkbox and selector
+### Alternative way to provide options for radio, checkbox and selector<a id='options-as-dict'></a>
 
 A dictionary (key value pairs) and also be provided to the `options` field of the radio, checkbox and selector widgets
 but note that the ordering of the options are **not guaranteed** as javascript does not sort dictionaries by
@@ -418,7 +418,42 @@ All the examples above have a "static" list of available options for the radio, 
 
 </AnnotationRendererPreview>
 
-`"fromDocument"` is a dot-separated property path leading to the location within each document where the additional options can be found, for example `"fromDocument":"candidates"` looks for a top-level property named `candidates` in each document, `"fromDocument": "options.custom"` would look for a property named `options` which is itself an object with a property named `custom`.  Once the target property is located in the document it is assumed to be the same format as the static `"options"` configuration, i.e. either an array where each element is an object with `value` and `label`, or a dictionary mapping values to labels.  As a convenience for users we also support an array of plain strings, in which case the string will be used as both the value _and_ the label for this option.
+`"fromDocument"` is a dot-separated property path leading to the location within each document where the additional options can be found, for example `"fromDocument":"candidates"` looks for a top-level property named `candidates` in each document, `"fromDocument": "options.custom"` would look for a property named `options` which is itself an object with a property named `custom`.  The target property in the document may be in any of the following forms:
+
+- an array _of objects_, each with `value` and `label` properties, exactly as in the static configuration format - this is the format used in the example above
+- an array _of strings_, where the same string will be used as both the value and the label for that option
+- an arbitrary ["dictionary"](#options-as-dict) object mapping values to labels
+- a _single string_, which is parsed into a list of options
+
+The "single string" alternative is designed to be easier to use when [importing documents](documents_annotations_management.md#importing-documents) from CSV files.  It allows you to provide any number of options in a _single_ CSV column value.  Within the column the options are separated by semicolons, and each option is of the form `value=label`.  Whitespace around the delimiters is ignored, both between options and between the value and label of a single option.  For example given CSV document data of
+
+| text            | options                                           |
+|-----------------|---------------------------------------------------|
+| Favourite fruit | `apple=Apples; orange = Oranges; kiwi=Kiwi fruit` |
+
+a `{"fromDocument": "options"}` configuration would produce the equivalent of
+
+```json
+[
+  {"value": "apple", "label": "Apples"},
+  {"value": "orange", "label": "Oranges"},
+  {"value": "kiwi", "label": "Kiwi fruit"}
+]
+```
+
+If your values or labels may need to contain the default separator characters `;` or `=` you can select different separators by adding extra properties to the configuration:
+
+```json
+{"fromDocument": "options", "separator": "~~", "valueLabelSeparator": "::"}
+```
+
+| text            | options                                              |
+|-----------------|------------------------------------------------------|
+| Favourite fruit | `apple::Apples ~~ orange::Oranges ~~ kiwi::Kiwi fruit` |
+
+The separators can be more than one character, and you can set `"valueLabelSeparator":""` to disable label splitting altogether and just use the value as its own label.
+
+### Mixing static and dynamic options
 
 Static and `fromDocument` options may be freely interspersed in any order, so you can have a fully-dynamic set of options by specifying _only_ a `fromDocument` entry with no static options, or you can have static options that are listed first followed by dynamic options, or dynamic options first followed by static, etc.
 
