@@ -53,6 +53,7 @@ class ServiceUser(AbstractUser):
     receive_mail_notifications = models.BooleanField(default=True)
     doc_format_pref = models.IntegerField(choices=UserDocumentFormatPreference.USER_DOC_FORMAT_PREF,
                                           default=UserDocumentFormatPreference.JSON)
+    agreed_privacy_policy = models.BooleanField(default=False)
 
     @property
     def has_active_project(self):

@@ -23,6 +23,10 @@ class ModelTestCase(TestCase):
 
 class TestUserModel(TestCase):
 
+    def test_agree_privacy_policy(self):
+        user = get_user_model().objects.create(username="test1", agreed_privacy_policy=True)
+        self.assertTrue(user.agreed_privacy_policy)
+
     def test_document_association_check(self):
         user = get_user_model().objects.create(username="test1")
         user2 = get_user_model().objects.create(username="test2")

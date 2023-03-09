@@ -36,7 +36,9 @@ case $BRANCH in
 esac
 
 # Populate .env with either existing or default values of the environment variables
-cat > .env <<EOF
+exec 3> .env
+
+cat 1>&3 <<EOF
 # GATE Teamware Docker Deployment Configuration
 # Add values to the variables here, most existing values will be kept after running generate-docker-env.sh
 # Anything that is left blank will be filled with a default value.
@@ -108,9 +110,38 @@ DJANGO_EMAIL_SECURITY=${DJANGO_EMAIL_SECURITY:-tls}
 
 # If the server requires you to identify yourself with a client certificate,
 # Add these variables at the bottom of this file, after the DO NOT EDIT line
-# 
+#
 # DJANGO_EMAIL_CLIENT_KEY=/path/to/private.key
 # DJANGO_EMAIL_CLIENT_CERTIFICATE=-/path/to/certificate.pem
+
+# Privacy Policy and T&C Details
+PP_HOST_NAME="${PP_HOST_NAME:-GATE}"
+PP_HOST_ADDRESS="${PP_HOST_ADDRESS:-Department of Computer Science, The University of Sheffield, Regent Court, 211 Portobello, Sheffield, S1 4DP. UK}"
+PP_HOST_CONTACT="${PP_HOST_CONTACT:-<a href='https://gate.ac.uk/g8/contact' target='_blank'>Contact GATE</a>}"
+
+# If admin (responsible for managing users) is not the same as the host
+# (who manages the underlying server) then set their details separately
+EOF
+
+if [ -n "$PP_ADMIN_NAME" ]; then
+  echo "PP_ADMIN_NAME=\"${PP_ADMIN_NAME}\"" 1>&3
+else
+  echo "# PP_ADMIN_NAME=\"Administrator's name\"" 1>&3
+fi
+
+if [ -n "$PP_ADMIN_ADDRESS" ]; then
+  echo "PP_ADMIN_ADDRESS=\"${PP_ADMIN_ADDRESS}\"" 1>&3
+else
+  echo "# PP_ADMIN_ADDRESS=\"123 Anywhere Street, Sometown\"" 1>&3
+fi
+
+if [ -n "$PP_ADMIN_CONTACT" ]; then
+  echo "PP_ADMIN_CONTACT=\"${PP_ADMIN_CONTACT}\"" 1>&3
+else
+  echo "# PP_ADMIN_CONTACT=\"<a href='mailto:admin@example.com'>Contact the admin</a>\"" 1>&3
+fi
+
+cat 1>&3 <<EOF
 
 ### DO NOT EDIT THIS COMMENT
 ### generate-docker-env.sh will not touch anything below this line

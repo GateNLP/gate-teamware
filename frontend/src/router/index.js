@@ -22,6 +22,18 @@ const routes = [
         meta: {guest: true},
     },
     {
+        path: '/privacypolicy',
+        name: 'Privacy Policy',
+        component: () => import('../views/PrivacyPolicy.vue'),
+        meta: {guest: true},
+    },
+    {
+        path: '/terms',
+        name: 'Terms & Conditions',
+        component: () => import('../views/TermsAndConditions.vue'),
+        meta: {guest: true},
+    },
+    {
         path: '/login',
         name: 'Login',
         component: () => import('../views/Login.vue'),

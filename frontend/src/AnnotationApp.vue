@@ -2,14 +2,16 @@
   <div id="app">
     <navbar></navbar>
     <router-view :key="$route.fullPath"></router-view>
+    <pagefooter></pagefooter>
   </div>
 </template>
 <script>
 import navbar from './components/navbar.vue';
+import pagefooter from './components/pagefooter.vue';
 import {initToast} from "@/utils";
 
 export default {
-  components: { navbar },
+  components: { navbar, pagefooter },
   mounted() {
     initToast(this)
   }
