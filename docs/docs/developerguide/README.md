@@ -347,9 +347,9 @@ If the host and administrator are the same, you can just set the `PP_HOST_*` var
 
 If the default privacy policy or terms & conditions do not cover your use case, you can easily replace these with your own documents.
 
-If deploying from source, include markdown (`.md`) files in a `custom-policies` directory in the project root with the exact names `custom-policies/privacy-policy.md` and/or `custom-policies/terms-and-conditions.md` which will be rendered at the corresponding pages on the running web app.
+If deploying from source, include markdown (`.md`) files in a `custom-policies` directory in the project root with the exact names `custom-policies/privacy-policy.md` and/or `custom-policies/terms-and-conditions.md` which will be rendered at the corresponding pages on the running web app.  If you are not familiar with the Markdown language there are a number of free WYSIWYG-style editor tools available including [StackEdit](https://stackedit.io/app) (browser based) and [Zettlr](https://www.zettlr.com) (desktop app).
 
-If deploying with docker compose, place files with these names at the same location as the `docker-compose.yml` file before running `./deploy.sh` as above.
+If deploying with docker compose, place the `custom-policies` directory at the same location as the `docker-compose.yml` file before running `./deploy.sh` as above.
 
 An example custom privacy policy file contents might look like:
 
