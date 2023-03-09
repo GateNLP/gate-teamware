@@ -136,7 +136,7 @@ export default {
   name: "Privacy Policy",
   title: 'Privacy Policy',
   data: () => ({
-    lastUpdated: "16th February 2023",
+    lastUpdated: "9th March 2023",
     productName: "Teamware",
     privacyPolicyDetails: {}
   }),

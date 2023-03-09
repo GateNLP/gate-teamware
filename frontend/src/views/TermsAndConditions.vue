@@ -108,7 +108,7 @@ export default {
   name: "Terms & Conditions",
   title: 'Terms & Conditions',
   data: () => ({
-    lastUpdated: "16th February 2023",
+    lastUpdated: "9th March 2023",
     productName: "Teamware",
     privacyPolicyDetails: {}
   }),
