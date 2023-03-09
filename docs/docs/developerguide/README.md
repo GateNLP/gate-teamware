@@ -345,17 +345,17 @@ For deployment using docker-compose, set these values in `.env`.
 
 If the default privacy policy or terms & conditions do not cover your use case, you can easily replace these with your own documents.
 
-If deploying from source, include HTML files in a `custom-policies` directory in the project root with the exact names `custom-policies/privacy-policy.html` and/or `custom-policies/terms-and-conditions.html` which will be rendered at the corresponding pages on the running web app.
+If deploying from source, include markdown (`.md`) files in a `custom-policies` directory in the project root with the exact names `custom-policies/privacy-policy.md` and/or `custom-policies/terms-and-conditions.md` which will be rendered at the corresponding pages on the running web app.
 
 If deploying with docker compose, place files with these names at the same location as the `docker-compose.yml` file before running `./deploy.sh` as above.
 
 An example custom privacy policy file contents might look like:
 
-```html
-<h1>Organisation X Teamware Privacy Policy</h2>
+```md
+# Organisation X Teamware Privacy Policy
 ...
 ...
-<h2>Definitions of Roles and Terminology</h2>
+## Definitions of Roles and Terminology
 ...
 ...
 ```

@@ -241,8 +241,8 @@ Privacy Policy Settings
 """
 
 CUSTOM_PP_DIR = 'custom-policies'
-CUSTOM_PP_DOCUMENT_PATH = os.path.join(CUSTOM_PP_DIR, 'privacy-policy.html')
-CUSTOM_TC_DOCUMENT_PATH = os.path.join(CUSTOM_PP_DIR, 'terms-and-conditions.html')
+CUSTOM_PP_DOCUMENT_PATH = os.path.join(CUSTOM_PP_DIR, 'privacy-policy.md')
+CUSTOM_TC_DOCUMENT_PATH = os.path.join(CUSTOM_PP_DIR, 'terms-and-conditions.md')
 
 PRIVACY_POLICY = {
     'HOST_NAME': os.getenv('PP_HOST_NAME', 'No host name configured.'),

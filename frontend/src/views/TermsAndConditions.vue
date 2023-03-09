@@ -97,16 +97,18 @@
   </div>
 
   <div class="container" v-else>
-    <span v-html="privacyPolicyDetails.CUSTOM_TC_DOCUMENT"></span>
+    <MarkdownRenderer :content="privacyPolicyDetails.CUSTOM_TC_DOCUMENT"></MarkdownRenderer>
   </div>
 </template>
 <script>
 
 import {mapActions} from 'vuex'
+import MarkdownRenderer from "@/components/MarkdownRenderer";
 
 export default {
   name: "Terms & Conditions",
   title: 'Terms & Conditions',
+  components: {MarkdownRenderer},
   data: () => ({
     lastUpdated: "9th March 2023",
     productName: "Teamware",
