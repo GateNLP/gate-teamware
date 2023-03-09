@@ -307,6 +307,46 @@ describe("AnnotationRenderer", () => {
 
     })
 
+    it('Test dynamic options fromDocument', async () => {
+        const annotationComps = JSON.parse(fs.readFileSync("../examples/project_config_radio_fromDocument.json", "utf-8"))
+
+        const documents = JSON.parse(fs.readFileSync("../examples/documents_radio_fromDocument.json", "utf-8"))
+
+
+        for(let doc of documents) {
+            const ar = render(AnnotationRenderer, {
+                props: {
+                    config: annotationComps,
+                    document: doc,
+                }
+            })
+            // all example documents have three choices, plus the one static
+            // option from the config should be four radio buttons in total
+            const radios = ar.container.querySelectorAll('input[type=radio]')
+            expect(radios.length).toEqual(4)
+
+            const submitBtn = ar.getByText("Submit")
+            // This is a radio button, so submit before selecting should fail
+            await fireEvent.click(submitBtn)
+            expect(ar.emitted().submit).not.toBeTruthy()
+
+            // but after selecting should succeed
+            await fireEvent.click(radios[0])
+            await fireEvent.click(submitBtn)
+            const submitted = ar.emitted().submit
+            expect(submitted).toBeTruthy()
+
+            // and the selected item ("answer" property of the first argument to the
+            // first emitted "submit" event) should be one of the dynamic ones, not
+            // the static "none"
+            expect(submitted[0][0].answer).not.toEqual("none")
+
+            ar.unmount()
+        }
+
+
+    })
+
     it('Test checkbox minSelected=2 and optional, minSelected should have priority', async () => {
         const annotationComps = [
             {
