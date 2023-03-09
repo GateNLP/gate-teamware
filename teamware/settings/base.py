@@ -245,10 +245,12 @@ CUSTOM_PP_DOCUMENT_PATH = os.path.join(CUSTOM_PP_DIR, 'privacy-policy.md')
 CUSTOM_TC_DOCUMENT_PATH = os.path.join(CUSTOM_PP_DIR, 'terms-and-conditions.md')
 
 PRIVACY_POLICY = {
-    'HOST_NAME': os.getenv('PP_HOST_NAME', 'No host name configured.'),
+    'HOST_NAME': os.getenv('PP_HOST_NAME', 'No name configured.'),
     'HOST_ADDRESS': os.getenv('PP_HOST_ADDRESS', 'No address configured.'),
     'HOST_CONTACT': os.getenv('PP_HOST_CONTACT', 'No contact link configured.'),
-    'ADMIN_NAME': os.getenv('PP_ADMIN_NAME', 'No host name configured.'),
-    'ADMIN_ADDRESS': os.getenv('PP_ADMIN_ADDRESS', 'No address configured.'),
-    'ADMIN_CONTACT': os.getenv('PP_ADMIN_CONTACT', 'No contact link configured.')
 }
+PRIVACY_POLICY.update({
+    'ADMIN_NAME': os.getenv('PP_ADMIN_NAME', PRIVACY_POLICY['HOST_NAME']),
+    'ADMIN_ADDRESS': os.getenv('PP_ADMIN_ADDRESS', PRIVACY_POLICY['HOST_ADDRESS']),
+    'ADMIN_CONTACT': os.getenv('PP_ADMIN_CONTACT', PRIVACY_POLICY['HOST_CONTACT'])
+})

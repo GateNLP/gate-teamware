@@ -341,6 +341,8 @@ For deployment from source, set the following environment variables:
 
 For deployment using docker-compose, set these values in `.env`.
 
+If the host and administrator are the same, you can just set the `PP_HOST_*` variables above which will be used for both.
+
 ##### Including a custom Privacy Policy and/or Terms & Conditions
 
 If the default privacy policy or terms & conditions do not cover your use case, you can easily replace these with your own documents.
