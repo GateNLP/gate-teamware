@@ -62,6 +62,13 @@ export default {
             "text": "Custom field: {{customField}} <br/> Another custom field: {{{anotherCustomField}}} <br/> Subfield: {{{subfield.subfieldContent}}}"
         }
     ],
+    configDisplayPreserveNewlines: [
+        {
+            "name": "htmldisplay",
+            "type": "html",
+            "text": "<div style='white-space: pre-line'>{{text}}</div>"
+        }
+    ],
     configTextInput: [
         {
             "name": "mylabel",
@@ -188,6 +195,9 @@ export default {
         subfield: {
             subfieldContent: "Content of a subfield."
         }
+    },
+    docPlainText: {
+        "text": "This is some text\n\nIt has line breaks that we want to preserve."
     },
     configPreAnnotation: [
         {

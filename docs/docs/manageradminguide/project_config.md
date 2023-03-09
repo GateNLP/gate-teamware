@@ -225,6 +225,34 @@ Configuration, showing the same field/column in document as-is or as HTML:
 
 </AnnotationRendererPreview>
 
+If your documents are plain text and include line breaks that need to be preserved when rendering, this can be achieved by using a special HTML wrapper which sets the [`white-space` CSS property](https://developer.mozilla.org/en-US/docs/Web/CSS/white-space).
+
+<AnnotationRendererPreview :config="configs.configDisplayPreserveNewlines" :document="configs.docPlainText">
+
+**Document**
+
+```json
+{
+    "text": "This is some text\n\nIt has line breaks that we want to preserve."
+}
+```
+
+**Project configuration**
+
+```json
+[
+    {
+        "name": "htmldisplay",
+        "type": "html",
+        "text": "<div style='white-space: pre-line'>{{text}}</div>"
+    }
+]
+```
+
+</AnnotationRendererPreview>
+
+`white-space: pre-line` preserves line breaks but collapses other whitespace down to a single space, `white-space: pre-wrap` would preserve all whitespace including indentation at the start of a line, but would still wrap lines that are too long for the available space.
+
 ### Text input
 
 <AnnotationRendererPreview :config="configs.configTextInput">
