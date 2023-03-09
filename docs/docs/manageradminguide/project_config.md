@@ -68,11 +68,11 @@ of annotation will be collected. Here's an example configuration and a preview o
     "type": "radio",
     "title": "Sentiment",
     "description": "Please select a sentiment of the text above.",
-    "options": {
-      "negative": "Negative",
-      "neutral": "Neutral",
-      "positive": "Positive"
-    }
+    "options": [
+      {"value": "negative", "label": "Negative"},
+      {"value": "neutral", "label": "Neutral"},
+      {"value": "positive", "label": "Positive"}
+    ]
   }
 ]
 ```
@@ -116,12 +116,11 @@ Another field can be added to collect more information, e.g. a text field for op
         "type": "radio",
         "title": "Sentiment",
         "description": "Please select a sentiment of the text above.",
-        "options": {
-            "negative": "Negative",
-            "neutral": "Neutral",
-            "positive": "Positive"
-
-        }
+        "options": [
+            {"value": "negative", "label": "Negative"},
+            {"value": "neutral", "label": "Neutral"},
+            {"value": "positive", "label": "Positive"}
+        ]
     },
     {
         "name": "opinion",

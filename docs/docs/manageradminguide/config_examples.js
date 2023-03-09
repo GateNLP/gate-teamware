@@ -10,12 +10,11 @@ export default {
             "type": "radio",
             "title": "Sentiment",
             "description": "Please select a sentiment of the text above.",
-            "options": {
-                "negative": "Negative",
-                "neutral": "Neutral",
-                "positive": "Positive"
-
-            }
+            "options": [
+                {"value": "negative", "label": "Negative"},
+                {"value": "neutral", "label": "Neutral"},
+                {"value": "positive", "label": "Positive"}
+            ]
         }
     ],
     config2: [
@@ -29,12 +28,11 @@ export default {
             "type": "radio",
             "title": "Sentiment",
             "description": "Please select a sentiment of the text above.",
-            "options": {
-                "negative": "Negative",
-                "neutral": "Neutral",
-                "positive": "Positive"
-
-            }
+            "options": [
+                {"value": "negative", "label": "Negative"},
+                {"value": "neutral", "label": "Neutral"},
+                {"value": "positive", "label": "Positive"}
+            ]
         },
         {
             "name": "opinion",
@@ -201,24 +199,24 @@ export default {
             "name": "radio",
             "type": "radio",
             "title": "Test radio input",
-            "options": {
-                "val1": "Value 1",
-                "val2": "Value 2",
-                "val3": "Value 4",
-                "val4": "Value 5"
-            },
+            "options": [
+                {"value": "val1", "label": "Value 1"},
+                {"value": "val2", "label": "Value 2"},
+                {"value": "val3", "label": "Value 4"},
+                {"value": "val4", "label": "Value 5"}
+            ],
             "description": "Test radio description"
         },
         {
             "name": "checkbox",
             "type": "checkbox",
             "title": "Test checkbox input",
-            "options": {
-                "val1": "Value 1",
-                "val2": "Value 2",
-                "val3": "Value 4",
-                "val4": "Value 5"
-            },
+            "options": [
+                {"value": "val1", "label": "Value 1"},
+                {"value": "val2", "label": "Value 2"},
+                {"value": "val3", "label": "Value 4"},
+                {"value": "val4", "label": "Value 5"}
+            ],
             "description": "Test checkbox description"
         },
         {
