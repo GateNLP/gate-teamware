@@ -2,6 +2,16 @@
 #
 # Creates a .env file with random passwords and Django secret key
 
+function quote_string {
+  if [ -n "$1" ]; then
+    local QUOTED=${1//\\/\\\\}
+    QUOTED=${QUOTED//\"/\\\"}
+    QUOTED=${QUOTED//\$/\$\{__DOLLAR__\}}
+    QUOTED=${QUOTED//\`/\$\{__BT__\}}
+    printf '"%s"' "${QUOTED}"
+  fi
+}
+
 set -e
 
 if [ -f .env ]; then
@@ -56,27 +66,33 @@ cat 1>&3 <<EOF
 # Passwords and keys are filled with auto-generated random values.
 # If you want to add any *new* variables - those must be added at the bottom after the DO NOT EDIT line
 
+# These variables are a trick to ensure that bash, "docker compose" (v2) and "docker-compose" (v1) all
+# interpret this file the same way.  If you edit any of these variables and want to include a backtick
+# character (\`) in the value, you must represent it as \${__BT__}, and dollar (\$) as \${__DOLLAR__}
+__BT__='\`'
+__DOLLAR__='$'
+
 # Database details
-PG_SUPERUSER_PASSWORD=${PG_SUPERUSER_PASSWORD:-$(openssl rand -base64 16)} # default: auto-generated
+PG_SUPERUSER_PASSWORD=`quote_string "${PG_SUPERUSER_PASSWORD:-$(openssl rand -base64 16)}"` # default: auto-generated
 DJANGO_DB_NAME=${DJANGO_DB_NAME:-teamware_db}
 DB_USERNAME=${DB_USERNAME:-gate}
-DB_PASSWORD=${DB_PASSWORD:-$(openssl rand -base64 16)} # default: auto-generated
+DB_PASSWORD=`quote_string "${DB_PASSWORD:-$(openssl rand -base64 16)}"` # default: auto-generated
 
 # Django settings
 DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-teamware.settings.deployment}
-DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY:-$(openssl rand -base64 42)} # default: auto-generated
+DJANGO_SECRET_KEY=`quote_string "${DJANGO_SECRET_KEY:-$(openssl rand -base64 42)}"` # default: auto-generated
 
 # Allowed host urls - DJANGO_ALLOWED_HOSTS for production deployment,
 # TEAMWARE_HOST_URL_STAGING overrides this for staging deployment
-DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS:-$TEAMWARE_HOST_URL_PRODUCTION}
-TEAMWARE_HOST_URL_STAGING=${TEAMWARE_HOST_URL_STAGING}
+DJANGO_ALLOWED_HOSTS=`quote_string "${DJANGO_ALLOWED_HOSTS:-$TEAMWARE_HOST_URL_PRODUCTION}"`
+TEAMWARE_HOST_URL_STAGING=`quote_string "${TEAMWARE_HOST_URL_STAGING}"`
 
 # Database backup user credentials
 DB_BACKUP_USER=${DB_BACKUP_USER:-backup}
-DB_BACKUP_PASSWORD=${DB_BACKUP_PASSWORD:-$(openssl rand -base64 16)} # default: auto-generated
+DB_BACKUP_PASSWORD=`quote_string "${DB_BACKUP_PASSWORD:-$(openssl rand -base64 16)}"` # default: auto-generated
 
 # Path to backup location
-BACKUPS_VOLUME=${BACKUPS_VOLUME}
+BACKUPS_VOLUME=`quote_string "${BACKUPS_VOLUME}"`
 
 # User permissions for the backup user on the host filesystem (user:group)
 BACKUPS_USER_GROUP=${BACKUPS_USER_GROUP:-0:0}
@@ -85,7 +101,7 @@ BACKUPS_USER_GROUP=${BACKUPS_USER_GROUP:-0:0}
 # Only used if no superusers are found in database
 SUPERUSER_EMAIL=${SUPERUSER_EMAIL:-teamware@example.com}
 SUPERUSER_USERNAME=${SUPERUSER_USERNAME:-admin}
-SUPERUSER_PASSWORD=${SUPERUSER_PASSWORD:-password}
+SUPERUSER_PASSWORD=`quote_string "${SUPERUSER_PASSWORD:-password}"`
 
 #
 # If you are pushing images to a remote registry, set the registry names here
@@ -113,7 +129,7 @@ DJANGO_GMAIL_API_REFRESH_TOKEN=${DJANGO_GMAIL_API_REFRESH_TOKEN:-google_assigned
 DJANGO_EMAIL_HOST=${DJANGO_EMAIL_HOST:-smtp.example.com}
 DJANGO_EMAIL_PORT=${DJANGO_EMAIL_PORT:-587}
 DJANGO_EMAIL_HOST_USER=${DJANGO_EMAIL_HOST_USER-username}
-DJANGO_EMAIL_HOST_PASSWORD=${DJANGO_EMAIL_HOST_PASSWORD-password}
+DJANGO_EMAIL_HOST_PASSWORD=`quote_string "${DJANGO_EMAIL_HOST_PASSWORD-password}"`
 
 # If the mail server requires an encrypted connection, we must specify what
 # kind. Options are tls (= STARTTLS on port 25 or 587) or ssl (= "SMTPS", i.e.
@@ -127,28 +143,28 @@ DJANGO_EMAIL_SECURITY=${DJANGO_EMAIL_SECURITY-tls}
 # DJANGO_EMAIL_CLIENT_CERTIFICATE=/path/to/certificate.pem
 
 # Privacy Policy and T&C Details
-PP_HOST_NAME="${PP_HOST_NAME:-GATE}"
-PP_HOST_ADDRESS="${PP_HOST_ADDRESS:-Department of Computer Science, The University of Sheffield, Regent Court, 211 Portobello, Sheffield, S1 4DP. UK}"
-PP_HOST_CONTACT="${PP_HOST_CONTACT:-<a href='https://gate.ac.uk/g8/contact' target='_blank'>Contact GATE</a>}"
+PP_HOST_NAME=`quote_string "${PP_HOST_NAME:-GATE}"`
+PP_HOST_ADDRESS=`quote_string "${PP_HOST_ADDRESS:-Department of Computer Science, The University of Sheffield, Regent Court, 211 Portobello, Sheffield, S1 4DP. UK}"`
+PP_HOST_CONTACT=`quote_string "${PP_HOST_CONTACT:-<a href='https://gate.ac.uk/g8/contact' target='_blank'>Contact GATE</a>}"`
 
 # If admin (responsible for managing users) is not the same as the host
 # (who manages the underlying server) then set their details separately
 EOF
 
 if [ -n "$PP_ADMIN_NAME" ]; then
-  echo "PP_ADMIN_NAME=\"${PP_ADMIN_NAME}\"" 1>&3
+  echo "PP_ADMIN_NAME=$(quote_string "${PP_ADMIN_NAME}")" 1>&3
 else
   echo "# PP_ADMIN_NAME=\"Administrator's name\"" 1>&3
 fi
 
 if [ -n "$PP_ADMIN_ADDRESS" ]; then
-  echo "PP_ADMIN_ADDRESS=\"${PP_ADMIN_ADDRESS}\"" 1>&3
+  echo "PP_ADMIN_ADDRESS=$(quote_string "${PP_ADMIN_ADDRESS}")" 1>&3
 else
   echo "# PP_ADMIN_ADDRESS=\"123 Anywhere Street, Sometown\"" 1>&3
 fi
 
 if [ -n "$PP_ADMIN_CONTACT" ]; then
-  echo "PP_ADMIN_CONTACT=\"${PP_ADMIN_CONTACT}\"" 1>&3
+  echo "PP_ADMIN_CONTACT=$(quote_string "${PP_ADMIN_CONTACT}")" 1>&3
 else
   echo "# PP_ADMIN_CONTACT=\"<a href='mailto:admin@example.com'>Contact the admin</a>\"" 1>&3
 fi
