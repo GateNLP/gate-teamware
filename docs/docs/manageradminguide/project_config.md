@@ -68,11 +68,11 @@ of annotation will be collected. Here's an example configuration and a preview o
     "type": "radio",
     "title": "Sentiment",
     "description": "Please select a sentiment of the text above.",
-    "options": {
-      "negative": "Negative",
-      "neutral": "Neutral",
-      "positive": "Positive"
-    }
+    "options": [
+      {"value": "negative", "label": "Negative"},
+      {"value": "neutral", "label": "Neutral"},
+      {"value": "positive", "label": "Positive"}
+    ]
   }
 ]
 ```
@@ -116,12 +116,11 @@ Another field can be added to collect more information, e.g. a text field for op
         "type": "radio",
         "title": "Sentiment",
         "description": "Please select a sentiment of the text above.",
-        "options": {
-            "negative": "Negative",
-            "neutral": "Neutral",
-            "positive": "Positive"
-
-        }
+        "options": [
+            {"value": "negative", "label": "Negative"},
+            {"value": "neutral", "label": "Neutral"},
+            {"value": "positive", "label": "Positive"}
+        ]
     },
     {
         "name": "opinion",
@@ -225,6 +224,34 @@ Configuration, showing the same field/column in document as-is or as HTML:
 ```
 
 </AnnotationRendererPreview>
+
+If your documents are plain text and include line breaks that need to be preserved when rendering, this can be achieved by using a special HTML wrapper which sets the [`white-space` CSS property](https://developer.mozilla.org/en-US/docs/Web/CSS/white-space).
+
+<AnnotationRendererPreview :config="configs.configDisplayPreserveNewlines" :document="configs.docPlainText">
+
+**Document**
+
+```json
+{
+    "text": "This is some text\n\nIt has line breaks that we want to preserve."
+}
+```
+
+**Project configuration**
+
+```json
+[
+    {
+        "name": "htmldisplay",
+        "type": "html",
+        "text": "<div style='white-space: pre-line'>{{text}}</div>"
+    }
+]
+```
+
+</AnnotationRendererPreview>
+
+`white-space: pre-line` preserves line breaks but collapses other whitespace down to a single space, `white-space: pre-wrap` would preserve all whitespace including indentation at the start of a line, but would still wrap lines that are too long for the available space.
 
 ### Text input
 
@@ -346,7 +373,7 @@ Configuration, showing the same field/column in document as-is or as HTML:
 
 </AnnotationRendererPreview>
 
-### Alternative way to provide options for radio, checkbox and selector
+### Alternative way to provide options for radio, checkbox and selector<a id='options-as-dict'></a>
 
 A dictionary (key value pairs) and also be provided to the `options` field of the radio, checkbox and selector widgets
 but note that the ordering of the options are **not guaranteed** as javascript does not sort dictionaries by
@@ -375,6 +402,87 @@ the order in which keys are added.
 
 </AnnotationRendererPreview>
 
+### Dynamic options for radio, checkbox and selector
+
+All the examples above have a "static" list of available options for the radio, checkbox and selector widgets, where the complete options list is enumerated in the project configuration and every document offers the same set of options.  However it is also possible to take some or all of the options from the _document_ data rather than the _configuration_ data.  For example:
+
+<AnnotationRendererPreview :config="configs.configDbpediaExample" :document="configs.docDbpediaExample">
+
+**Project configuration**
+
+```json
+[
+  {
+    "name": "uri",
+    "type": "radio",
+    "title": "Select the most appropriate URI",
+    "options":[
+      {"fromDocument": "candidates"},
+      {"value": "none", "label": "None of the above"},
+      {"value": "unknown", "label": "Cannot be determined without more context"}
+    ]
+  }
+]
+```
+
+**Document**
+
+```json
+{
+  "text": "President Bush visited the air base yesterday...",
+  "candidates": [
+    {
+      "value": "http://dbpedia.org/resource/George_W._Bush",
+      "label": "George W. Bush (Jnr)"
+    },
+    {
+      "value": "http://dbpedia.org/resource/George_H._W._Bush",
+      "label": "George H. W. Bush (Snr)"
+    }
+  ]
+}
+```
+
+</AnnotationRendererPreview>
+
+`"fromDocument"` is a dot-separated property path leading to the location within each document where the additional options can be found, for example `"fromDocument":"candidates"` looks for a top-level property named `candidates` in each document, `"fromDocument": "options.custom"` would look for a property named `options` which is itself an object with a property named `custom`.  The target property in the document may be in any of the following forms:
+
+- an array _of objects_, each with `value` and `label` properties, exactly as in the static configuration format - this is the format used in the example above
+- an array _of strings_, where the same string will be used as both the value and the label for that option
+- an arbitrary ["dictionary"](#options-as-dict) object mapping values to labels
+- a _single string_, which is parsed into a list of options
+
+The "single string" alternative is designed to be easier to use when [importing documents](documents_annotations_management.md#importing-documents) from CSV files.  It allows you to provide any number of options in a _single_ CSV column value.  Within the column the options are separated by semicolons, and each option is of the form `value=label`.  Whitespace around the delimiters is ignored, both between options and between the value and label of a single option.  For example given CSV document data of
+
+| text            | options                                           |
+|-----------------|---------------------------------------------------|
+| Favourite fruit | `apple=Apples; orange = Oranges; kiwi=Kiwi fruit` |
+
+a `{"fromDocument": "options"}` configuration would produce the equivalent of
+
+```json
+[
+  {"value": "apple", "label": "Apples"},
+  {"value": "orange", "label": "Oranges"},
+  {"value": "kiwi", "label": "Kiwi fruit"}
+]
+```
+
+If your values or labels may need to contain the default separator characters `;` or `=` you can select different separators by adding extra properties to the configuration:
+
+```json
+{"fromDocument": "options", "separator": "~~", "valueLabelSeparator": "::"}
+```
+
+| text            | options                                              |
+|-----------------|------------------------------------------------------|
+| Favourite fruit | `apple::Apples ~~ orange::Oranges ~~ kiwi::Kiwi fruit` |
+
+The separators can be more than one character, and you can set `"valueLabelSeparator":""` to disable label splitting altogether and just use the value as its own label.
+
+### Mixing static and dynamic options
+
+Static and `fromDocument` options may be freely interspersed in any order, so you can have a fully-dynamic set of options by specifying _only_ a `fromDocument` entry with no static options, or you can have static options that are listed first followed by dynamic options, or dynamic options first followed by static, etc.
 
 <script>
 import configs from './config_examples';

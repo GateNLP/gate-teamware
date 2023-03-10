@@ -94,18 +94,31 @@ export default {
                           "minItems": 1,
                           "uniqueItems": true,
                           "items": {
-                            "type:": "object",
-                            "properties": {
-                              "label": {"type": "string"},
-                              "value": {
-                                "anyOf": [
-                                  {"type": "string"},
-                                  {"type": "integer"},
-                                  {"type": "number"}
-                                ]
+                            "oneOf": [
+                              {
+                                "type:": "object",
+                                "properties": {
+                                  "label": {"type": "string"},
+                                  "value": {
+                                    "anyOf": [
+                                      {"type": "string"},
+                                      {"type": "integer"},
+                                      {"type": "number"}
+                                    ]
+                                  }
+                                },
+                                "required": ["label", "value"]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "fromDocument": {"type": "string"},
+                                  "separator": {"type": "string"},
+                                  "valueLabelSeparator": {"type": "string"}
+                                },
+                                "required": ["fromDocument"]
                               }
-                            },
-                            "required": ["label", "value"]
+                            ]
                           }
                         },
                         {

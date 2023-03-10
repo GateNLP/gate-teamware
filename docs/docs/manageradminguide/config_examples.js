@@ -10,12 +10,11 @@ export default {
             "type": "radio",
             "title": "Sentiment",
             "description": "Please select a sentiment of the text above.",
-            "options": {
-                "negative": "Negative",
-                "neutral": "Neutral",
-                "positive": "Positive"
-
-            }
+            "options": [
+                {"value": "negative", "label": "Negative"},
+                {"value": "neutral", "label": "Neutral"},
+                {"value": "positive", "label": "Positive"}
+            ]
         }
     ],
     config2: [
@@ -29,12 +28,11 @@ export default {
             "type": "radio",
             "title": "Sentiment",
             "description": "Please select a sentiment of the text above.",
-            "options": {
-                "negative": "Negative",
-                "neutral": "Neutral",
-                "positive": "Positive"
-
-            }
+            "options": [
+                {"value": "negative", "label": "Negative"},
+                {"value": "neutral", "label": "Neutral"},
+                {"value": "positive", "label": "Positive"}
+            ]
         },
         {
             "name": "opinion",
@@ -62,6 +60,13 @@ export default {
             "name": "htmldisplay",
             "type": "html",
             "text": "Custom field: {{customField}} <br/> Another custom field: {{{anotherCustomField}}} <br/> Subfield: {{{subfield.subfieldContent}}}"
+        }
+    ],
+    configDisplayPreserveNewlines: [
+        {
+            "name": "htmldisplay",
+            "type": "html",
+            "text": "<div style='white-space: pre-line'>{{text}}</div>"
         }
     ],
     configTextInput: [
@@ -156,6 +161,32 @@ export default {
         }
     ],
 
+    configDbpediaExample: [
+        {
+            "name": "uri",
+            "type": "radio",
+            "title": "Select the most appropriate URI",
+            "options":[
+                {"fromDocument": "candidates"},
+                {"value": "none", "label": "None of the above"},
+                {"value": "unknown", "label": "Cannot be determined without more context"}
+            ]
+        }
+    ],
+    docDbpediaExample: {
+        "text": "President Bush visited the air base yesterday...",
+        "candidates": [
+            {
+                "value": "http://dbpedia.org/resource/George_W._Bush",
+                "label": "George W. Bush (Jnr)"
+            },
+            {
+                "value": "http://dbpedia.org/resource/George_H._W._Bush",
+                "label": "George H. W. Bush (Snr)"
+            }
+        ]
+    },
+
 
     doc1: {text: "Sometext with <strong>html</strong>"},
     doc2: {
@@ -164,6 +195,9 @@ export default {
         subfield: {
             subfieldContent: "Content of a subfield."
         }
+    },
+    docPlainText: {
+        "text": "This is some text\n\nIt has line breaks that we want to preserve."
     },
     configPreAnnotation: [
         {
@@ -175,24 +209,24 @@ export default {
             "name": "radio",
             "type": "radio",
             "title": "Test radio input",
-            "options": {
-                "val1": "Value 1",
-                "val2": "Value 2",
-                "val3": "Value 4",
-                "val4": "Value 5"
-            },
+            "options": [
+                {"value": "val1", "label": "Value 1"},
+                {"value": "val2", "label": "Value 2"},
+                {"value": "val3", "label": "Value 4"},
+                {"value": "val4", "label": "Value 5"}
+            ],
             "description": "Test radio description"
         },
         {
             "name": "checkbox",
             "type": "checkbox",
             "title": "Test checkbox input",
-            "options": {
-                "val1": "Value 1",
-                "val2": "Value 2",
-                "val3": "Value 4",
-                "val4": "Value 5"
-            },
+            "options": [
+                {"value": "val1", "label": "Value 1"},
+                {"value": "val2", "label": "Value 2"},
+                {"value": "val3", "label": "Value 4"},
+                {"value": "val4", "label": "Value 5"}
+            ],
             "description": "Test checkbox description"
         },
         {

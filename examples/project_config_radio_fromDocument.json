@@ -1,0 +1,18 @@
+[
+  {
+    "name": "question",
+    "type": "html",
+    "title": "Question",
+    "text": "{{text}}"
+  },
+  {
+    "name": "answer",
+    "type": "radio",
+    "title": "Answer",
+    "orientation": "vertical",
+    "options": [
+      {"fromDocument": "choices"},
+      {"value": "none", "label": "No preference"}
+    ]
+  }
+]

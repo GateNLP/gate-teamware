@@ -1,0 +1,30 @@
+[
+  {
+    "id": "1",
+    "text": "What is your favourite fruit?",
+    "choices": [
+      {"value": "apple", "label": "Apple"},
+      {"value": "orange", "label": "Orange"},
+      {"value": "kiwi", "label": "Kiwi fruit"}
+    ]
+  },
+  {
+    "id": "2",
+    "text": "What is your favourite shade of green?",
+    "choices": {
+      "#808000": "Olive",
+      "#80ff00": "Chartreuse",
+      "#98FB98": "Mint"
+    }
+  },
+  {
+    "id": "3",
+    "text": "Which of these languages do you find easiest to speak?",
+    "choices": ["English", "Mandarin", "Portuguese"]
+  },
+  {
+    "id": "4",
+    "text": "What is your preferred computing platform?",
+    "choices": "win=Windows; mac=Apple; linux=Linux (e.g. Ubuntu)"
+  }
+]
