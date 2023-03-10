@@ -29,7 +29,7 @@ describe('Annotation Change Test in Project documents view and User My annotatio
             cy.wrap(container).contains("Submit").click()
 
             // Default annotation should be the latest
-            cy.wrap(container).contains('"sentiment":"neutral"')
+            cy.wrap(container).contains('"sentiment": "neutral"')
 
 
         })
@@ -42,9 +42,9 @@ describe('Annotation Change Test in Project documents view and User My annotatio
 
         // It should show all annotations
         cy.get("[data-role='annotation-display-container']").first().then(container => {
-            cy.wrap(container).contains('"sentiment":"positive"')
-            cy.wrap(container).contains('"sentiment":"negative"')
-            cy.wrap(container).contains('"sentiment":"neutral"')
+            cy.wrap(container).contains('"sentiment": "positive"')
+            cy.wrap(container).contains('"sentiment": "negative"')
+            cy.wrap(container).contains('"sentiment": "neutral"')
 
         })
 
@@ -72,7 +72,7 @@ describe('Annotation Change Test in Project documents view and User My annotatio
             cy.wrap(container).contains("Submit").click()
 
             // Default annotation should be the latest
-            cy.wrap(container).contains('"sentiment":"neutral"')
+            cy.wrap(container).contains('"sentiment": "neutral"')
 
 
         })
@@ -82,9 +82,9 @@ describe('Annotation Change Test in Project documents view and User My annotatio
 
         // It should show all annotations
         cy.get("[data-role='annotation-display-container']").first().then(container => {
-            cy.wrap(container).contains('"sentiment":"positive"')
-            cy.wrap(container).contains('"sentiment":"negative"')
-            cy.wrap(container).contains('"sentiment":"neutral"')
+            cy.wrap(container).contains('"sentiment": "positive"')
+            cy.wrap(container).contains('"sentiment": "negative"')
+            cy.wrap(container).contains('"sentiment": "neutral"')
 
         })
 
@@ -111,7 +111,7 @@ describe('Annotation Change Test in Project documents view and User My annotatio
             cy.wrap(container).contains("Submit").click()
 
             // Default annotation should be the latest
-            cy.wrap(container).contains('"sentiment":"neutral"')
+            cy.wrap(container).contains('"sentiment": "neutral"')
 
 
         })
@@ -121,9 +121,9 @@ describe('Annotation Change Test in Project documents view and User My annotatio
 
         // It should show all annotations
         cy.get("[data-role='annotation-display-container']").first().then(container => {
-            cy.wrap(container).contains('"sentiment":"positive"')
-            cy.wrap(container).contains('"sentiment":"negative"')
-            cy.wrap(container).contains('"sentiment":"neutral"')
+            cy.wrap(container).contains('"sentiment": "positive"')
+            cy.wrap(container).contains('"sentiment": "negative"')
+            cy.wrap(container).contains('"sentiment": "neutral"')
             cy.wrap(container).get("[data-role='annotation-change-delete']").first().click({force:true})
 
         })
@@ -131,9 +131,9 @@ describe('Annotation Change Test in Project documents view and User My annotatio
         cy.get(".modal-dialog .btn-danger").contains("Delete").click({force: true})
         cy.get(".modal-dialog").should("not.exist")
         cy.get("[data-role='annotation-display-container']").first().then(container => {
-            cy.wrap(container).contains('"sentiment":"positive"').should("not.exist")
-            cy.wrap(container).contains('"sentiment":"negative"')
-            cy.wrap(container).contains('"sentiment":"neutral"')
+            cy.wrap(container).contains('"sentiment": "positive"').should("not.exist")
+            cy.wrap(container).contains('"sentiment": "negative"')
+            cy.wrap(container).contains('"sentiment": "neutral"')
         })
 
     })
