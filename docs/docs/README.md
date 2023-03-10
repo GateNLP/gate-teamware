@@ -111,6 +111,7 @@ Some of these may be omitted or others may be required depending on the setup of
 - your cluster has an ingress controller, with a default ingress class configured, and that controller has a default TLS certificate that is compatible with your chosen hostname (e.g. a `*.example.com` wildcard)
 - your cluster has a default storageClass configured to provision PVCs, and at least 8 GB of available PV capacity
 - you can send email via an SMTP server with no authentication
+- the default GATE Teamware terms and privacy documents are suitable for your deployment and compliant with the laws of your location.  If this is not the case you can supply your own custom policy documents in a ConfigMap
 - you do not need to back up your PostgreSQL database - the chart does include the option to store backups in Amazon S3 or another compatible object store, see the full README for details
 
 Once you have created your values file, you can install the chart or upgrade an existing installation using
