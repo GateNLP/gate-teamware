@@ -12,10 +12,11 @@ from django.db import models
 from django.utils import timezone
 from django.db.models import Q, F, Count
 
-from backend.utils.misc import get_value_from_key_path, insert_value_to_key_path
+from backend.utils.misc import get_value_from_key_path, insert_value_to_key_path, generate_random_string
 from backend.utils.telemetry import TelemetrySender
 
 log = logging.getLogger(__name__)
+
 
 class UserDocumentFormatPreference:
     JSON = 0
@@ -25,6 +26,7 @@ class UserDocumentFormatPreference:
         (JSON, 'JSON'),
         (CSV, 'CSV')
     )
+
 
 class DocumentType:
     ANNOTATION = 0
@@ -54,6 +56,7 @@ class ServiceUser(AbstractUser):
     doc_format_pref = models.IntegerField(choices=UserDocumentFormatPreference.USER_DOC_FORMAT_PREF,
                                           default=UserDocumentFormatPreference.JSON)
     agreed_privacy_policy = models.BooleanField(default=False)
+    is_deleted = models.BooleanField(default=False)
 
     @property
     def has_active_project(self):
@@ -118,6 +121,40 @@ class ServiceUser(AbstractUser):
         else:
             return False
 
+    def delete_user_personal_information(self) -> None:
+        """
+        Replace user's personal data with placeholder
+        """
+        self.is_deleted = True
+        retry_limit = 1000
+        retry_counter = 0
+        while retry_counter < retry_limit:
+            random_suffix = generate_random_string(settings.DELETED_USER_USERNAME_HASH_LENGTH)
+            deleted_username = f"{settings.DELETED_USER_USERNAME_PREFIX}_{random_suffix}"
+            if not get_user_model().objects.filter(username=deleted_username).exists():
+                break
+            retry_counter += 1
+
+        if retry_counter >= retry_limit:
+            raise Exception("Could not delete user, reached hash generation retries limit")
+
+        self.username = deleted_username
+        self.first_name = settings.DELETED_USER_FIRSTNAME
+        self.last_name = settings.DELETED_USER_LASTNAME
+        self.email = f"{self.username}@{settings.DELETED_USER_EMAIL_DOMAIN}"
+        self.save()
+
+    def delete_user(self) -> None:
+        """
+        Completely remove the user from the database along with all associated annotations and projects.
+        """
+
+        # Delete all associated annotations and projects
+        Annotation.objects.filter(annotator=self).delete()
+        Project.objects.filter(owner=self).delete()
+        self.delete()
+
+
 
 def default_document_input_preview():
     return {"text": "<p>Some html text <strong>in bold</strong>.</p><p>Paragraph 2.</p>"}
@@ -128,7 +165,7 @@ class Project(models.Model):
     Model to store annotation projects.
     """
     name = models.TextField(default="New project")
-    uuid = models.UUIDField(primary_key = False, default = uuid.uuid4, editable = False)
+    uuid = models.UUIDField(primary_key=False, default=uuid.uuid4, editable=False)
     description = models.TextField(default="")
     annotator_guideline = models.TextField(default="")
     created = models.DateTimeField(default=timezone.now)
@@ -176,12 +213,11 @@ class Project(models.Model):
         fields = Project.get_project_config_fields({"owner", "id", "created", "uuid"})
         return [field.name for field in fields]
 
-
-    def clone(self, new_name = None, clone_name_prefix="Copy of ", owner = None):
+    def clone(self, new_name=None, clone_name_prefix="Copy of ", owner=None):
         """
         Clones the Project object, does not retain documents and annotator membership
         """
-        exclude_fields = { "name", "owner", "id", "created", "uuid" }
+        exclude_fields = {"name", "owner", "id", "created", "uuid"}
 
         # Setting project name
         new_project_name = new_name if new_name is not None else ""
@@ -197,7 +233,6 @@ class Project(models.Model):
 
         new_project.save()
         return new_project
-
 
     @property
     def num_documents(self):
@@ -702,7 +737,7 @@ class Project(models.Model):
             if settings.TELEMETRY_ON:
                 self.send_telemetry(status="complete")
 
-    def send_telemetry(self, status:str):
+    def send_telemetry(self, status: str):
         """
         Sends telemetry data for the project depending on the status.
         """
