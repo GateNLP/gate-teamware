@@ -119,8 +119,8 @@ To run separately:
   npm run serve:frontend
   ```
 
-## Deployment using Docker
-Teamware can be deployed via [docker-compose](https://docs.docker.com/compose/), using [NGINX](https://www.nginx.com/) to serve static content, a separate [postgreSQL](https://hub.docker.com/_/postgres) service containing the database and a database backup service (see `docker-compose.yml` for details).
+## Deploying a development version using Docker
+Deployment is via [docker-compose](https://docs.docker.com/compose/), using [NGINX](https://www.nginx.com/) to serve static content, a separate [postgreSQL](https://hub.docker.com/_/postgres) service containing the database and a database backup service (see `docker-compose.yml` for details).  Pre-built images can be run using most versions of Docker but _building_ images requires `docker buildx`, which means either Docker Desktop or version 19.03 or later of Docker Engine.
 
 1. Run `./generate-docker-env.sh` to create a `.env` file containing randomly generated secrets which are mounted as environment variables into the container. See [below](#env-config) for details.
 
@@ -178,86 +178,6 @@ This will first launch the database container, then via Django's `dbshell` comma
 
 4. Redeploy the stack, via `./deploy.sh staging` or `./deploy.sh production`, whichever is the case.
 5. The database *should* be restored.
-
-
-## Deployment using Kubernetes
-
-A Helm chart to deploy Teamware on Kubernetes is published to the GATE team public charts repository.  The chart requires [Helm](https://helm.sh) version 3.7 or later, and is compatible with Kubernetes version 1.23 or later.  Earlier Kubernetes versions back to 1.19 _may_ work provided autoscaling is not enabled, but these have not been tested.
-
-The following quick start instructions assume you have a compatible Kubernetes cluster and a working installation of `kubectl` and `helm` (3.7 or later) with permission to create all the necessary resource types in your target namespace.
-
-First generate a random "secret key" for the Django application.  This must be at least 50 random characters, a quick way to do this is
-
-```
-# 42 random bytes base64 encoded becomes 56 random characters
-kubectl create secret generic -n {namespace} django-secret \
-   --from-literal="secret-key=$( openssl rand -base64 42 )"
-```
-
-Add the GATE charts repository to your Helm configuration:
-
-```
-helm repo add gate https://repo.gate.ac.uk/repository/charts
-helm repo update
-```
-
-Create a `values.yaml` file with the key settings required for teamware.  The following is a minimal set of values for a typical installation:
-
-```yaml
-# Public-facing web hostname of the teamware application, the public
-# URL will be https://{hostName}
-hostName: teamware.example.com
-
-email:
-  # "From" address on emails sent by Teamware
-  adminAddress: admin@teamware.example.com
-  # Send email via an SMTP server - alternatively "gmail" to use GMail API
-  backend: "smtp"
-  smtp:
-    host: mail.example.com
-    # You will also need to set user and passwordSecret if your
-    # mail server requires authentication
-
-privacyPolicy:
-# Contact details of the host and administrator of the teamware instance, if no admin defined, defaults to the host values.
-  host:
-    # Name of the host
-    name: "Service Host"
-    # Host's physical address
-    address: "123 Example Street, City. Country."
-    # A method of contacting the host, field supports HTML for e.g. linking to a form
-    contact: "<a href='mailto:info@examplehost.com'>Email</a>"
-  admin:
-    name: "Dr. Service Admin"
-    address: "Department of Example Studies, University of Example, City. Country."
-    contact: "<a href='mailto:s.admin@example.ac.uk'>Email</a>"
-
-backend:
-  # Name of the random secret you created above
-  djangoSecret: django-secret
-
-# Initial "super user" created on the first install.  These are just
-# the *initial* settings, you can (and should!) change the password
-# once Teamware is up and running
-superuser:
-  email: me@example.com
-  username: admin
-  password: changeme
-```
-
-Some of these may be omitted or others may be required depending on the setup of your specific cluster - see the [chart README](https://github.com/GateNLP/charts/blob/main/gate-teamware/README.md) and the chart's own values file (which you can retrieve with `helm show values gate/gate-teamware`) for full details.  In particular these values assume:
-
-- your cluster has an ingress controller, with a default ingress class configured, and that controller has a default TLS certificate that is compatible with your chosen hostname (e.g. a `*.example.com` wildcard)
-- your cluster has a default storageClass configured to provision PVCs, and at least 8 GB of available PV capacity
-- you can send email via an SMTP server with no authentication
-- you do not need to back up your PostgreSQL database - the chart does include the option to store backups in Amazon S3 or another compatible object store, see the full README for details
-
-Once you have created your values file, you can install the chart or upgrade an existing installation using
-
-```
-helm upgrade --install gate-teamware gate/gate-teamware \
-       --namespace {namespace} --values teamware-values.yaml
-```
 
 ## Configuration
 

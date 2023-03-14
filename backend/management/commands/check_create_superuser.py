@@ -2,7 +2,6 @@ import sys, os
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand, CommandError
 
-from backend.rpc import _generate_user_activation
 
 class Command(BaseCommand):
 
@@ -17,8 +16,8 @@ class Command(BaseCommand):
             email = os.environ.get("SUPERUSER_EMAIL")
 
             if not User.objects.filter(username=username).exists():
-                user = User.objects.create_superuser(username=username, password=password, email=email)
-                _generate_user_activation(user)
+                User.objects.create_superuser(username=username, password=password, email=email,
+                                              is_account_activated=True)
 
                 self.stdout.write(f'No superusers found in database.\nSuperuser created with username {username}')
             else:

@@ -17,18 +17,29 @@ GATE teamware provides a flexible web app platform for managing classification o
 * Deploy with [kubernetes](https://kubernetes.io/) or [docker compose](https://docs.docker.com/compose/).
 
 # Running the app
-## Requirements
-We recommend the following software as a minimum requirement for running GATE Teamware:
-* recommended OS: linux or macOS.
-* [git](http://git-scm.com/)
-* [docker](https://www.docker.com/) & [docker-compose](https://docs.docker.com/compose/)
-* [bash](https://www.gnu.org/software/bash/)
 
-## Instructions
+## Latest release
+
+The simplest way to deploy your own copy of GATE Teamware is to use Docker Compose on Linux or Mac.  Installation on Windows is possible but not officially supported - you need to be able to run `bash` shell scripts for the quick-start installer.
+
+1. Install Docker - [Docker Engine](https://docs.docker.com/engine/) for Linux servers or [Docker Desktop](https://docs.docker.com/desktop/) for Mac.
+2. Install [Docker Compose](https://github.com/docker/compose), if your Docker does not already include it (Compose is included by default with Docker Desktop)
+3. Download the [installation script](https://gate.ac.uk/get-teamware.sh) into an empty directory, run it and follow the instructions.
+
+```
+mkdir gate-teamware
+cd gate-teamware
+curl -LO https://gate.ac.uk/get-teamware.sh
+bash ./get-teamware.sh
+```
+
+[A Helm chart](https://github.com/GateNLP/charts/tree/main/gate-teamware) is also available to allow deployment on Kubernetes.
+
+## Building locally
 Follow these steps to run the app on your local machine using `docker-compose`:
 1. Clone this repository by running `git clone https://github.com/GateNLP/gate-teamware.git` and move into the `gate-teamware` directory.
 1. From inside the `gate-teamware` directory run `./generate-docker-env.sh` to create a set of passwords and keys in a `.env` file.
-1. Run `./build-images.sh` to build the backend and frontend images, this may take a while the first time it is run. 
+1. Run `./build-images.sh` to build the backend and frontend images, this may take a while the first time it is run.  Images are built using `docker buildx`, which requires Docker Engine 19.03 or later.
 1. Run `./deploy.sh production` or `./deploy.sh staging`. Note: You may want to change the value of `DJANGO_ALLOWED_HOSTS` in `deploy.sh` to match the URL(s) that you are deploying to.
 
 Open `127.0.0.1:8076` (the default IP & port) in your browser. The initial admin login has the username `admin` and password `password`, this should be changed immediately. Note: the port is set in `docker-compose.yml`.
