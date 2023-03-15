@@ -79,7 +79,7 @@ def login(request, payload):
         djlogin(request, user)
         context["username"] = user.username
         context["isAuthenticated"] = user.is_authenticated
-        context["isManager"] = user.is_manager
+        context["isManager"] = user.is_manager or user.is_staff
         context["isAdmin"] = user.is_staff
         context["isActivated"] = user.is_activated
         return context
