@@ -121,6 +121,14 @@ class ServiceUser(AbstractUser):
         else:
             return False
 
+    def clear_pending_annotations(self) -> None:
+        """
+        Clear all of the user's pending annotation in the system to allow other annotators
+        to take up the task slot.
+        """
+        pending_annotations = self.annotations.filter(status=Annotation.PENDING)
+        pending_annotations.delete()
+
     def delete_user_personal_information(self) -> None:
         """
         Replace user's personal data with placeholder
@@ -144,15 +152,8 @@ class ServiceUser(AbstractUser):
         self.email = f"{self.username}@{settings.DELETED_USER_EMAIL_DOMAIN}"
         self.save()
 
-    def delete_user(self) -> None:
-        """
-        Completely remove the user from the database along with all associated annotations and projects.
-        """
-
-        # Delete all associated annotations and projects
-        Annotation.objects.filter(annotator=self).delete()
-        Project.objects.filter(owner=self).delete()
-        self.delete()
+        # Also clear all pending annotations
+        self.clear_pending_annotations()
 
 
 
@@ -170,7 +171,7 @@ class Project(models.Model):
     annotator_guideline = models.TextField(default="")
     created = models.DateTimeField(default=timezone.now)
     configuration = models.JSONField(default=list)
-    owner = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, related_name="owns")
+    owner = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, null=True, related_name="owns")
     annotations_per_doc = models.IntegerField(default=3)
     annotator_max_annotation = models.FloatField(default=0.6)
     # Allow annotators to reject document
@@ -1021,7 +1022,7 @@ class Annotation(models.Model):
         (ABORTED, 'Aborted')
     )
 
-    user = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, related_name="annotations", null=True)
+    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name="annotations", null=True)
     document = models.ForeignKey(Document, on_delete=models.CASCADE, related_name="annotations")
     _data = models.JSONField(default=dict)
 

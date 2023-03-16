@@ -258,6 +258,7 @@ PRIVACY_POLICY.update({
 """
 Deleted user settings
 """
+ALLOW_USER_DELETE = True  # Whether to allow deleting user and their associated projects and data
 DELETED_USER_USERNAME_PREFIX = "deleted"
 DELETED_USER_USERNAME_HASH_LENGTH = 8
 DELETED_USER_FIRSTNAME = "Deleted"
