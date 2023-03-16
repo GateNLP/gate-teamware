@@ -93,6 +93,23 @@ class TestAppCreatedUserAccountsCannotLogin(TestEndpoint):
         with self.assertRaises(AuthError, msg="Should raise an error if logging in with blank as password"):
             login(self.get_request(), {"username": "doesnotexist", "password": ""})
 
+class TestDeletedUserAccountCannotLogin(TestEndpoint):
+
+    def test_deleted_user_account_cannot_login(self):
+        """
+        Ensures that user accounts that opts to have their personal information removed from the system
+        but not wiped cannot login again.
+        """
+
+        username = "deleted"
+        password = "test1password"
+
+        get_user_model().objects.create_user(username=username,
+                                                       password=password,
+                                                       is_deleted=True)
+        with self.assertRaises(AuthError, msg="Should raise an error if trying to login with a deleted account"):
+            login(self.get_request(), {"username": username, "password": password})
+
 
 
 class TestUserRegistration(TestEndpoint):

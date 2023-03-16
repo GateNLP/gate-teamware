@@ -76,6 +76,10 @@ def login(request, payload):
 
     user = authenticate(username=payload["username"], password=payload["password"])
     if user is not None:
+
+        if user.is_deleted:
+            raise AuthError("Cannot login with a deleted account")
+
         djlogin(request, user)
         context["username"] = user.username
         context["isAuthenticated"] = user.is_authenticated
@@ -369,14 +373,25 @@ def get_user_annotations_in_project(request, project_id, current_page=1, page_si
     else:
         paginated_docs = user_annotated_docs
 
-
     documents_out = []
     for document in paginated_docs:
         annotations_list = [annotation.get_listing() for annotation in document.annotations.filter(user=user)]
         documents_out.append(document.get_listing(annotations_list))
 
-
     return {"items": documents_out, "total_count": total_count}
+
+
+@rpc_method_auth
+def user_delete_personal_information(request):
+    request.user.delete_user_personal_information()
+
+
+@rpc_method_auth
+def user_delete_account(request):
+    if settings.ALLOW_USER_DELETE:
+        request.user.delete()
+    else:
+        raise Exception("Teamware's current configuration does not allow user accounts to be deleted.")
 
 
 ##################################
@@ -417,7 +432,6 @@ def get_project(request, project_id):
         **proj.get_project_stats()
     }
     return out_proj
-
 
 
 @rpc_method_manager
@@ -943,18 +957,34 @@ def admin_update_user_password(request, username, password):
     user.save()
 
 
+@rpc_method_admin
+def admin_delete_user_personal_information(request, username):
+    user = User.objects.get(username=username)
+    user.delete_user_personal_information()
+
+
+@rpc_method_admin
+def admin_delete_user(request, username):
+    if settings.ALLOW_USER_DELETE:
+        user = User.objects.get(username=username)
+        user.delete()
+    else:
+        raise Exception("Teamware's current configuration does not allow the deleting of users")
+
+
 ##################################
 ### Privacy Policy/T&C Methods ###
 ##################################
 
 @rpc_method
 def get_privacy_policy_details(request):
-
     details = settings.PRIVACY_POLICY
 
     custom_docs = {
-        'CUSTOM_PP_DOCUMENT': read_custom_document(settings.CUSTOM_PP_DOCUMENT_PATH) if os.path.isfile(settings.CUSTOM_PP_DOCUMENT_PATH) else None,
-        'CUSTOM_TC_DOCUMENT': read_custom_document(settings.CUSTOM_TC_DOCUMENT_PATH) if os.path.isfile(settings.CUSTOM_TC_DOCUMENT_PATH) else None
+        'CUSTOM_PP_DOCUMENT': read_custom_document(settings.CUSTOM_PP_DOCUMENT_PATH) if os.path.isfile(
+            settings.CUSTOM_PP_DOCUMENT_PATH) else None,
+        'CUSTOM_TC_DOCUMENT': read_custom_document(settings.CUSTOM_TC_DOCUMENT_PATH) if os.path.isfile(
+            settings.CUSTOM_TC_DOCUMENT_PATH) else None
     }
 
     details.update(custom_docs)
