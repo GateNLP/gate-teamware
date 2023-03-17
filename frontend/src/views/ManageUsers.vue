@@ -105,8 +105,28 @@
             <b-col>
               <b-button variant="primary" @click="generateActivationHandler">Generate activation e-mail</b-button>
             </b-col>
+            <b-col>
+              <b-button variant="danger" @click="handleAccountDeleteButton">
+                Delete user account
+              </b-button>
+            </b-col>
           </b-form-row>
         </b-form>
+
+        <DeleteModal v-model="showDeleteUserModal"
+                     :title="deleteAccountModalTitle"
+                     @delete="deleteUserAccount"
+        >
+          <b-alert show variant="danger">Warning, this action is permanent! The personal details in the account will be removed and the user will no longer be able to login to the system using this account.</b-alert>
+
+          <b-row v-if="allowUserDelete">
+            <b-col>Also remove any annotations, projects and documents associated with the user:</b-col>
+            <b-col cols="3">
+              <b-checkbox v-model="permanentlyDeleteUserAccount"></b-checkbox>
+            </b-col>
+          </b-row>
+
+        </DeleteModal>
       </div>
 
     </div>
@@ -114,13 +134,14 @@
 </template>
 <script>
 import _ from "lodash"
-import {mapState, mapActions} from "vuex";
+import {mapState, mapActions, mapGetters} from "vuex";
 import {toastError, toastSuccess} from "@/utils";
+import DeleteModal from "../components/DeleteModal";
 
 export default {
   name: "ManageUsers",
   title: "Manage Users",
-  components: {},
+  components: {DeleteModal},
   data() {
     return {
       users: [],
@@ -137,11 +158,13 @@ export default {
       },
       newPassword: null,
       newPasswordConfirm: null,
+      showDeleteUserModal: false,
+      permanentlyDeleteUserAccount: false,
     }
   },
   methods: {
     ...mapActions(["getAllUsers", "adminGetUser", "adminUpdateUser", "adminUpdateUserPassword",
-      "generatePasswordReset", "generateUserActivation"]),
+      "generatePasswordReset", "generateUserActivation", "adminDeleteUser", "adminDeleteUserPersonalInformation"]),
     searchUsers(users, searchString) {
       const regEx = new RegExp(searchString);
       const result = _.filter(users, ({username, email}) => !!username.match(regEx) || !!email.match(regEx));
@@ -197,11 +220,35 @@ export default {
       }
 
     },
+    async handleAccountDeleteButton(){
+      if(this.form.username){
+        this.showDeleteUserModal = true
+        this.permanentlyDeleteUserAccount = false
+      }
+    },
+    async deleteUserAccount(){
+      try{
+        if(this.permanentlyDeleteUserAccount){
+          await this.adminDeleteUser(this.form.username)
+        }
+        else{
+          await this.adminDeleteUserPersonalInformation(this.form.username)
+        }
+        toastSuccess("User deleted", `The user account ${this.form.username} (${this.form.email}) has been successfully deleted.`)
+        this.permanentlyDeleteUserAccount = false
+        this.users = await this.getAllUsers()
+
+      }catch (e){
+        toastError("The user could not be deleted", e)
+      }
+
+    }
   },
   async mounted() {
     this.users = await this.getAllUsers()
   },
   computed: {
+    ...mapGetters(["allowUserDelete"]),
     usersFiltered() {
       return this.searchUsers(this.users, this.userSearch);
     },
@@ -214,6 +261,9 @@ export default {
           this.currentPage * this.perPage
       )
     },
+    deleteAccountModalTitle(){
+      return `Permanenently delete ${this.form.username} (${this.form.email})?`
+    }
   }
 }
 </script>

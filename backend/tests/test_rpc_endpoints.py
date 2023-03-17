@@ -742,6 +742,7 @@ class TestUsers(TestEndpoint):
         ann1 = get_user_model().objects.create(username="ann1")
         ann2 = get_user_model().objects.create(username="ann2")
         ann3 = get_user_model().objects.create(username="ann3")
+        ann4 = get_user_model().objects.create(username="ann4", is_deleted=True)
 
         proj = Project.objects.create(owner=user)
         proj2 = Project.objects.create(owner=user)
@@ -749,9 +750,9 @@ class TestUsers(TestEndpoint):
 
         # Listing all annotators for project 1 and 2 without anyone added to project
         possible_annotators = get_possible_annotators(self.get_loggedin_request(), proj_id=proj.pk)
-        self.assertEqual(4, len(possible_annotators), "Should list all users")
+        self.assertEqual(4, len(possible_annotators), "Should list all users without deleted user")
         possible_annotators = get_possible_annotators(self.get_loggedin_request(), proj_id=proj2.pk)
-        self.assertEqual(4, len(possible_annotators), "Should list all users")
+        self.assertEqual(4, len(possible_annotators), "Should list all users without deleted user")
         project_annotators = get_project_annotators(self.get_loggedin_request(), proj_id=proj.pk)
         self.assertEqual(0, len(project_annotators))
 

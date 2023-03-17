@@ -101,6 +101,28 @@
 
       </b-col>
     </b-row>
+    <b-row class="mt-5">
+      <b-col>
+        <b-button variant="danger" size="sm" @click="showDeleteModal = true">
+          Delete my account
+        </b-button>
+
+      </b-col>
+    </b-row>
+
+    <DeleteModal v-model="showDeleteModal"
+                 title="Permanently delete your account"
+                 @delete="handleDeleteUserAccount"
+    >
+      <b-alert show variant="danger">Warning, this action is permanent! You personal details will be removed and you will no longer be able to login to the system using this account.</b-alert>
+
+      <b-row v-if="allowUserDelete">
+        <b-col>Also remove any annotations, projects and documents that I own:</b-col>
+        <b-col cols="3">
+          <b-checkbox v-model="permanentlyDeleteUserAccount"></b-checkbox>
+        </b-col>
+      </b-row>
+    </DeleteModal>
 
     <AccountActivationGenerator></AccountActivationGenerator>
 
@@ -112,13 +134,16 @@ import {mapState, mapActions, mapGetters} from "vuex";
 import AccountActivationGenerator from "@/components/AccountActivationGenerator";
 import ProjectIcon from "@/components/ProjectIcon";
 import UserAnnotatedProject from "@/components/UserAnnotatedProject";
+import DeleteModal from "../components/DeleteModal";
 
 export default {
   name: "UserAccount",
   title: "My Account",
-  components: {AccountActivationGenerator},
+  components: {DeleteModal, AccountActivationGenerator},
   data() {
     return {
+      showDeleteModal: false,
+      permanentlyDeleteUserAccount: false,
       error: "",
       editEmail: false,
       editPassword: false,
@@ -143,11 +168,12 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(["isActivated"]),
+    ...mapGetters(["isActivated", "allowUserDelete"]),
   },
   methods: {
+
     ...mapActions(["getUser", "changeEmail", "changePassword",
-      "setUserReceiveMailNotification", "setUserDocumentFormatPreference", "generateUserActivation"]),
+      "setUserReceiveMailNotification", "setUserDocumentFormatPreference", "generateUserActivation", "deleteAccount", "deletePersonalInformation"]),
     async EmailSubmitHandler() {
       try{
         await this.changeEmail(this.form);
@@ -184,6 +210,22 @@ export default {
         toastError("Could not change document format preference", e, this)
       }
     },
+    async handleDeleteUserAccount(){
+      try{
+        if(this.permanentlyDeleteUserAccount){
+          await this.deleteAccount()
+        }
+        else{
+          await this.deletePersonalInformation()
+        }
+
+        toastSuccess("Account deleted", "Your account has been successfully deleted")
+        await this.$router.push("/")
+
+      }catch (e){
+        toastError("Account could not be deleted", e)
+      }
+    }
   },
   async mounted() {
     this.user = await this.getUser();

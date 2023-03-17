@@ -26,7 +26,7 @@ from gatenlp import annotation_set
 from backend.errors import AuthError
 from backend.rpcserver import rpc_method, rpc_method_auth, rpc_method_manager, rpc_method_admin
 from backend.models import Project, Document, DocumentType, Annotation, AnnotatorProject, AnnotationChangeHistory, \
-    UserDocumentFormatPreference
+    UserDocumentFormatPreference, document_preference_str
 from backend.utils.misc import get_value_from_key_path, insert_value_to_key_path, read_custom_document
 from backend.utils.serialize import ModelSerializer
 
@@ -35,6 +35,40 @@ log = logging.getLogger(__name__)
 serializer = ModelSerializer()
 User = get_user_model()
 
+#####################################
+### Initilisation                 ###
+#####################################
+@rpc_method
+def initialise(request):
+    """
+    Provide the initial context information to initialise the Teamware app
+
+    context_object:
+        user:
+            isAuthenticated: bool
+            isManager: bool
+            isAdmin: bool
+        configs:
+            docFormatPref: bool
+        global_configs:
+            allowUserDelete: bool
+    """
+    context_object = {
+        "user": is_authenticated(request),
+        "configs": {
+            "docFormatPref": get_user_document_pref_from_request(request)
+        },
+        "global_configs": {
+            "allowUserDelete": settings.ALLOW_USER_DELETE
+        }
+    }
+    return context_object
+
+def get_user_document_pref_from_request(request):
+    if request.user.is_authenticated:
+        return document_preference_str(request.user.doc_format_pref)
+    else:
+        return document_preference_str(UserDocumentFormatPreference.JSON)
 
 #####################################
 ### Login/Logout/Register Methods ###
@@ -313,10 +347,7 @@ def get_user_details(request):
     data["user_role"] = user_role
 
     # Convert doc preference to string
-    if user.doc_format_pref == UserDocumentFormatPreference.JSON:
-        data["doc_format_pref"] = "JSON"
-    else:
-        data["doc_format_pref"] = "CSV"
+    data["doc_format_pref"] = document_preference_str(user.doc_format_pref)
 
     return data
 @rpc_method_auth
@@ -685,7 +716,7 @@ def get_possible_annotators(request, proj_id):
     active_annotators = User.objects.filter(annotatorproject__status=AnnotatorProject.ACTIVE).values_list('id', flat=True)
     project_annotators = project.annotators.all().values_list('id', flat=True)
     # Do an exclude filter to remove annotator with the those ids
-    valid_annotators = User.objects.exclude(id__in=active_annotators).exclude(id__in=project_annotators)
+    valid_annotators = User.objects.filter(is_deleted=False).exclude(id__in=active_annotators).exclude(id__in=project_annotators)
     output = [serializer.serialize(annotator, {"id", "username", "email"}) for annotator in valid_annotators]
     return output
 

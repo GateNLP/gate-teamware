@@ -27,6 +27,12 @@ class UserDocumentFormatPreference:
         (CSV, 'CSV')
     )
 
+def document_preference_str(pref: UserDocumentFormatPreference.USER_DOC_FORMAT_PREF) -> str:
+    if pref == UserDocumentFormatPreference.JSON:
+        return "JSON"
+    else:
+        return "CSV"
+
 
 class DocumentType:
     ANNOTATION = 0
