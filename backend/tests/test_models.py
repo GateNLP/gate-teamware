@@ -142,29 +142,42 @@ class TestUserModelDeleteUser(TestCase):
         """
         self.user.delete_user_personal_information()
         self.user.refresh_from_db()
+        TestUserModelDeleteUser.check_user_personal_data_deleted(self, self.user)
+
+
+
+    @staticmethod
+    def check_user_personal_data_deleted(test_obj, user):
+        # Make sure db is refereshed first
+        user.refresh_from_db()
 
         # User should be marked as deleted
-        self.assertTrue(self.user.is_deleted)
+        test_obj.assertTrue(user.is_deleted)
 
         # Deleted username is a combination of [DELETED_USER_USERNAME_PREFIX]_hashedvalues
-        self.assertTrue(self.user.username.startswith(settings.DELETED_USER_USERNAME_PREFIX))
+        test_obj.assertTrue(user.username.startswith(settings.DELETED_USER_USERNAME_PREFIX))
         # Deleted mail is a combination of [DELETED_USER_USERNAME_PREFIX]_hashedvalues@[DELETED_USER_EMAIL_DOMAIN]
-        self.assertTrue(self.user.email.startswith(settings.DELETED_USER_USERNAME_PREFIX))
-        self.assertTrue(self.user.email.endswith(settings.DELETED_USER_EMAIL_DOMAIN))
+        test_obj.assertTrue(user.email.startswith(settings.DELETED_USER_USERNAME_PREFIX))
+        test_obj.assertTrue(user.email.endswith(settings.DELETED_USER_EMAIL_DOMAIN))
         # First name and last name should be DELETED_USER_FIRSTNAME and DELETED_USER_LASTNAME
-        self.assertEqual(self.user.first_name, settings.DELETED_USER_FIRSTNAME)
-        self.assertEqual(self.user.last_name, settings.DELETED_USER_LASTNAME)
+        test_obj.assertEqual(user.first_name, settings.DELETED_USER_FIRSTNAME)
+        test_obj.assertEqual(user.last_name, settings.DELETED_USER_LASTNAME)
 
         # Removed user should not have pending annotations
-        self.assertEqual(0, Annotation.objects.filter(status=Annotation.PENDING, user=self.user).count())
+        test_obj.assertEqual(0, Annotation.objects.filter(status=Annotation.PENDING, user=user).count())
 
     def test_delete_user(self):
         user_id = self.user.pk
         self.user.delete()
-        self.assertEqual(0, Annotation.objects.filter(user_id=user_id).count(),
+        TestUserModelDeleteUser.check_user_is_deleted(self, user_id)
+
+    @staticmethod
+    def check_user_is_deleted(test_obj, user_id):
+        test_obj.assertEqual(0, Annotation.objects.filter(user_id=user_id).count(),
                          "Deleted user should not have any annotations")
-        self.assertEqual(0, Project.objects.filter(owner_id=user_id).count(),
+        test_obj.assertEqual(0, Project.objects.filter(owner_id=user_id).count(),
                          "Deleted user should not have any projects")
+
 
 
 class TestDocumentModel(ModelTestCase):
