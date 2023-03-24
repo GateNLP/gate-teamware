@@ -119,7 +119,7 @@
       <b-row v-if="allowUserDelete">
         <b-col>Also remove any annotations, projects and documents that I own:</b-col>
         <b-col cols="3">
-          <b-checkbox v-model="permanentlyDeleteUserAccount"></b-checkbox>
+          <b-checkbox v-model="permanentlyDeleteUserAccount" name="delete-all-user-data"></b-checkbox>
         </b-col>
       </b-row>
     </DeleteModal>
@@ -135,6 +135,7 @@ import AccountActivationGenerator from "@/components/AccountActivationGenerator"
 import ProjectIcon from "@/components/ProjectIcon";
 import UserAnnotatedProject from "@/components/UserAnnotatedProject";
 import DeleteModal from "../components/DeleteModal";
+import {toastError, toastSuccess} from "@/utils";
 
 export default {
   name: "UserAccount",
@@ -220,7 +221,7 @@ export default {
         }
 
         toastSuccess("Account deleted", "Your account has been successfully deleted")
-        await this.$router.push("/")
+        this.$router.push("/")
 
       }catch (e){
         toastError("Account could not be deleted", e)

@@ -122,7 +122,9 @@
           <b-row v-if="allowUserDelete">
             <b-col>Also remove any annotations, projects and documents associated with the user:</b-col>
             <b-col cols="3">
-              <b-checkbox v-model="permanentlyDeleteUserAccount"></b-checkbox>
+              <b-checkbox v-model="permanentlyDeleteUserAccount"
+                          name="delete-all-user-data"
+              ></b-checkbox>
             </b-col>
           </b-row>
 
@@ -237,11 +239,21 @@ export default {
         toastSuccess("User deleted", `The user account ${this.form.username} (${this.form.email}) has been successfully deleted.`)
         this.permanentlyDeleteUserAccount = false
         this.users = await this.getAllUsers()
+        this.clearUserForm()
 
       }catch (e){
         toastError("The user could not be deleted", e)
       }
-
+    },
+    clearUserForm(){
+      this.form =  {
+        id: null,
+        username: null,
+        is_manager: null,
+        is_admin: null,
+        email: null,
+        is_activated: null,
+      }
     }
   },
   async mounted() {

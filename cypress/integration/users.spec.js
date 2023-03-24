@@ -181,3 +181,34 @@ describe('User options', () => {
 
     })
 })
+
+describe('User delete account', ()=>{
+    beforeEach(() => {
+        const fixtureName = 'create_db_users'
+        cy.migrate_integration_db(fixtureName)
+    })
+
+    it("Test user delete personal information", ()=>{
+        cy.login(annotatorUsername, password)
+        cy.visit("/")
+        cy.contains(annotatorUsername).click()
+        cy.contains("Account").click()
+        cy.contains("Delete my account").click()
+        cy.contains("Unlock").click()
+        cy.get(".modal-dialog").contains("Delete").click()
+        cy.contains(annotatorUsername).should("not.exist")
+    })
+
+    it("Test user delete account", ()=>{
+        cy.login(annotatorUsername, password)
+        cy.visit("/")
+        cy.contains(annotatorUsername).click()
+        cy.contains("Account").click()
+        cy.contains("Delete my account").click()
+        cy.get("input[name='delete-all-user-data']").check({force: true})
+        cy.contains("Unlock").click()
+        cy.get(".modal-dialog").contains("Delete").click()
+        cy.contains(annotatorUsername).should("not.exist")
+    })
+
+})

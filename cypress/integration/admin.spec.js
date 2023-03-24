@@ -1,4 +1,4 @@
-import { adminUsername, password, manageUsersPageStr } from '../support/params.js';
+import {adminUsername, password, manageUsersPageStr, annotatorUsername} from '../support/params.js';
 
 describe("Test admin user management", () => {
 
@@ -91,6 +91,29 @@ describe("Test admin user management", () => {
 
         cy.contains("Change Password").click()
         cy.contains("User password changed").should("be.visible")
+
+    })
+
+    it('Delete annotator personal info', () => {
+
+        // Select the annotator user
+        cy.contains("annotator").click()
+        cy.contains("Delete user").click({force: true})
+        cy.contains("Unlock").click()
+        cy.get(".modal-dialog").contains("Delete").click()
+        cy.get("#users").contains(annotatorUsername).should("not.exist")
+
+    })
+
+    it('Delete annotator', () => {
+
+        // Select the annotator user
+        cy.contains("annotator").click()
+        cy.contains("Delete user").click({force: true})
+        cy.get("input[name='delete-all-user-data']").check({force: true})
+        cy.contains("Unlock").click()
+        cy.get(".modal-dialog").contains("Delete").click()
+        cy.get("#users").contains(annotatorUsername).should("not.exist")
 
     })
 

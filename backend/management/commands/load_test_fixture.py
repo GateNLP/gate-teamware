@@ -35,6 +35,7 @@ def create_db_users():
     annotator.is_account_activated = True
     annotator.save()
 
+
 @test_fixture
 def create_db_users_with_project():
     """
@@ -80,6 +81,15 @@ def create_db_users_with_project():
             "preanno": {"sentiment": "positive"},
         }
         document = Document.objects.create(project=project, data=doc_data)
+
+@test_fixture
+def create_db_users_with_project_annotator_personal_info_deleted():
+    """
+    Same as create_db_users_with_project but with annoator's personal info deleted
+    """
+    create_db_users_with_project()
+    annotator_user = get_user_model().objects.get(username="annotator")
+    annotator_user.delete_user_personal_information()
 
 @test_fixture
 def create_db_users_with_project_admin_is_annotator():
