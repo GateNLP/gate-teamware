@@ -14,5 +14,14 @@ Annotating a project:
 * Once you've finished annotating a certain number of documents in a project (specified by the project 
   manager) your task will be deemed complete, and you will be able to be recruited into another annotation 
   project.
+  
+## Deleting your account
 
+At any time you can choose to stop participating and delete your account. You can do this by:
+
+* Click on your username in the top right corner and then `Account`.
+* Click on `Delete my account`
+* When deleting your account, by default your personal information will be removed but your annotations will remain on the system. To completely remove all of your annotations, click on the checkbox next to `Also remove any annotations, projects and documents that I own:`
+* Click the `Unlock` button
+* Then click `Delete` to remove your account
 
