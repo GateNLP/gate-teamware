@@ -3,6 +3,7 @@ import yaml
 import sys
 
 PACKAGE_JSON_FILE_PATH = "package.json"
+DOCS_PACKAGE_JSON_FILE_PATH = "docs/package.json"
 CITATION_FILE_PATH = "CITATION.cff"
 MASTER_VERSION_FILE = "VERSION"
 
@@ -11,11 +12,11 @@ def check():
     Intended for use in CI pipelines, checks versions in files and exits with non-zero exit code if they don't match.
     """
 
-    with open(PACKAGE_JSON_FILE_PATH, "r") as f:
-        package_json = json.load(f)
-
-    js_version = package_json['version']
+    js_version = get_package_json_version(PACKAGE_JSON_FILE_PATH)
     print(f"package.json version is {js_version}")
+
+    docs_js_version = get_package_json_version(DOCS_PACKAGE_JSON_FILE_PATH)
+    print(f"docs package.json version is {docs_js_version}")
 
     with open(CITATION_FILE_PATH, "r") as f:
         citation_file = yaml.safe_load(f)
@@ -26,11 +27,19 @@ def check():
     master_version = get_master_version()
     print(f"VERSION file version is {master_version}")
 
-    if js_version != master_version or citation_version != master_version:
+    if js_version != master_version or docs_js_version != master_version or citation_version != master_version:
         print("One or more versions does not match")
         sys.exit(1)
     else:
         print("All versions match!")
+
+def get_package_json_version(file_path: str) -> str:
+    with open(file_path, "r") as f:
+        package_json = json.load(f)
+
+    js_version = package_json['version']
+    return js_version
+
 
 def get_master_version():
     with open(MASTER_VERSION_FILE, "r") as f:
@@ -42,13 +51,10 @@ def update():
     Updates all versions to match the master version file.
     """
     master_version = get_master_version()
-    
-    with open(PACKAGE_JSON_FILE_PATH, "r") as f:
-        package_json = json.load(f)
-    print(f"Writing master version {master_version} to {PACKAGE_JSON_FILE_PATH}")
-    with open(PACKAGE_JSON_FILE_PATH, "w") as f:
-        package_json['version'] = master_version
-        json.dump(package_json, f, indent=2)
+
+    update_package_json_version(PACKAGE_JSON_FILE_PATH, master_version)
+
+    update_package_json_version(DOCS_PACKAGE_JSON_FILE_PATH, master_version)
 
     with open(CITATION_FILE_PATH, "r") as f:
         citation_file = yaml.safe_load(f)
@@ -58,6 +64,15 @@ def update():
         yaml.dump(citation_file, f)
 
     check()
+
+def update_package_json_version(file_path:str, version_no:str):
+    with open(file_path, "r") as f:
+        package_json = json.load(f)
+    print(f"Writing master version {version_no} to {file_path}")
+    with open(file_path, "w") as f:
+        package_json['version'] = version_no
+        json.dump(package_json, f, indent=2)
+
 
 if __name__ == "__main__":
     if sys.argv[1] == 'check':
