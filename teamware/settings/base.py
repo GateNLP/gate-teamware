@@ -254,3 +254,14 @@ PRIVACY_POLICY.update({
     'ADMIN_ADDRESS': os.getenv('PP_ADMIN_ADDRESS', PRIVACY_POLICY['HOST_ADDRESS']),
     'ADMIN_CONTACT': os.getenv('PP_ADMIN_CONTACT', PRIVACY_POLICY['HOST_CONTACT'])
 })
+
+"""
+Deleted user settings
+"""
+ALLOW_USER_DELETE = True  # Whether to allow deleting user and their associated projects and data
+DELETED_USER_USERNAME_PREFIX = "deleted"
+DELETED_USER_USERNAME_HASH_LENGTH = 8
+DELETED_USER_FIRSTNAME = "Deleted"
+DELETED_USER_LASTNAME = "Deleted"
+DELETED_USER_EMAIL_DOMAIN = "teamware-deleted.com"
+

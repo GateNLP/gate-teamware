@@ -1,4 +1,4 @@
-import { projectsPageStr, adminUsername, password } from '../support/params.js';
+import {projectsPageStr, adminUsername, password, annotatorUsername} from '../support/params.js';
 
 describe('Annotator Leaving Test', () => {
     
@@ -146,5 +146,30 @@ describe('Annotator Management Test', () => {
             .click()
         cy.contains('td', 'failer').siblings().should('contain','Annotating')
         
+    })
+})
+
+describe("Adding annotator to project should not show deleted accounts", ()=>{
+    beforeEach(()=>{
+        const fixtureName = 'create_db_users_with_project_annotator_personal_info_deleted'
+        cy.migrate_integration_db(fixtureName)
+        cy.login(adminUsername, password)
+    })
+
+    it.only("Deleted user should not show up in project users admin search", ()=>{
+        cy.visit("/")
+
+        // Goes to project page
+        cy.contains(projectsPageStr).click()
+        cy.get("h1").should("contain", projectsPageStr)
+
+        cy.contains('Test project').click()
+
+        // Go to annotator management tab
+        cy.contains('Annotators').click()
+
+        cy.contains('Add annotators').click()
+        cy.get("#possibleAnnotators").contains(annotatorUsername).should("not.exist")
+
     })
 })

@@ -19,10 +19,11 @@ from backend.rpc import create_project, update_project, add_project_document, ad
     get_user_annotations_in_project, add_project_test_document, add_project_training_document, \
     get_project_training_documents, get_project_test_documents, project_annotator_allow_annotation, \
     annotator_leave_project, login, change_annotation, delete_annotation_change_history, get_annotation_task_with_id, \
-    set_user_document_format_preference
+    set_user_document_format_preference, initialise, is_authenticated, user_delete_personal_information, \
+    user_delete_account, admin_delete_user_personal_information, admin_delete_user
 from backend.rpcserver import rpc_method
 from backend.errors import AuthError
-
+from backend.tests.test_models import create_each_annotation_status_for_user, TestUserModelDeleteUser
 
 from backend.tests.test_rpc_server import TestEndpoint
 
@@ -77,6 +78,54 @@ class TestUserAuth(TestCase):
                           content_type="application/json")
         self.assertEqual(response.status_code, 200)
 
+class TestInitialise(TestEndpoint):
+
+    def test_initialise(self):
+        context_object = initialise(self.get_request())
+        self.assertTrue("user" in context_object)
+        self.assertTrue("configs" in context_object)
+        self.assertTrue("docFormatPref" in context_object["configs"])
+        self.assertTrue("global_configs" in context_object)
+        self.assertTrue("allowUserDelete" in context_object["global_configs"])
+
+class TestIsAuthenticated(TestEndpoint):
+
+    def test_is_authenticated_anonymous(self):
+        context = is_authenticated(self.get_request())
+        self.assertFalse(context["isAuthenticated"])
+        self.assertFalse(context["isManager"])
+        self.assertFalse(context["isAdmin"])
+
+    def test_is_authenticated_annotator(self):
+        user = self.get_default_user()
+        user.is_staff = False
+        user.is_manager = False
+        user.save()
+        context = is_authenticated(self.get_loggedin_request())
+        self.assertTrue(context["isAuthenticated"])
+        self.assertFalse(context["isManager"])
+        self.assertFalse(context["isAdmin"])
+
+    def test_is_authenticated_manager(self):
+        user = self.get_default_user()
+        user.is_staff = False
+        user.is_manager = True
+        user.save()
+        context = is_authenticated(self.get_loggedin_request())
+        self.assertTrue(context["isAuthenticated"])
+        self.assertTrue(context["isManager"])
+        self.assertFalse(context["isAdmin"])
+
+    def test_is_authenticated_admin(self):
+        user = self.get_default_user()
+        user.is_staff = True
+        user.is_manager = False
+        user.save()
+        context = is_authenticated(self.get_loggedin_request())
+        self.assertTrue(context["isAuthenticated"])
+        self.assertTrue(context["isManager"])
+        self.assertTrue(context["isAdmin"])
+
 class TestAppCreatedUserAccountsCannotLogin(TestEndpoint):
 
     def test_app_created_user_accounts_cannot_login(self):
@@ -92,6 +141,23 @@ class TestAppCreatedUserAccountsCannotLogin(TestEndpoint):
 
         with self.assertRaises(AuthError, msg="Should raise an error if logging in with blank as password"):
             login(self.get_request(), {"username": "doesnotexist", "password": ""})
+
+class TestDeletedUserAccountCannotLogin(TestEndpoint):
+
+    def test_deleted_user_account_cannot_login(self):
+        """
+        Ensures that user accounts that opts to have their personal information removed from the system
+        but not wiped cannot login again.
+        """
+
+        username = "deleted"
+        password = "test1password"
+
+        get_user_model().objects.create_user(username=username,
+                                                       password=password,
+                                                       is_deleted=True)
+        with self.assertRaises(AuthError, msg="Should raise an error if trying to login with a deleted account"):
+            login(self.get_request(), {"username": username, "password": password})
 
 
 
@@ -181,8 +247,6 @@ class TestUserPasswordReset(TestEndpoint):
         # Should now generate a password reset token
         self.call_rpc(self.get_client(), "generate_password_reset", test_user.username)
 
-
-
         # Check that token generaet is valid
         test_user.refresh_from_db()
         self.assertTrue(len(test_user.reset_password_token) > settings.ACTIVATION_TOKEN_LENGTH)
@@ -210,6 +274,50 @@ class TestUserPasswordReset(TestEndpoint):
         self.assertTrue(check_password(new_password, test_user.password))
         self.assertTrue(test_user.reset_password_token is None)
         self.assertTrue(test_user.reset_password_token_expire is None)
+
+
+class TestRPCDeleteUser(TestEndpoint):
+
+    def setUp(self) -> None:
+        self.user = get_user_model().objects.create(username="test1",
+                                                    first_name="TestFirstname",
+                                                    last_name="TestLastname",
+                                                    email="test@email.com")
+        self.project = Project.objects.create(owner=self.user)
+        create_each_annotation_status_for_user(self.user, self.project)
+
+        self.user2 = get_user_model().objects.create(username="test2",
+                                                     first_name="TestFirstname",
+                                                     last_name="TestLastname",
+                                                     email="test2@email.com")
+        project2 = Project.objects.create(owner=self.user2)
+        Annotation.objects.create(user=self.user,
+                                  document=Document.objects.create(project=project2),
+                                  status=Annotation.PENDING)
+        create_each_annotation_status_for_user(user=self.user2, project=project2)
+
+    def test_user_delete_personal_information(self):
+        request = self.get_request()
+        request.user = self.user
+        user_delete_personal_information(request)
+        TestUserModelDeleteUser.check_user_personal_data_deleted(self, self.user)
+
+    def test_user_delete_account(self):
+        request = self.get_request()
+        request.user = self.user
+        user_id = self.user.pk
+        user_delete_account(request)
+        TestUserModelDeleteUser.check_user_is_deleted(self, user_id)
+
+    def test_admin_delete_user_personal_information(self):
+        admin_delete_user_personal_information(self.get_loggedin_request(), self.user.username)
+        TestUserModelDeleteUser.check_user_personal_data_deleted(self, self.user)
+
+    def test_admin_delete_user(self):
+        user_id = self.user.pk
+        admin_delete_user(self.get_loggedin_request(), self.user.username)
+        TestUserModelDeleteUser.check_user_is_deleted(self, user_id)
+
 
 class TestUserConfig(TestEndpoint):
 
@@ -725,6 +833,7 @@ class TestUsers(TestEndpoint):
         ann1 = get_user_model().objects.create(username="ann1")
         ann2 = get_user_model().objects.create(username="ann2")
         ann3 = get_user_model().objects.create(username="ann3")
+        ann4 = get_user_model().objects.create(username="ann4", is_deleted=True)
 
         proj = Project.objects.create(owner=user)
         proj2 = Project.objects.create(owner=user)
@@ -732,9 +841,9 @@ class TestUsers(TestEndpoint):
 
         # Listing all annotators for project 1 and 2 without anyone added to project
         possible_annotators = get_possible_annotators(self.get_loggedin_request(), proj_id=proj.pk)
-        self.assertEqual(4, len(possible_annotators), "Should list all users")
+        self.assertEqual(4, len(possible_annotators), "Should list all users without deleted user")
         possible_annotators = get_possible_annotators(self.get_loggedin_request(), proj_id=proj2.pk)
-        self.assertEqual(4, len(possible_annotators), "Should list all users")
+        self.assertEqual(4, len(possible_annotators), "Should list all users without deleted user")
         project_annotators = get_project_annotators(self.get_loggedin_request(), proj_id=proj.pk)
         self.assertEqual(0, len(project_annotators))
 

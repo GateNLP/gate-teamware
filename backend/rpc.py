@@ -26,7 +26,7 @@ from gatenlp import annotation_set
 from backend.errors import AuthError
 from backend.rpcserver import rpc_method, rpc_method_auth, rpc_method_manager, rpc_method_admin
 from backend.models import Project, Document, DocumentType, Annotation, AnnotatorProject, AnnotationChangeHistory, \
-    UserDocumentFormatPreference
+    UserDocumentFormatPreference, document_preference_str
 from backend.utils.misc import get_value_from_key_path, insert_value_to_key_path, read_custom_document
 from backend.utils.serialize import ModelSerializer
 
@@ -35,6 +35,40 @@ log = logging.getLogger(__name__)
 serializer = ModelSerializer()
 User = get_user_model()
 
+#####################################
+### Initilisation                 ###
+#####################################
+@rpc_method
+def initialise(request):
+    """
+    Provide the initial context information to initialise the Teamware app
+
+    context_object:
+        user:
+            isAuthenticated: bool
+            isManager: bool
+            isAdmin: bool
+        configs:
+            docFormatPref: bool
+        global_configs:
+            allowUserDelete: bool
+    """
+    context_object = {
+        "user": is_authenticated(request),
+        "configs": {
+            "docFormatPref": get_user_document_pref_from_request(request)
+        },
+        "global_configs": {
+            "allowUserDelete": settings.ALLOW_USER_DELETE
+        }
+    }
+    return context_object
+
+def get_user_document_pref_from_request(request):
+    if request.user.is_authenticated:
+        return document_preference_str(request.user.doc_format_pref)
+    else:
+        return document_preference_str(UserDocumentFormatPreference.JSON)
 
 #####################################
 ### Login/Logout/Register Methods ###
@@ -76,6 +110,10 @@ def login(request, payload):
 
     user = authenticate(username=payload["username"], password=payload["password"])
     if user is not None:
+
+        if user.is_deleted:
+            raise AuthError("Cannot login with a deleted account")
+
         djlogin(request, user)
         context["username"] = user.username
         context["isAuthenticated"] = user.is_authenticated
@@ -309,10 +347,7 @@ def get_user_details(request):
     data["user_role"] = user_role
 
     # Convert doc preference to string
-    if user.doc_format_pref == UserDocumentFormatPreference.JSON:
-        data["doc_format_pref"] = "JSON"
-    else:
-        data["doc_format_pref"] = "CSV"
+    data["doc_format_pref"] = document_preference_str(user.doc_format_pref)
 
     return data
 @rpc_method_auth
@@ -369,14 +404,25 @@ def get_user_annotations_in_project(request, project_id, current_page=1, page_si
     else:
         paginated_docs = user_annotated_docs
 
-
     documents_out = []
     for document in paginated_docs:
         annotations_list = [annotation.get_listing() for annotation in document.annotations.filter(user=user)]
         documents_out.append(document.get_listing(annotations_list))
 
-
     return {"items": documents_out, "total_count": total_count}
+
+
+@rpc_method_auth
+def user_delete_personal_information(request):
+    request.user.delete_user_personal_information()
+
+
+@rpc_method_auth
+def user_delete_account(request):
+    if settings.ALLOW_USER_DELETE:
+        request.user.delete()
+    else:
+        raise Exception("Teamware's current configuration does not allow user accounts to be deleted.")
 
 
 ##################################
@@ -417,7 +463,6 @@ def get_project(request, project_id):
         **proj.get_project_stats()
     }
     return out_proj
-
 
 
 @rpc_method_manager
@@ -671,7 +716,7 @@ def get_possible_annotators(request, proj_id):
     active_annotators = User.objects.filter(annotatorproject__status=AnnotatorProject.ACTIVE).values_list('id', flat=True)
     project_annotators = project.annotators.all().values_list('id', flat=True)
     # Do an exclude filter to remove annotator with the those ids
-    valid_annotators = User.objects.exclude(id__in=active_annotators).exclude(id__in=project_annotators)
+    valid_annotators = User.objects.filter(is_deleted=False).exclude(id__in=active_annotators).exclude(id__in=project_annotators)
     output = [serializer.serialize(annotator, {"id", "username", "email"}) for annotator in valid_annotators]
     return output
 
@@ -943,18 +988,34 @@ def admin_update_user_password(request, username, password):
     user.save()
 
 
+@rpc_method_admin
+def admin_delete_user_personal_information(request, username):
+    user = User.objects.get(username=username)
+    user.delete_user_personal_information()
+
+
+@rpc_method_admin
+def admin_delete_user(request, username):
+    if settings.ALLOW_USER_DELETE:
+        user = User.objects.get(username=username)
+        user.delete()
+    else:
+        raise Exception("Teamware's current configuration does not allow the deleting of users")
+
+
 ##################################
 ### Privacy Policy/T&C Methods ###
 ##################################
 
 @rpc_method
 def get_privacy_policy_details(request):
-
     details = settings.PRIVACY_POLICY
 
     custom_docs = {
-        'CUSTOM_PP_DOCUMENT': read_custom_document(settings.CUSTOM_PP_DOCUMENT_PATH) if os.path.isfile(settings.CUSTOM_PP_DOCUMENT_PATH) else None,
-        'CUSTOM_TC_DOCUMENT': read_custom_document(settings.CUSTOM_TC_DOCUMENT_PATH) if os.path.isfile(settings.CUSTOM_TC_DOCUMENT_PATH) else None
+        'CUSTOM_PP_DOCUMENT': read_custom_document(settings.CUSTOM_PP_DOCUMENT_PATH) if os.path.isfile(
+            settings.CUSTOM_PP_DOCUMENT_PATH) else None,
+        'CUSTOM_TC_DOCUMENT': read_custom_document(settings.CUSTOM_TC_DOCUMENT_PATH) if os.path.isfile(
+            settings.CUSTOM_TC_DOCUMENT_PATH) else None
     }
 
     details.update(custom_docs)

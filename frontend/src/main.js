@@ -42,7 +42,7 @@ Vue.filter('datetime', function (dateString) {
 async function initialiseApp() {
     //Ensure authentication status is checked before we actually start the app
     //so things that depends on user's logged in status works properly (e.g. routing)
-    await store.dispatch("is_authenticated")
+    await store.dispatch("initialise")
 
     new Vue({
         router,
