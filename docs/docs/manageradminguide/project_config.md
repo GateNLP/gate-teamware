@@ -47,7 +47,7 @@ documents, annotations or annotators to the new project.
 * **Gold standard field** - The field in document's JSON/column that contains the ideal annotation values and explanation for the annotation.
 * **Pre-annotation** - Pre-fill the form with annotation provided in the specified field. See [Importing Documents with pre-annotation](./documents_annotations_management.md#importing-documents-with-pre-annotation) section for more detail.
 
-## Anotation configuration
+## Annotation configuration
 
 The annotation configuration takes a `json` string for configuring how the document is displayed to the user and types
 of annotation will be collected. Here's an example configuration and a preview of how it is shown to annotators:
@@ -321,6 +321,35 @@ If your documents are plain text and include line breaks that need to be preserv
 
 </AnnotationRendererPreview>
 
+#### Optional help text
+
+Optionally, radio buttons and checkboxes can be given help text to provide additional per-choice context or information to help annotators.
+
+
+<AnnotationRendererPreview :config="configs.configRadioHelpText">
+
+```json
+[
+    {
+        "name": "mylabel",
+        "type": "radio",
+        "optional": true, //Optional - Set if validation is not required
+        "orientation": "vertical", //Optional - default is "horizontal"
+        "options": [ // The options that the user is able to select from
+                {"value": "value1", "label": "Text to show user 1", "helptext": "Additional help text for option 1"},
+                {"value": "value2", "label": "Text to show user 2", "helptext": "Additional help text for option 2"},
+                {"value": "value3", "label": "Text to show user 3"}
+            ],
+        "title": "Title string", //Optional
+        "description": "Description string", //Optional
+        "valSuccess": "Success message when the field is validated", //Optional
+        "valError": "Error message when the field fails validation" //Optional
+    }
+]
+```
+
+</AnnotationRendererPreview>
+
 ### Checkbox input
 
 <AnnotationRendererPreview :config="configs.configCheckbox">
@@ -347,6 +376,36 @@ If your documents are plain text and include line breaks that need to be preserv
 ```
 
 </AnnotationRendererPreview>
+
+#### Optional help text
+
+Optionally, radio buttons and checkboxes can be given help text to provide additional per-choice context or information to help annotators.
+
+<AnnotationRendererPreview :config="configs.configCheckboxHelpText">
+
+```json
+[
+        {
+            "name": "mylabel",
+            "type": "checkbox",
+            "optional": true, //Optional - Set if validation is not required
+            "orientation": "horizontal", //Optional - "horizontal" (default) or "vertical"
+            "options": [ // The options that the user is able to select from
+                {"value": "value1", "label": "Text to show user 1", "helptext": "Additional help text for option 1"},
+                {"value": "value2", "label": "Text to show user 2", "helptext": "Additional help text for option 2"},
+                {"value": "value3", "label": "Text to show user 3"}
+            ],
+            "minSelected": 1, //Optional - Specify the minimum number of options that must be selected
+            "title": "Title string", //Optional
+            "description": "Description string", //Optional
+            "valSuccess": "Success message then field is validated", //Optional
+            "valError": "Error message when field fails is validation" //Optional
+        }
+    ]
+```
+
+</AnnotationRendererPreview>
+
 
 ### Selector input
 
@@ -377,7 +436,7 @@ If your documents are plain text and include line breaks that need to be preserv
 
 A dictionary (key value pairs) and also be provided to the `options` field of the radio, checkbox and selector widgets
 but note that the ordering of the options are **not guaranteed** as javascript does not sort dictionaries by
-the order in which keys are added.
+the order in which keys are added. Note that additional help texts for radio buttons and checkboxes are not supported using this syntax.
 
 <AnnotationRendererPreview :config="configs.configRadioDict">
 
