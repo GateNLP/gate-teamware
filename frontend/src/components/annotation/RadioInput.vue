@@ -1,12 +1,27 @@
 <template>
-  <InputErrorDisplay :state="state" :msg-error="msgError" :msg-success="msgSuccess">
-    <b-form-radio-group v-model="inputVal"  :name="config.name" :options="options" :state="state" :stacked="config.orientation === 'vertical'"></b-form-radio-group>
+  <InputErrorDisplay :state="state" :msg-error="msgError" :msg-success="msgSuccess" label-cols=3>
+    <b-form-group :id="config.name">
+
+      <b-form-radio 
+        v-for="option in options"
+        :key="option.value"
+        v-model="inputVal"
+        :value="option.value"
+        :state="state"
+        :inline="config.orientation!=='vertical'"
+        >
+          {{ option.text }}
+          <b-icon-question-circle v-if="option.helptext != null" :id="option.value" class="annotation-help-prompt"></b-icon-question-circle>
+          <b-tooltip v-if="option.helptext != null" :target="option.value" :title="option.helptext"></b-tooltip>
+        </b-form-radio>
+    </b-form-group>
   </InputErrorDisplay>
 </template>
 
 <script>
 import { generateBVOptions } from '@/utils/annotations'
 import InputErrorDisplay from "@/components/annotation/InputErrorDisplay";
+import { config } from 'process';
 export default {
   name: "RadioInput",
   components: {InputErrorDisplay},
@@ -28,10 +43,8 @@ export default {
     },
   },
 
-
 }
 </script>
 
 <style scoped>
-
 </style>

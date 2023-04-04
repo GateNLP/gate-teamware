@@ -1,6 +1,24 @@
 <template>
   <InputErrorDisplay :state="state" :msg-error="msgError" :msg-success="msgSuccess">
-    <b-form-checkbox-group v-model="inputVal" :name="config.name" :options="options" :state="state" :stacked="config.orientation === 'vertical'"></b-form-checkbox-group>
+
+    <b-form-checkbox-group 
+      v-model="inputVal"
+      :stacked="config.orientation=='vertical'"
+      >
+      
+      <b-form-checkbox 
+        :key="option.value" 
+        :value="option.value" 
+        :state="state"
+        v-for="option in options"
+        
+        >
+        {{ option.text }}
+        <b-icon-question-circle v-if="option.helptext != null" :id="option.value" class="annotation-help-prompt"></b-icon-question-circle>
+        <b-tooltip v-if="option.helptext != null" :target="option.value" :title="option.helptext"></b-tooltip>
+      </b-form-checkbox>
+
+    </b-form-checkbox-group>
   </InputErrorDisplay>
 </template>
 

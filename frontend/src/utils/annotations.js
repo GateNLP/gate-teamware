@@ -68,6 +68,7 @@ export function generateBVOptions(options, document) {
                     optionsList.push({
                         value: option.value,
                         text: ("label" in option ? option.label : option.value),
+                        helptext: ("helptext" in option ? option.helptext : null),
                     })
                 } // else invalid option, so ignore
             }
