@@ -21,7 +21,6 @@
 <script>
 import { generateBVOptions } from '@/utils/annotations'
 import InputErrorDisplay from "@/components/annotation/InputErrorDisplay";
-import { config } from 'process';
 export default {
   name: "RadioInput",
   components: {InputErrorDisplay},
