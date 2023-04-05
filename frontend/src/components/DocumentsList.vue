@@ -182,14 +182,14 @@
 import {mapActions} from "vuex";
 import VueJsonPretty from 'vue-json-pretty';
 import 'vue-json-pretty/lib/styles.css';
-import AsyncJsonDisplay from "@/components/AsyncJsonDisplay";
-import PaginationAsync from "@/components/PaginationAsync";
-import Search from "@/components/Search";
-import DeleteModal from "@/components/DeleteModal";
+import AsyncJsonDisplay from "@/components/AsyncJsonDisplay.vue";
+import PaginationAsync from "@/components/PaginationAsync.vue";
+import Search from "@/components/Search.vue";
+import DeleteModal from "@/components/DeleteModal.vue";
 import _ from "lodash"
 import {toastError, toastSuccess} from "@/utils";
-import AnnotationRenderer from "@/components/AnnotationRenderer";
-import AnnotationItem from "@/components/AnnotationItem";
+import AnnotationRenderer from "@/components/AnnotationRenderer.vue";
+import AnnotationItem from "@/components/AnnotationItem.vue";
 import {flatten} from '@/utils';
 
 /**

@@ -163,12 +163,12 @@
 </template>
 
 <script>
-import AnnotationRenderer from "@/components/AnnotationRenderer";
+import AnnotationRenderer from "@/components/AnnotationRenderer.vue";
 import VueJsonPretty from 'vue-json-pretty';
 import 'vue-json-pretty/lib/styles.css';
 import {mapActions} from "vuex";
 import {flatten, toastError, toastSuccess} from "@/utils";
-import DeleteModal from "@/components/DeleteModal";
+import DeleteModal from "@/components/DeleteModal.vue";
 
 /**
  * Shows an individual Annotation item and its change history

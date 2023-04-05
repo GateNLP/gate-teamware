@@ -11,7 +11,7 @@
 
 <script>
 import {mapActions} from "vuex";
-import ScatterPlot from "@/components/ScatterPlot";
+import ScatterPlot from "@/components/ScatterPlot.vue";
 
 export default {
     name: "AnnotationStatistics",

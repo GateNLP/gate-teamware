@@ -66,17 +66,17 @@
 import _ from "lodash"
 import {mapActions, mapState} from "vuex";
 
-import Annotators from "@/components/Annotators";
+import Annotators from "@/components/Annotators.vue";
 
 import {readFileAsync, toastError, toastSuccess} from "@/utils";
 
-import ProjectIcon from "@/components/ProjectIcon";
-import ProjectStatusBadges from "@/components/ProjectStatusBadges";
+import ProjectIcon from "@/components/ProjectIcon.vue";
+import ProjectStatusBadges from "@/components/ProjectStatusBadges.vue";
 
-import AnnotationStatistics from "@/components/AnnotationStatistics";
-import ProjectConfiguration from "@/components/ProjectConfiguration";
-import ProjectDocumentsManager from "@/components/ProjectDocumentsManager";
-import DeleteModal from "@/components/DeleteModal";
+import AnnotationStatistics from "@/components/AnnotationStatistics.vue";
+import ProjectConfiguration from "@/components/ProjectConfiguration.vue";
+import ProjectDocumentsManager from "@/components/ProjectDocumentsManager.vue";
+import DeleteModal from "@/components/DeleteModal.vue";
 
 export default {
   name: "Project",

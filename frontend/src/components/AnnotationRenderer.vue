@@ -36,14 +36,14 @@
 
 <script>
 
-import TextInput from "@/components/annotation/TextInput";
-import TextareaInput from "@/components/annotation/TextareaInput";
-import RadioInput from "@/components/annotation/RadioInput";
-import CheckboxInput from "@/components/annotation/CheckboxInput";
-import SelectorInput from "@/components/annotation/SelectorInput";
-import HtmlDisplay from "@/components/annotation/HtmlDisplay";
+import TextInput from "@/components/annotation/TextInput.vue";
+import TextareaInput from "@/components/annotation/TextareaInput.vue";
+import RadioInput from "@/components/annotation/RadioInput.vue";
+import CheckboxInput from "@/components/annotation/CheckboxInput.vue";
+import SelectorInput from "@/components/annotation/SelectorInput.vue";
+import HtmlDisplay from "@/components/annotation/HtmlDisplay.vue";
 import {DocumentType} from '@/enum/DocumentTypes';
-import MarkdownRenderer from "@/components/MarkdownRenderer";
+import MarkdownRenderer from "@/components/MarkdownRenderer.vue";
 import _ from "lodash"
 import {getValueFromKeyPath} from "@/utils/dict";
 

@@ -15,7 +15,7 @@
 
 <script>
 
-import AccountActivationGenerator from "@/components/AccountActivationGenerator";
+import AccountActivationGenerator from "@/components/AccountActivationGenerator.vue";
 export default {
   name: 'Home',
   title: "GATE Teamware",

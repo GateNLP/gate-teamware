@@ -42,8 +42,8 @@
 </template>
 
 <script>
-import UserAnnotatedProject from "@/components/UserAnnotatedProject";
-import ProjectIcon from "@/components/ProjectIcon";
+import UserAnnotatedProject from "@/components/UserAnnotatedProject.vue";
+import ProjectIcon from "@/components/ProjectIcon.vue";
 import {mapActions} from "vuex";
 
 export default {

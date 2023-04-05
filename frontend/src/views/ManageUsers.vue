@@ -138,7 +138,7 @@
 import _ from "lodash"
 import {mapState, mapActions, mapGetters} from "vuex";
 import {toastError, toastSuccess} from "@/utils";
-import DeleteModal from "../components/DeleteModal";
+import DeleteModal from "../components/DeleteModal.vue";
 
 export default {
   name: "ManageUsers",

@@ -24,8 +24,8 @@
 
 <script>
 import {mapState, mapActions, mapGetters} from "vuex";
-import DocumentsList from "@/components/DocumentsList";
-import ProjectIcon from "@/components/ProjectIcon";
+import DocumentsList from "@/components/DocumentsList.vue";
+import ProjectIcon from "@/components/ProjectIcon.vue";
 import {toastError} from "@/utils";
 
 export default {

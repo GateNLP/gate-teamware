@@ -30,11 +30,11 @@
 
 <script>
 import {mapActions, mapGetters, mapState} from "vuex";
-import DocumentExporter from "@/components/DocumentExporter";
-import DocumentUploader from "@/components/DocumentUploader";
-import DocumentsList from "@/components/DocumentsList";
+import DocumentExporter from "@/components/DocumentExporter.vue";
+import DocumentUploader from "@/components/DocumentUploader.vue";
+import DocumentsList from "@/components/DocumentsList.vue";
 import {toastError, toastSuccess} from "@/utils";
-import DeleteModal from "@/components/DeleteModal";
+import DeleteModal from "@/components/DeleteModal.vue";
 
 
 export default {
