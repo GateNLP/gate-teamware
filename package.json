@@ -6,7 +6,7 @@
   "scripts": {
     "docs:install": "(cd docs && npm install --unsafe-perm) #Install npm packages for documentation",
     "frontend:install": "(cd frontend && npm install --unsafe-perm) #Install npm packages for frontend",
-    "postinstall": "run-p docs:install frontend:install",
+    "postinstall": "run-s docs:install frontend:install",
     "migrate": "./manage.py migrate",
     "migrate:integration": "./migrate-integration.sh",
     "dj-collectstatic": "python manage.py collectstatic --noinput --settings='teamware.settings.integration'",
