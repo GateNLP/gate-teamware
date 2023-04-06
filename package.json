@@ -4,9 +4,9 @@
   "description": "A service for collaborative document annotation.",
   "main": "index.js",
   "scripts": {
-    "docs:install": "(cd docs && npm install --unsafe-perm) #Install npm packages for documentation",
-    "frontend:install": "(cd frontend && npm install --unsafe-perm) #Install npm packages for frontend",
-    "postinstall": "run-s docs:install frontend:install",
+    "install:docs": "(cd docs && npm install --unsafe-perm) #Install npm packages for documentation",
+    "install:frontend": "(cd frontend && npm install --unsafe-perm) #Install npm packages for frontend",
+    "postinstall": "npm run install:frontend",
     "migrate": "./manage.py migrate",
     "migrate:integration": "./migrate-integration.sh",
     "dj-collectstatic": "python manage.py collectstatic --noinput --settings='teamware.settings.integration'",
@@ -50,8 +50,8 @@
   "homepage": "https://github.com/GateNLP/gate-teamware",
   "devDependencies": {
     "cross-env": "^7.0.3",
-    "cypress": "^7.1.0",
-    "cypress-file-upload": "^5.0.8"
+    "cypress-file-upload": "^5.0.8",
+    "cypress": "^7.7.0"
   },
   "dependencies": {
     "bootstrap": "^4.6.1",
@@ -64,6 +64,6 @@
     "vue-chartjs": "^3.5.1"
   },
   "optionalDependencies": {
-    "cypress": "^7.7.0"
+
   }
 }

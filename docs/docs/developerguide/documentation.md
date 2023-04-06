@@ -4,6 +4,14 @@ Documentation versioning is managed by the custom node script located at `docs/m
 
 Various configuration parameters used for management of documentation versioning can be found in `docs/docs.config.js`.
 
+## Installing dependencies required to serve the documentation site
+
+The documentation uses vuepress and other libraries which has to be installed separately running the following command from the root of the project:
+
+```bash
+npm run install:docs 
+```
+
 ## Editing the documentation
 
 The latest version of the documentation is located at `/docs/docs`. The archived (versioned) documentation are located in `/docs/versioned/version_number`.
