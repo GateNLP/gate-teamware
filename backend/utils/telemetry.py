@@ -27,6 +27,6 @@ class TelemetrySender:
         
     def _post_request(self):
         log.info(f"Sending telemetry data for project {self.data['uuid']} to {self.url}.")
-        r = requests.post(self.url, data=self.data)
+        r = requests.post(self.url, json=self.data)
         self.http_status_code = r.status_code
         log.info(f"{self.http_status_code}: {r.text}")
