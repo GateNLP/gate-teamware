@@ -1,8 +1,8 @@
 # GATE Teamware
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7821718.svg)](https://doi.org/10.5281/zenodo.7821718)
-
 ![](/frontend/public/static/img/gate-teamware-logo.svg "GATE Teamware")
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7821718.svg)](https://doi.org/10.5281/zenodo.7821718)
 
 A web application for collaborative document annotation. 
 
