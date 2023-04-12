@@ -5,6 +5,7 @@
   "scripts": {
     "serve": "vite",
     "build": "vite build",
+    "postbuild": "node build_template.js",
     "test:unit": "vue-cli-service test:unit",
     "test": "jest",
     "test:coverage": "jest --coverage"

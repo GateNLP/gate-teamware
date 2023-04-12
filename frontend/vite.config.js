@@ -12,9 +12,12 @@ export default defineConfig({
     }
   },
   build: {
+    outDir: "dist",
+    copyPublicDir: false,
+    assetsDir: "static/assets",
     manifest: true,
     rollupOptions: {
-      input: "src/main.js"
+      input: "src/main.js",
     }
   },
   server: {

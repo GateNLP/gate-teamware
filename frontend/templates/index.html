@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="icon" href="http://0.0.0.0:8080/static/img/GATE.svg">
+    <title></title>
+
+  <body>
+    {% csrf_token %}
+    <noscript>
+      <strong>We're sorry but  doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
+    </noscript>
+    <div id="app"></div>
+    {% if settings.DEBUG %}
+        <script type="module" src="http://localhost:5173/@vite/client"></script>
+        <script type="module" src="http://localhost:5173/src/main.js"></script>
+    {% else %}
+        <link rel="stylesheet" href="/static/assets/main-89ece1f8.css" />
+        <script type="module" src="/static/assets/main-bb58d055.js"></script>
+    {% endif %}
+  </body>
+</html>
