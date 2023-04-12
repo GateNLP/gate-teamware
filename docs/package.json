@@ -1,0 +1,31 @@
+{
+  "name": "gate-teamware-docs",
+  "version": "0.4.0",
+  "description": "Documentation for GATE Teamware.",
+  "main": "index.js",
+  "scripts": {
+    "create_version": "node manage_versions.js create $npm_package_version",
+    "serve": "vuepress dev docs",
+    "build": "node manage_versions.js build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GateNLP/gate-teamware.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/GateNLP/gate-teamware/issues"
+  },
+  "homepage": "https://github.com/GateNLP/gate-teamware",
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "vuepress": "^1.8.2"
+  },
+  "dependencies": {
+    "bootstrap": "^4.6.1",
+    "bootstrap-vue": "^2.21.2",
+    "mustache": "^4.2.0",
+    "npm-run-all": "^4.1.5"
+  }
+}

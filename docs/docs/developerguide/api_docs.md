@@ -71,6 +71,30 @@ UNAUTHORIZED_ERROR = -32001
 
 
 
+### initialise() 
+
+
+::: tip Description
+Provide the initial context information to initialise the Teamware app
+
+    context_object:
+        user:
+            isAuthenticated: bool
+            isManager: bool
+            isAdmin: bool
+        configs:
+            docFormatPref: bool
+        global_configs:
+            allowUserDelete: bool
+:::
+
+
+
+
+
+
+
+
 ### is_authenticated() 
 
 
@@ -295,6 +319,26 @@ Gets a list of documents in a project where the user has performed annotations i
 * current_page
 
 * page_size
+
+
+
+
+
+
+
+### user_delete_personal_information() <Badge text="login" type="tip" title="Requires user to be logged in"/>
+
+
+
+
+
+
+
+
+
+### user_delete_account() <Badge text="login" type="tip" title="Requires user to be logged in"/>
+
+
 
 
 
@@ -981,6 +1025,46 @@ Allow annotator to leave their currently associated project.
 * username
 
 * password
+
+
+
+
+
+
+
+### admin_delete_user_personal_information(username) <Badge text="admin" type="error" title="Require admin permission"/>
+
+
+
+
+#### Parameters
+
+* username
+
+
+
+
+
+
+
+### admin_delete_user(username) <Badge text="admin" type="error" title="Require admin permission"/>
+
+
+
+
+#### Parameters
+
+* username
+
+
+
+
+
+
+
+### get_privacy_policy_details() 
+
+
 
 
 
