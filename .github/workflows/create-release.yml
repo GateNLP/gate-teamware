@@ -1,0 +1,47 @@
+name: create-release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Extract changelog
+        run: |
+          cat CHANGELOG.md | perl -e '
+            BEGIN {
+              $myversion = $ARGV[0];
+              $myversion =~ s/^v//;
+            }
+            while(<STDIN>) {
+              if(/^## *\[\Q$myversion\E\]/) {
+                $flag = 1;
+              } elsif(/^## *\[[0-9.]*\]/) {
+                $flag = 0;
+              } elsif($flag) {
+                print;
+              }
+            }' -- {{ github.ref_name }} > release-changelog.md
+          
+          # Fail if the changelog is empty, i.e. there is no changelog for this release
+          [ -s release-changelog.md ]
+
+      - name: Create release artifacts
+        run: |
+          IMAGE_TAG="{{ github.ref_name }}"
+          sed "s/DEFAULT_IMAGE_TAG=latest/DEFAULT_IMAGE_TAG=${IMAGE_TAG#v}/" install/get-teamware.sh > ./get-teamware.sh
+          tar cvzf install.tar.gz README.md docker-compose*.yml generate-docker-env.sh create-django-db.sh nginx custom-policies Caddyfile
+
+      - name: Create release
+        uses: softprops/action-gh-release@v1
+        with:
+          body_path: release-changelog.md
+          files: |
+            get-teamware.sh
+            install.tar.gz

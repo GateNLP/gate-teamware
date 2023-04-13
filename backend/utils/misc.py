@@ -1,3 +1,6 @@
+import string
+import random
+
 def get_value_from_key_path(obj_dict, key_path, delimiter="."):
     """
     Gets value from a dictionary following a delimited key_path. Does not work for path with array elements.
@@ -39,3 +42,24 @@ def insert_value_to_key_path(obj_dict, key_path, value, delimiter="."):
             return True
 
     return False
+
+
+def read_custom_document(path):
+    """
+    Reads in a text file and returns as a string.
+    Primarily used for reading in custom privacy policy and/or terms & conditions documents.
+    """
+    with open(path) as file:
+        doc_str = file.read()
+    return doc_str
+
+
+def generate_random_string(length) -> string:
+    """
+    Generates random ascii string of lowercase, uppercase and digits of length
+
+    @param length Length of the generated random string
+    @return Generated random string
+    """
+    use_characters = string.ascii_letters + string.digits
+    return ''.join([random.choice(use_characters) for i in range(length)])

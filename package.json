@@ -1,16 +1,18 @@
 {
   "name": "gate-teamware",
-  "version": "0.3.1",
+  "version": "2.0.0",
   "description": "A service for collaborative document annotation.",
   "main": "index.js",
   "scripts": {
-    "postinstall": "(cd frontend && npm install --unsafe-perm) #Install npm packages in frontend also",
+    "install:docs": "(cd docs && npm install --unsafe-perm) #Install npm packages for documentation",
+    "install:frontend": "(cd frontend && npm install --unsafe-perm) #Install npm packages for frontend",
+    "postinstall": "npm run install:frontend",
     "migrate": "./manage.py migrate",
     "migrate:integration": "./migrate-integration.sh",
     "dj-collectstatic": "python manage.py collectstatic --noinput --settings='teamware.settings.integration'",
-    "docs:create_version": "node docs/manage_versions.js create $npm_package_version",
+    "docs:create_version": "cd docs && npm run create_version",
     "preserve:docs": "run-s build:apidocs",
-    "serve:docs": "vuepress dev docs/docs",
+    "serve:docs": "cd docs && npm run serve",
     "serve:frontend": "cd frontend && npm run serve",
     "serve:server": "python manage.py runserver",
     "serve:db": "cross-env DJANGO_SETTINGS_MODULE=teamware.settings.base postgres -p 5432 -D pgsql/data",
@@ -22,7 +24,7 @@
     "serve": "run-p serve:db serve:frontend serve:server",
     "build:apidocs": "./manage.py build_api_docs docs/docs/developerguide/api_docs.md",
     "prebuild:docs": "run-s build:apidocs",
-    "build:docs": "node docs/manage_versions.js build",
+    "build:docs": "cd docs && npm run build",
     "build:frontend": "cd frontend && npm run build",
     "build:server": "",
     "build": "run-s build:frontend build:server",
@@ -48,9 +50,8 @@
   "homepage": "https://github.com/GateNLP/gate-teamware",
   "devDependencies": {
     "cross-env": "^7.0.3",
-    "cypress": "^7.1.0",
     "cypress-file-upload": "^5.0.8",
-    "vuepress": "^1.8.2"
+    "cypress": "^7.7.0"
   },
   "dependencies": {
     "bootstrap": "^4.6.1",
@@ -62,7 +63,5 @@
     "vue-chart-3": "^2.1.0",
     "vue-chartjs": "^3.5.1"
   },
-  "optionalDependencies": {
-    "cypress": "^7.7.0"
-  }
+  "optionalDependencies": {}
 }

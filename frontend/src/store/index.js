@@ -17,7 +17,11 @@ export default new Vuex.Store({
             isAdmin: false,
             isActivated: false,
             docFormatPref: "JSON",
+
         },
+        global_configs: {
+            allowUserDelete: false,
+        }
 
     },
     getters:{
@@ -29,6 +33,9 @@ export default new Vuex.Store({
         docFormatPref(state){
             return state.user.docFormatPref
         },
+        allowUserDelete(state){
+            return state.global_configs.allowUserDelete
+        }
     },
     mutations: {
         activateUser(state){
@@ -43,11 +50,26 @@ export default new Vuex.Store({
         },
         updateDocFormatPref(state, preference){
             state.user.docFormatPref = preference
+        },
+        updateAllowUserDelete(state, doAllow){
+            state.global_configs.allowUserDelete = doAllow
         }
     },
     actions: {
         updateUser({commit}, params) {
             commit("updateUser", params);
+        },
+        async initialise({dispatch,commit}){
+            try{
+                let response = await rpc.call("initialise");
+                dispatch("updateUser", response.user)
+                commit("updateDocFormatPref", response.configs.docFormatPref)
+                commit("updateAllowUserDelete", response.global_configs.allowUserDelete)
+
+            }catch(e){
+                console.log(e)
+                throw e
+            }
         },
         async login({dispatch, commit}, params) {
             try{
@@ -71,6 +93,15 @@ export default new Vuex.Store({
             }
             await rpc.call("logout");
             commit("updateUser", params);
+        },
+        async getPrivacyPolicyDetails() {
+            try{
+                let response = await rpc.call("get_privacy_policy_details");
+                return response
+            }catch (e){
+                console.error(e)
+                throw e
+            }
         },
         async register({dispatch, commit}, params) {
             try{
@@ -178,13 +209,28 @@ export default new Vuex.Store({
                 throw e
             }
         },
-
         async getUser({dispatch, commit}) {
             try{
                 let user = await rpc.call("get_user_details");
                 commit("updateDocFormatPref", user.doc_format_pref)
 
                 return user
+            }catch (e){
+                console.error(e);
+            }
+        },
+        async deletePersonalInformation({dispatch, commit}) {
+            try{
+                let response = await rpc.call("user_delete_personal_information");
+                dispatch("logout")
+            }catch (e){
+                console.error(e);
+            }
+        },
+        async deleteAccount({dispatch, commit}) {
+            try{
+                let response = await rpc.call("user_delete_account");
+                dispatch("logout")
             }catch (e){
                 console.error(e);
             }
@@ -224,7 +270,22 @@ export default new Vuex.Store({
                 throw e
             }
         },
-
+        async adminDeleteUserPersonalInformation({dispatch, commit}, username){
+            try{
+                await rpc.call("admin_delete_user_personal_information", username)
+            }catch (e){
+                console.error(e)
+                throw e
+            }
+        },
+        async adminDeleteUser({dispatch, commit}, username){
+            try{
+                await rpc.call("admin_delete_user", username)
+            }catch (e){
+                console.error(e)
+                throw e
+            }
+        },
         async getAllUsers({dispatch,commit}){
             try {
                 let users = await rpc.call("get_all_users");

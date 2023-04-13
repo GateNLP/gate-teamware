@@ -22,6 +22,18 @@ const routes = [
         meta: {guest: true},
     },
     {
+        path: '/privacypolicy',
+        name: 'Privacy Policy',
+        component: () => import('../views/PrivacyPolicy.vue'),
+        meta: {guest: true},
+    },
+    {
+        path: '/terms',
+        name: 'Terms & Conditions',
+        component: () => import('../views/TermsAndConditions.vue'),
+        meta: {guest: true},
+    },
+    {
         path: '/login',
         name: 'Login',
         component: () => import('../views/Login.vue'),
@@ -82,6 +94,12 @@ const routes = [
         name: 'ManageUsers',
         component: () => import('../views/ManageUsers'),
         meta: {requiresAdmin: true},
+    },
+    {
+        path: '/cookies',
+        name: 'Cookies',
+        component: () => import('../views/Cookies'),
+        meta: {guest: true},
     },
 
 ]

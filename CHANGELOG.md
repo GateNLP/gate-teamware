@@ -1,15 +1,46 @@
 # Changelog
 
-## [unreleased]
+## [development]
 ### Added
-### Changed
+
 ### Fixed
 
-## [0.3.1]
+## [2.0.0] 2023-04-13
+### Added
+- Isolate documentation build chain ([#326](https://github.com/GateNLP/gate-teamware/pull/326))
+- Add doi to citation file and doi badge ([#332](https://github.com/GateNLP/gate-teamware/pull/332))
+- Add logging and alter data type for telemetry ([#333](https://github.com/GateNLP/gate-teamware/pull/333))
+- Add more logging when telemetry is switched off and send_telemetry is called ([#337](https://github.com/GateNLP/gate-teamware/pull/337))
+
+### Changed
+- Update node 12 actions to newer node 16 versions ([#334](https://github.com/GateNLP/gate-teamware/pull/334))
+
+### Fixed
+- Fix for documentation build breaking ([#336](https://github.com/GateNLP/gate-teamware/pull/336)) 
+
+## [0.4.0] 2023-04-03
+### Added
+- Privacy policy & Terms & Conditions ([#298](https://github.com/GateNLP/gate-teamware/pull/298))
+- Helm chart moved to its own repo ([#299](https://github.com/GateNLP/gate-teamware/pull/299))
+- Added a cookies policy page ([#301](https://github.com/GateNLP/gate-teamware/pull/301))
+- Dynamic options for checkbox/radio/selector ([#303](https://github.com/GateNLP/gate-teamware/pull/303))
+- Simpler install process for new users ([#305](https://github.com/GateNLP/gate-teamware/pull/305))
+- Multi-arch build support ([#306](https://github.com/GateNLP/gate-teamware/pull/306))
+- Added label to the "Other" issue report, converted bold headings to section headers (h2) instead ([#310](https://github.com/GateNLP/gate-teamware/pull/310))
+- Add footer link to repository and add a little more info to about page ([#312](https://github.com/GateNLP/gate-teamware/pull/312))
+- Allowing users to be deleted from the system ([#318](https://github.com/GateNLP/gate-teamware/pull/318))
+- Update the "making a release" documentation to match latest changes ([#319](https://github.com/GateNLP/gate-teamware/pull/319))
+
+### Fixed
+- Fixed t.currentAnnotationTask is null error ([#302](https://github.com/GateNLP/gate-teamware/pull/302))
+- Don't redeploy docs on push to master  ([#316](https://github.com/GateNLP/gate-teamware/pull/316))
+- Admin role should imply manager ([#321](https://github.com/GateNLP/gate-teamware/pull/321))
+
+## [0.3.1] - 2023-02-17
 ### Fixed
 - Missed underscore in documentation link ([#292](https://github.com/GateNLP/gate-teamware/pull/292))
 
-## [0.3.0]
+## [0.3.0] - 2023-02-16
 ### Added
 - Telemetry data sending ([#270](https://github.com/GateNLP/gate-teamware/pull/270))
 - Upgrade Docker actions ([#272](https://github.com/GateNLP/gate-teamware/pull/272))

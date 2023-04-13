@@ -12,15 +12,18 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
-      - name: Set up Docker cache
-        uses: satackey/action-docker-layer-caching@v0.0.11
-        continue-on-error: true
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Buildx cache
+        uses: actions/cache@v3
         with:
-          key: unit-test-docker-cache-{hash}
+          path: buildx-cache
+          key: ${{ runner.os }}-buildx-${{ hashFiles('buildx-cache/**') }}
           restore-keys: |
-            unit-test-docker-cache-
+            ${{ runner.os }}-buildx-
 
       - name: Run the backend and frontend tests in containers
         run: |
@@ -38,7 +41,10 @@ jobs:
           cat .env
 
           # Build the test image with npm and pytest installed
-          docker build -t teamware-main:latest --target test .
+          docker buildx build --cache-from type=local,src=buildx-cache --cache-to type=local,dest=buildx-cache-out,mode=max --load -t teamware-main:latest --target test .
+          
+          # Clear up the cache
+          rm -rf buildx-cache && mv buildx-cache-out buildx-cache
 
           # Export the environment variables
           source .env

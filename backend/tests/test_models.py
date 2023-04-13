@@ -1,6 +1,7 @@
 import math
 from datetime import timedelta
 from django.db import models
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
 from django.utils import timezone
@@ -22,6 +23,10 @@ class ModelTestCase(TestCase):
 
 
 class TestUserModel(TestCase):
+
+    def test_agree_privacy_policy(self):
+        user = get_user_model().objects.create(username="test1", agreed_privacy_policy=True)
+        self.assertTrue(user.agreed_privacy_policy)
 
     def test_document_association_check(self):
         user = get_user_model().objects.create(username="test1")
@@ -88,41 +93,91 @@ class TestUserModel(TestCase):
         self.assertFalse(user.has_active_project)
         self.assertEqual(user.active_project, None)
 
-    def test_delete_user_with_annotations(self):
-        user = get_user_model().objects.create(username="test1")
-        project = Project.objects.create(owner=user)
-        Annotation.objects.create(user=user,
-                                  document=Document.objects.create(project=project),
-                                  status=Annotation.PENDING)
-        Annotation.objects.create(user=user,
-                                  document=Document.objects.create(project=project),
-                                  status=Annotation.COMPLETED)
-        Annotation.objects.create(user=user,
-                                  document=Document.objects.create(project=project),
-                                  status=Annotation.REJECTED)
-        Annotation.objects.create(user=user,
-                                  document=Document.objects.create(project=project),
-                                  status=Annotation.TIMED_OUT)
-        Annotation.objects.create(user=user,
-                                  document=Document.objects.create(project=project),
-                                  status=Annotation.ABORTED)
 
+def create_each_annotation_status_for_user(user: get_user_model(), project: Project):
+    annotation_statuses = [Annotation.PENDING,
+                           Annotation.COMPLETED,
+                           Annotation.REJECTED,
+                           Annotation.TIMED_OUT,
+                           Annotation.ABORTED]
+    for annotation_status in annotation_statuses:
+        Annotation.objects.create(user=user,
+                                  document=Document.objects.create(project=project),
+                                  status=annotation_status)
+
+
+class TestUserModelDeleteUser(TestCase):
+
+    def setUp(self) -> None:
+        self.user = get_user_model().objects.create(username="test1",
+                                                    first_name="TestFirstname",
+                                                    last_name="TestLastname",
+                                                    email="test@email.com")
+        self.project = Project.objects.create(owner=self.user)
+        create_each_annotation_status_for_user(self.user, self.project)
+
+        self.user2 = get_user_model().objects.create(username="test2",
+                                                     first_name="TestFirstname",
+                                                     last_name="TestLastname",
+                                                     email="test2@email.com")
+        project2 = Project.objects.create(owner=self.user2)
+        Annotation.objects.create(user=self.user,
+                                  document=Document.objects.create(project=project2),
+                                  status=Annotation.PENDING)
+        create_each_annotation_status_for_user(user=self.user2, project=project2)
+
+    def test_clear_pending_annotations(self):
+        # Check that there's at least one pending annotation for the user
+        self.assertEqual(2, Annotation.objects.filter(status=Annotation.PENDING, user=self.user).count())
+
+        self.user.clear_pending_annotations()
+
+        # No pending annotation for the user
+        self.assertEqual(0, Annotation.objects.filter(status=Annotation.PENDING, user=self.user).count())
+
+    def test_remove_user_personal_data(self):
+        """
+        Tests deleting all personal information of the user from the system and replacing
+        all personally identifiable information with placeholders
+        """
+        self.user.delete_user_personal_information()
+        self.user.refresh_from_db()
+        TestUserModelDeleteUser.check_user_personal_data_deleted(self, self.user)
+
+
+
+    @staticmethod
+    def check_user_personal_data_deleted(test_obj, user):
+        # Make sure db is refereshed first
         user.refresh_from_db()
 
-        # 5 annotations for the user
-        self.assertEqual(5, user.annotations.all().count(), "User should have 5 annotations")
-        # 5 annotations in the entire system
-        self.assertEqual(5, Annotation.objects.all().count(), "Entire system should have 5 annotations")
+        # User should be marked as deleted
+        test_obj.assertTrue(user.is_deleted)
 
-        # Delete user, the pending annotation should be removed
-        user.delete()
+        # Deleted username is a combination of [DELETED_USER_USERNAME_PREFIX]_hashedvalues
+        test_obj.assertTrue(user.username.startswith(settings.DELETED_USER_USERNAME_PREFIX))
+        # Deleted mail is a combination of [DELETED_USER_USERNAME_PREFIX]_hashedvalues@[DELETED_USER_EMAIL_DOMAIN]
+        test_obj.assertTrue(user.email.startswith(settings.DELETED_USER_USERNAME_PREFIX))
+        test_obj.assertTrue(user.email.endswith(settings.DELETED_USER_EMAIL_DOMAIN))
+        # First name and last name should be DELETED_USER_FIRSTNAME and DELETED_USER_LASTNAME
+        test_obj.assertEqual(user.first_name, settings.DELETED_USER_FIRSTNAME)
+        test_obj.assertEqual(user.last_name, settings.DELETED_USER_LASTNAME)
 
-        self.assertEqual(4, Annotation.objects.all().count(), "Entire system should have 4 annotations")
-        self.assertEqual(0, Annotation.objects.filter(status=Annotation.PENDING).count(), "S")  # No pending annotation
-        self.assertEqual(1, Annotation.objects.filter(status=Annotation.COMPLETED).count())
-        self.assertEqual(1, Annotation.objects.filter(status=Annotation.REJECTED).count())
-        self.assertEqual(1, Annotation.objects.filter(status=Annotation.TIMED_OUT).count())
-        self.assertEqual(1, Annotation.objects.filter(status=Annotation.ABORTED).count())
+        # Removed user should not have pending annotations
+        test_obj.assertEqual(0, Annotation.objects.filter(status=Annotation.PENDING, user=user).count())
+
+    def test_delete_user(self):
+        user_id = self.user.pk
+        self.user.delete()
+        TestUserModelDeleteUser.check_user_is_deleted(self, user_id)
+
+    @staticmethod
+    def check_user_is_deleted(test_obj, user_id):
+        test_obj.assertEqual(0, Annotation.objects.filter(user_id=user_id).count(),
+                         "Deleted user should not have any annotations")
+        test_obj.assertEqual(0, Project.objects.filter(owner_id=user_id).count(),
+                         "Deleted user should not have any projects")
+
 
 
 class TestDocumentModel(ModelTestCase):
@@ -1138,7 +1193,7 @@ class TestDocumentAnnotationModelExport(TestCase):
 
         for document in self.project.documents.all():
             doc_dict = document.get_doc_annotation_dict("raw", anonymize=True)
-            
+
             for aset_key, aset_data in doc_dict["annotation_sets"].items():
                 self.assertTrue(isinstance(aset_data.get("name", None), int))
 
@@ -1146,7 +1201,7 @@ class TestDocumentAnnotationModelExport(TestCase):
 
         for document in self.project.documents.all():
             doc_dict = document.get_doc_annotation_dict("raw", anonymize=False)
-            
+
             for aset_key, aset_data in doc_dict["annotation_sets"].items():
                 self.assertTrue(isinstance(aset_data.get("name", None), str))
 

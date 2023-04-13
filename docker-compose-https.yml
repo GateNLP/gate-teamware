@@ -1,0 +1,43 @@
+#
+# This is an optional additional file that adds a Caddy reverse proxy
+# (https://caddyserver.com) in front of your Teamware installation as a
+# simple way to make it available over HTTPS.
+#
+# If your host is accessible from the internet on port 80 & 443, and the
+# host name(s) you have configured under DJANGO_ALLOWED_HOSTS in your
+# .env file are mapped correctly in the public DNS, you can add this file
+# to your docker compose configuration to serve GATE Teamware as
+# https://{HOST} (for each host name in DJANGO_ALLOWED_HOSTS), with
+# publicly-trusted certificates provisioned automatically from ZeroSSL
+# using the ACME protocol.
+#
+# docker compose -f docker-compose.yml -f docker-compose-https.yml up -d
+#
+# If your host is not accessible from the internet you can test this by
+# setting DJANGO_ALLOWED_HOSTS=localhost, in which case Caddy will generate
+# and use its own private certificate authority to issue a certificate
+# instead of ACME.
+#
+# Note you should set DJANGO_APP_URL=https://{HOST} in your .env so Teamware
+# uses the correct URL in emails that it sends to your users.
+#
+
+version: "3.3"
+
+services:
+  caddy:
+    image: caddy:latest
+    restart: always
+    environment:
+      - DJANGO_ALLOWED_HOSTS
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "caddy-config:/config"
+      - "caddy-data:/data"
+      - ./Caddyfile:/etc/caddy/Caddyfile
+
+volumes:
+  caddy-data:
+  caddy-config:
