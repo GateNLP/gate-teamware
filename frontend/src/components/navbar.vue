@@ -43,6 +43,7 @@
             <b-nav-text>v{{ appVersion }}</b-nav-text>
           </b-navbar-nav>
 
+        </b-collapse>
 
           <b-navbar-nav class="ml-auto" v-if="!user || !user.isAuthenticated">
             <b-nav-item to="/login" right>Sign In</b-nav-item>
@@ -60,9 +61,6 @@
               <b-dropdown-item @click="logoutHandler" right>Sign Out</b-dropdown-item>
             </b-nav-item-dropdown>
           </b-navbar-nav>
-
-        </b-collapse>
-
 
       </b-navbar>
     </div>
