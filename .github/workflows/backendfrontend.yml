@@ -54,7 +54,7 @@ jobs:
         run: conda install -y -c conda-forge postgresql=14.*
 
       - name: Use Node.js v14
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: '14'
 
