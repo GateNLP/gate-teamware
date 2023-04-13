@@ -6,7 +6,6 @@
 ├── teamware/             # Django project
 │   └── settings/
 ├── backend/              # Django app
-├── charts/               # Helm charts for Kubernetes
 ├── cypress/              # integration test configurations
 ├── docs/                 # documentation
 ├── examples/             # example data files
