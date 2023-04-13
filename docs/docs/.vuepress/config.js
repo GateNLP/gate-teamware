@@ -21,6 +21,7 @@ module.exports = context => ({
             ],
             '/developerguide/': [
                 '',
+                'frontend',
                 'testing',
                 'releases',
                 'documentation',
