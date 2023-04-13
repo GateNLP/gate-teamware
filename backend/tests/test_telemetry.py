@@ -21,7 +21,7 @@ class TestTelemetrySender(TestCase):
 
         proj = Project.objects.first()
 
-        ts = TelemetrySender("completed", {})
+        ts = TelemetrySender("completed", { 'uuid': 'mock-uuid'})
 
         mocker.post(ts.url, status_code=201) # set up mocker for http post request
         ts.send()
