@@ -751,6 +751,8 @@ class Project(models.Model):
         if settings.TELEMETRY_ON:
             ts = TelemetrySender(status=status, data=self.get_telemetry_stats())
             ts.send()
+        else:
+            log.info(f"Telemetry is switched off. Not sending telemetry data for project {self.pk}.")
 
     def get_annotators_dict(self):
         return {
