@@ -41,6 +41,15 @@ To run the test:
 npm run test
 ```
 
+## Notes when coming from the previous version <=2.0.0
+
+- The `@` alias can still be used when doing module imports but file extensions should now be used when importing `.vue` files e.g. 
+  - Before: `import DeleteModal from "@/components/DeleteModal" 
+  - Now:  `import DeleteModal from "@/components/DeleteModal.vue"`
+- For code that is intended to run on the browser, e.g. in all `.vue` files, imports should use the ES 6 compliant `import`  command and not node/commonjs's `require`
+	- Exceptions can be made for code that is run directly by node, e.g. scripts used in the build chain, config files and test files used by build tools that run on node (e.g. vuepress or cypress)
+
+
 ## Explantion of the frontend
 
 ### Vue and Vite
