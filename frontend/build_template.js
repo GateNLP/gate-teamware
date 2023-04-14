@@ -5,24 +5,35 @@
  * Takes the template from ./base_index.html, combine it with paths in ./dist/manifest.json to generate ./templates/index.html
  */
 
-import * as fs from "fs"
-import * as path from "path"
-import mustache from "mustache"
-import manifest from "./dist/manifest.json" assert {type: "json"}
+const fs = require("fs")
+const path = require("path")
+const mustache = require("mustache")
+const manifest = require("./dist/manifest.json")
 
-// Gets the base template
-const baseTemplate = fs.readFileSync("./base_index.html", "utf-8")
+try{
+    // Gets the base template
+    const baseTemplate = fs.readFileSync("./base_index.html", "utf-8")
 
-// Provide mustache with context values from the manifest
-const assetFiles = {
-    "main_js": manifest["src/main.js"].file,
-    "main_css": manifest["src/main.js"].css
+    // Provide mustache with context values from the manifest
+    const assetFiles = {
+        "main_js": manifest["src/main.js"].file,
+        "main_css": manifest["src/main.js"].css
+    }
+
+    // Render and save it to templates/index.html
+    let outputHtml = mustache.render(baseTemplate, assetFiles)
+    const templateDir = "templates"
+    if(!fs.existsSync(templateDir))
+        fs.mkdirSync(templateDir)
+    const outputHtmlPath = path.join(templateDir, "index.html")
+    fs.writeFileSync(outputHtmlPath, outputHtml)
+    console.log("Generated index.html at " +outputHtmlPath)
+
+}catch (e) {
+    console.log("Could not generate index.html")
+    console.log(e)
 }
 
-// Render and save it to templates/index.html
-let outputHtml = mustache.render(baseTemplate, assetFiles)
-const templateDir = "templates"
-if(!fs.existsSync(templateDir))
-    fs.mkdirSync(templateDir)
-fs.writeFileSync(path.join(templateDir, "index.html"), outputHtml)
+
+
 
