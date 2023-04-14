@@ -16,7 +16,7 @@ jobs:
         run: |
           cat CHANGELOG.md | perl -e '
             BEGIN {
-              $myversion = $ARGV[0];
+              $myversion = $ENV{"GITHUB_REF_NAME"};
               $myversion =~ s/^v//;
             }
             while(<STDIN>) {
@@ -27,15 +27,14 @@ jobs:
               } elsif($flag) {
                 print;
               }
-            }' -- {{ github.ref_name }} > release-changelog.md
+            }' > release-changelog.md
           
           # Fail if the changelog is empty, i.e. there is no changelog for this release
           [ -s release-changelog.md ]
 
       - name: Create release artifacts
         run: |
-          IMAGE_TAG="{{ github.ref_name }}"
-          sed "s/DEFAULT_IMAGE_TAG=latest/DEFAULT_IMAGE_TAG=${IMAGE_TAG#v}/" install/get-teamware.sh > ./get-teamware.sh
+          sed "s/DEFAULT_IMAGE_TAG=latest/DEFAULT_IMAGE_TAG=${GITHUB_REF_NAME#v}/" install/get-teamware.sh > ./get-teamware.sh
           tar cvzf install.tar.gz README.md docker-compose*.yml generate-docker-env.sh create-django-db.sh nginx custom-policies Caddyfile
 
       - name: Create release
