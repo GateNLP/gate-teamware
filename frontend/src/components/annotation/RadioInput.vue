@@ -9,6 +9,7 @@
         :value="option.value"
         :state="state"
         :inline="config.orientation!=='vertical'"
+        :name="config.name"
         >
           {{ option.text }}
           <b-icon-question-circle v-if="option.helptext != null" :id="option.value" class="annotation-help-prompt"></b-icon-question-circle>

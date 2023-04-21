@@ -11,7 +11,7 @@
         :value="option.value" 
         :state="state"
         v-for="option in options"
-        
+        :name="config.name"
         >
         {{ option.text }}
         <b-icon-question-circle v-if="option.helptext != null" :id="option.value" class="annotation-help-prompt"></b-icon-question-circle>
