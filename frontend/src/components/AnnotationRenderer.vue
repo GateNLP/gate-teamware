@@ -1,6 +1,6 @@
 <template>
   <div class="annotation">
-    <div v-for="elemConfig in config" :key="elemConfig.name">
+    <div v-for="elemConfig in shownElements" :key="elemConfig.name">
       <b-form-group :label="elemConfig.title">
         <p class="annotation-description" v-if="elemConfig.description">{{ elemConfig.description }}</p>
         <component v-if="getInputType(elemConfig.type)"
@@ -46,6 +46,31 @@ import {DocumentType} from '@/enum/DocumentTypes';
 import MarkdownRenderer from "@/components/MarkdownRenderer.vue";
 import _ from "lodash"
 import {getValueFromKeyPath} from "@/utils/dict";
+import {compile, registerPlugin} from "jse-eval";
+
+// set up jsep extensions
+// arrow functions, to allow things like "annotations.myCheckboxes.some(v => v < 4)"
+// to test multi-select checkboxes
+import jsepArrow from "@jsep-plugin/arrow";
+// new operator to allow for date comparisons with "new Date()" or similar
+import jsepNew from "@jsep-plugin/new";
+// hex and octal numeric literals
+import jsepNumbers from "@jsep-plugin/numbers";
+// object expressions
+import jsepObject from "@jsep-plugin/object";
+// regex support, to allow for if tests that check a text field against a regex
+import jsepRegex from "@jsep-plugin/regex";
+// destructuring, useful in filtering functions etc.
+import jsepSpread from "@jsep-plugin/spread";
+
+registerPlugin(
+    jsepArrow,
+    jsepNew,
+    jsepNumbers,
+    jsepObject,
+    jsepRegex,
+    jsepSpread,
+)
 
 /**
  * Renders annotation display and input capture from the config property
@@ -74,7 +99,8 @@ export default {
       ignoreValidateTypes: ['html'],
       startTime: null,
       DocumentType,
-      answerBgColor: {}
+      answerBgColor: {},
+      condition: {},
     }
   },
   props: {
@@ -124,8 +150,30 @@ export default {
         return  getValueFromKeyPath(this.document, this.doc_preannotation_field)
       }
       return null
+    },
+    shownElements() {
+      if (!this.config) {
+        return [];
+      }
+      return this.config.filter((elemConfig) => {
+        if (this.condition[elemConfig.name]) {
+          try {
+            return !!this.condition[elemConfig.name]({
+              document: this.document,
+              annotation: this.annotationOutput,
+              // add useful JS functions to the context
+              String, Object, Array, Date, RegExp,
+              JSON, Math, parseInt, parseFloat,
+              encodeURIComponent, decodeURIComponent
+            });
+          } catch (_) {
+            // treat error as "don't show"
+          }
+          return false;
+        }
+        return true;
+      })
     }
-
   },
   methods: {
     setAnnotationData(data){
@@ -154,8 +202,17 @@ export default {
     generateValidationTracker(config) {
       if (config) {
         this.validation = {}
+        this.condition = {}
         for (let elemConfig of config) {
           this.validation[elemConfig.name] = null
+          if (elemConfig["if"]) {
+            try {
+              this.condition[elemConfig.name] = compile(elemConfig["if"])
+            } catch (_) {
+              // error compiling expression -> treat the same as if the element
+              // did not have an "if" at all, and always show it.
+            }
+          }
         }
       }
     },

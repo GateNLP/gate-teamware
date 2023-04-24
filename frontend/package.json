@@ -13,6 +13,12 @@
     "test": "run-s test:unit test:component"
   },
   "dependencies": {
+    "@jsep-plugin/arrow": "^1.0.5",
+    "@jsep-plugin/new": "^1.0.3",
+    "@jsep-plugin/numbers": "^1.0.1",
+    "@jsep-plugin/object": "^1.2.1",
+    "@jsep-plugin/regex": "^1.0.3",
+    "@jsep-plugin/spread": "^1.0.2",
     "@vitejs/plugin-vue2": "^2.2.0",
     "axios": "^0.21.1",
     "bootstrap": "^4.6.0",
@@ -22,6 +28,7 @@
     "css-loader": "^5.2.1",
     "csvtojson": "^2.0.10",
     "js-cookie": "^2.2.1",
+    "jse-eval": "^1.5.2",
     "jsonl-parse-stringify": "^1.0.1",
     "jszip": "^3.7.1",
     "lodash": "^4.17.21",
