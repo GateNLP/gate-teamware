@@ -222,7 +222,7 @@ export default {
       this.validationErrorMsg = {}
 
 
-      for (let elemConfig of this.config) {
+      for (let elemConfig of this.shownElements) {
 
         const elemName = elemConfig.name
         const elemType = elemConfig.type
