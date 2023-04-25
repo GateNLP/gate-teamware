@@ -22,5 +22,11 @@ export default defineConfig({
   },
   server: {
 
+  },
+  test: {
+    include: [
+        "tests/unit/**/*.spec.js"
+    ]
+
   }
 })

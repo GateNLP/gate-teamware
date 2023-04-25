@@ -23,14 +23,14 @@
         </b-card>
       </b-form-group>
     </div>
-    <b-row>
+    <BRow>
       <b-col>
         <BButton @click.prevent="submitHandler" class="mr-4" variant="success">Submit</BButton>
         <BButton @click.prevent="clearFormHandler" class="mr-4" variant="warning">Clear</BButton>
         <BButton v-if="allow_document_reject" @click.prevent="rejectHandler" variant="danger">Reject document</BButton>
         <BButton v-if="allow_cancel" @click.prevent="cancelHandler" variant="danger">Cancel</BButton>
       </b-col>
-    </b-row>
+    </BRow>
   </div>
 </template>
 
