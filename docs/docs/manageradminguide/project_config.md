@@ -321,35 +321,6 @@ If your documents are plain text and include line breaks that need to be preserv
 
 </AnnotationRendererPreview>
 
-#### Optional help text
-
-Optionally, radio buttons and checkboxes can be given help text to provide additional per-choice context or information to help annotators.
-
-
-<AnnotationRendererPreview :config="configs.configRadioHelpText">
-
-```json
-[
-    {
-        "name": "mylabel",
-        "type": "radio",
-        "optional": true, //Optional - Set if validation is not required
-        "orientation": "vertical", //Optional - default is "horizontal"
-        "options": [ // The options that the user is able to select from
-                {"value": "value1", "label": "Text to show user 1", "helptext": "Additional help text for option 1"},
-                {"value": "value2", "label": "Text to show user 2", "helptext": "Additional help text for option 2"},
-                {"value": "value3", "label": "Text to show user 3"}
-            ],
-        "title": "Title string", //Optional
-        "description": "Description string", //Optional
-        "valSuccess": "Success message when the field is validated", //Optional
-        "valError": "Error message when the field fails validation" //Optional
-    }
-]
-```
-
-</AnnotationRendererPreview>
-
 ### Checkbox input
 
 <AnnotationRendererPreview :config="configs.configCheckbox">
@@ -377,36 +348,6 @@ Optionally, radio buttons and checkboxes can be given help text to provide addit
 
 </AnnotationRendererPreview>
 
-#### Optional help text
-
-Optionally, radio buttons and checkboxes can be given help text to provide additional per-choice context or information to help annotators.
-
-<AnnotationRendererPreview :config="configs.configCheckboxHelpText">
-
-```json
-[
-        {
-            "name": "mylabel",
-            "type": "checkbox",
-            "optional": true, //Optional - Set if validation is not required
-            "orientation": "horizontal", //Optional - "horizontal" (default) or "vertical"
-            "options": [ // The options that the user is able to select from
-                {"value": "value1", "label": "Text to show user 1", "helptext": "Additional help text for option 1"},
-                {"value": "value2", "label": "Text to show user 2", "helptext": "Additional help text for option 2"},
-                {"value": "value3", "label": "Text to show user 3"}
-            ],
-            "minSelected": 1, //Optional - Specify the minimum number of options that must be selected
-            "title": "Title string", //Optional
-            "description": "Description string", //Optional
-            "valSuccess": "Success message then field is validated", //Optional
-            "valError": "Error message when field fails is validation" //Optional
-        }
-    ]
-```
-
-</AnnotationRendererPreview>
-
-
 ### Selector input
 
 <AnnotationRendererPreview :config="configs.configSelector">
@@ -420,6 +361,35 @@ Optionally, radio buttons and checkboxes can be given help text to provide addit
         "options": [ // The options that the user is able to select from
                 {"value": "value1", "label": "Text to show user 1"},
                 {"value": "value2", "label": "Text to show user 2"},
+                {"value": "value3", "label": "Text to show user 3"}
+            ],
+        "title": "Title string", //Optional
+        "description": "Description string", //Optional
+        "valSuccess": "Success message when the field is validated", //Optional
+        "valError": "Error message when the field fails validation" //Optional
+    }
+]
+```
+
+</AnnotationRendererPreview>
+
+### Optional help text
+
+Optionally, radio buttons and checkboxes can be given help text to provide additional per-choice context or information to help annotators.
+
+
+<AnnotationRendererPreview :config="configs.configRadioHelpText">
+
+```json
+[
+    {
+        "name": "mylabel",
+        "type": "radio",
+        "optional": true, //Optional - Set if validation is not required
+        "orientation": "vertical", //Optional - default is "horizontal"
+        "options": [ // The options that the user is able to select from
+                {"value": "value1", "label": "Text to show user 1", "helptext": "Additional help text for option 1"},
+                {"value": "value2", "label": "Text to show user 2", "helptext": "Additional help text for option 2"},
                 {"value": "value3", "label": "Text to show user 3"}
             ],
         "title": "Title string", //Optional
