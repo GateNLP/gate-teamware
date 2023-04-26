@@ -4,6 +4,7 @@
     <b-form-checkbox-group 
       v-model="inputVal"
       :stacked="config.orientation=='vertical'"
+      :name="config.name"
       >
       
       <b-form-checkbox 
@@ -11,7 +12,6 @@
         :value="option.value" 
         :state="state"
         v-for="option in options"
-        :name="config.name"
         >
         {{ option.text }}
         <b-icon-question-circle v-if="option.helptext != null" :id="option.value" class="annotation-help-prompt"></b-icon-question-circle>
