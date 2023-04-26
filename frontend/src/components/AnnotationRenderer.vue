@@ -265,7 +265,7 @@ export default {
 
       if (elemConfig.type == 'html'){
         return false
-      } else if ((this.document_type == DocumentType.Training) && (Object.keys(elemConfig.options).includes(this.annotationOutput[elemConfig.name]))) {
+      } else if ((this.document_type == DocumentType.Training) && (this.annotationOutput[elemConfig.name] !== null)) {
         return true
       } else {
         return false
@@ -275,7 +275,7 @@ export default {
       let answer = this.annotationOutput[elemConfig.name];
       let expected = this.document[this.doc_gold_field][elemConfig.name].value;
 
-      if (Object.keys(elemConfig.options).includes(answer)) {
+      if (Object.keys(elemConfig.options) !== null) {
         if (answer == expected){
           return "Correct! ✔️"
         } else {
