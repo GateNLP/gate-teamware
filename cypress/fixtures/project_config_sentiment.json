@@ -9,10 +9,10 @@
     "type": "radio",
     "title": "Sentiment",
     "description": "Please select a sentiment of the text above.",
-    "options": {
-      "negative": "Negative",
-      "neutral": "Neutral",
-      "positive": "Positive"
-    }
+    "options": [
+      {"value": "negative", "label":"Negative"},
+      {"value": "neutral", "label":"Neutral"},
+      {"value": "positive", "label":"Positive"}
+    ]
   }
 ]
