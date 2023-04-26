@@ -2,7 +2,7 @@
  * Script for building the index page after vite builds as the name of main .js and .css are hashed and changes
  * with every build.
  *
- * Takes the template from ./base_index.html, combine it with paths in ./dist/manifest.json to generate ./templates/index.html
+ * Takes the template from ./base_index.mustache, combine it with paths in ./dist/manifest.json to generate ./templates/index.html
  */
 
 const fs = require("fs")
@@ -12,16 +12,20 @@ const manifest = require("./dist/manifest.json")
 
 try{
     // Gets the base template
-    const baseTemplate = fs.readFileSync("./base_index.html", "utf-8")
+    const baseTemplate = fs.readFileSync("./base_index.mustache", "utf-8")
 
     // Provide mustache with context values from the manifest
-    const assetFiles = {
+    const context = {
         "main_js": manifest["src/main.js"].file,
-        "main_css": manifest["src/main.js"].css
+        "main_css": manifest["src/main.js"].css,
+        // also supply the strings "{{" and "}}" as variables, so we can output Django template
+        // placeholders without having them interpreted by Mustache on the way.
+        "open_braces": "{{",
+        "close_braces": "}}",
     }
 
     // Render and save it to templates/index.html
-    let outputHtml = mustache.render(baseTemplate, assetFiles)
+    let outputHtml = mustache.render(baseTemplate, context)
     const templateDir = "templates"
     if(!fs.existsSync(templateDir))
         fs.mkdirSync(templateDir)

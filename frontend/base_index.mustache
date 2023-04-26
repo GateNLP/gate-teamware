@@ -4,20 +4,24 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <link rel="icon" href="http://0.0.0.0:8080/static/img/GATE.svg">
-    <title>{{settings.APP_NAME}}</title>
+    {% if settings.DEBUG %}
+      <link rel="icon" href="http://localhost:5173/static/img/GATE.svg">
+    {% else %}
+      <link rel="icon" href="/static/img/GATE.svg">
+      <link rel="stylesheet" href="/{{{ main_css }}}" />
+    {% endif %}
+    <title>{{open_braces}}settings.APP_NAME{{close_braces}}</title>
 
   <body>
     {% csrf_token %}
     <noscript>
-      <strong>We're sorry but {{settings.APP_NAME}} doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
+      <strong>We're sorry but {{open_braces}}settings.APP_NAME{{close_braces}} doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
     </noscript>
     <div id="app"></div>
     {% if settings.DEBUG %}
         <script type="module" src="http://localhost:5173/@vite/client"></script>
         <script type="module" src="http://localhost:5173/src/main.js"></script>
     {% else %}
-        <link rel="stylesheet" href="/{{{ main_css }}}" />
         <script type="module" src="/{{{ main_js }}}"></script>
     {% endif %}
   </body>
