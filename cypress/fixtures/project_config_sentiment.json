@@ -10,7 +10,7 @@
     "title": "Sentiment",
     "description": "Please select a sentiment of the text above.",
     "options": [
-      {"value": "negative", "label":"Negative"},
+      {"value": "negative", "label":"Negative", "helptext": "some example help text"},
       {"value": "neutral", "label":"Neutral"},
       {"value": "positive", "label":"Positive"}
     ]
