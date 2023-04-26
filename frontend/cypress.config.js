@@ -7,4 +7,5 @@ module.exports = defineConfig({
       bundler: "vite",
     },
   },
+  fixturesFolder: "../examples"
 });

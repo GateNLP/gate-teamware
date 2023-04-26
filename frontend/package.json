@@ -6,10 +6,10 @@
     "serve": "vite",
     "build": "vite build",
     "postbuild": "node build_template.js",
-    "test:unit": "vitest",
-    "test:component": "cypress open",
-    "test:coverage": "vite-jest --coverage",
-    "test": ""
+    "test:unit": "vitest run",
+    "test:component": "cypress run --component",
+    "test:coverage": "vitest run --coverage",
+    "test": "run-s test:unit test:component"
   },
   "dependencies": {
     "@vitejs/plugin-vue2": "^2.2.0",

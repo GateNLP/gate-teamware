@@ -57,5 +57,10 @@ Cypress.Commands.add('mount', (component, options = {}) => {
     return mount(component, options)
 })
 
-// Example use:
-// cy.mount(MyComponent)
+
+// The following command allows us to access emitted events through the vue test util wrapper, source:
+// https://css-tricks.com/testing-vue-components-with-cypress/#aa-accessing-the-vue-test-utils-wrapper
+Cypress.Commands.add('vue', () => {
+  return cy.wrap(Cypress.vueWrapper);
+});
+

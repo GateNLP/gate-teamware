@@ -26,19 +26,31 @@ npm run build
 ### Testing
 
 **Tools used for testing:**
-* [Jest](https://jestjs.io) - Our main frontend test harness. Integrated into vue cli.
-* [Vue testing library](https://testing-library.com/docs/vue-testing-library/intro/) - Used for rendering vue component 
-    allows it to be mounted for unit testing. Officially recommended by Vue.js.
+* [vitest](https://vitest.dev) - Used for unit testing (code without UI components)
+* [cypress](https://docs.cypress.io) - Used for tests that contains (Vue) UI components
+* [Vue test utils](https://vue-test-utils.vuejs.org) - Used for rendering vue component allows it to be mounted for unit testing. Officially recommended by Vue.js.
 
-Tests for the frontend are all located in `tests` folder.
+* Tests for the frontend are all located in `/frontend/tests` folder.
+  * Unit test files should all be placed in `/frontend/tests/unit/` folder and have an extension `.spec.js`.
+  * Component test files should all be placed in `/frontend/tests/component` folder and have an extension `.cy.js`
+* Test fixtures (data used in running the tests) are placed in `/examples` folder, this folder is shared with the integration test
 
-Unit test files should all be placed in `tests/unit/` folder and have an extension `.spec.js`.
-
-
-To run the test:
+To run all frontend tests (unit and component tests):
 
 ```
 npm run test
+```
+
+To run unit tests only:
+
+```
+npm run test:unit
+```
+
+To run component test only:
+
+```
+npm run test:component
 ```
 
 ## Notes when coming from the previous version <=2.0.0
@@ -47,7 +59,7 @@ npm run test
   - Before: `import DeleteModal from "@/components/DeleteModal" 
   - Now:  `import DeleteModal from "@/components/DeleteModal.vue"`
 - For code that is intended to run on the browser, e.g. in all `.vue` files, imports should use the ES 6 compliant `import`  command and not node/commonjs's `require`
-	- Exceptions can be made for code that is run directly by node, e.g. scripts used in the build chain, config files and test files used by build tools that run on node (e.g. vuepress or cypress)
+	- **Exceptions for code that is run directly by node**, e.g. scripts used in the build chain, config files and test files used by build tools that run on node (e.g. vuepress or cypress)
 
 
 ## Explantion of the frontend
