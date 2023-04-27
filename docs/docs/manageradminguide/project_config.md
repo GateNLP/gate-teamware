@@ -476,7 +476,7 @@ All the examples above have a "static" list of available options for the radio, 
 
 `"fromDocument"` is a dot-separated property path leading to the location within each document where the additional options can be found, for example `"fromDocument":"candidates"` looks for a top-level property named `candidates` in each document, `"fromDocument": "options.custom"` would look for a property named `options` which is itself an object with a property named `custom`.  The target property in the document may be in any of the following forms:
 
-- an array _of objects_, each with `value` and `label` properties, exactly as in the static configuration format - this is the format used in the example above
+- an array _of objects_, each with `value` and `label` (and optionally `helptext`) properties, exactly as in the static configuration format - this is the format used in the example above
 - an array _of strings_, where the same string will be used as both the value and the label for that option
 - an arbitrary ["dictionary"](#options-as-dict) object mapping values to labels
 - a _single string_, which is parsed into a list of options
