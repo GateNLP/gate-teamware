@@ -110,6 +110,23 @@ export default {
             "valError": "Error message when field fails is validation" //Optional
         }
     ],
+    configRadioHelpText: [
+        {
+            "name": "mylabel",
+            "type": "radio",
+            "optional": true, //Optional - Set if validation is not required
+            "orientation": "vertical", //Optional - default is "horizontal"
+            "options": [ // The options that the user is able to select from
+                    {"value": "value1", "label": "Text to show user 1", "helptext": "Additional help text for option 1"},
+                    {"value": "value2", "label": "Text to show user 2", "helptext": "Additional help text for option 2"},
+                    {"value": "value3", "label": "Text to show user 3"}
+                ],
+            "title": "Title string", //Optional
+            "description": "Description string", //Optional
+            "valSuccess": "Success message when the field is validated", //Optional
+            "valError": "Error message when the field fails validation" //Optional
+        }
+    ],
     configCheckbox: [
         {
             "name": "mylabel",
