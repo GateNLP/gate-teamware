@@ -12,7 +12,7 @@
         :name="config.name"
         >
           {{ option.text }}
-          <b-icon-question-circle v-if="option.helptext != null" :id="option.value" class="annotation-help-prompt"></b-icon-question-circle>
+          <b-icon-question-circle v-if="option.helptext != null" class="annotation-help-prompt"></b-icon-question-circle>
           <b-tooltip v-if="option.helptext != null" :target="option.value" :title="option.helptext"></b-tooltip>
         </b-form-radio>
     </b-form-group>
