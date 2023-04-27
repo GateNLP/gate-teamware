@@ -46,7 +46,7 @@ ENV DJANGO_SETTINGS_MODULE teamware.settings.test
 WORKDIR /app/
 USER root
 RUN apt-get update && \
-    apt-get -y install curl gnupg xvfb
+    apt-get -y install curl gnupg xvfb libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2 libxtst6 xauth
 RUN curl -sL https://deb.nodesource.com/setup_14.x  | bash -
 RUN apt-get -y install nodejs
 USER gate:gate
