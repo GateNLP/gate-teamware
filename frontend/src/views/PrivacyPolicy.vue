@@ -119,7 +119,6 @@
       <br>
       Helpline number: 0303 123 1113<br>
       ICO website: <a href="https://www.ico.org.uk">https://www.ico.org.uk</a>
-      <br><br><br>
     </p>
 
   </div>
