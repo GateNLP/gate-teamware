@@ -3,7 +3,7 @@
     <b-form-group :id="config.name">
 
       <b-form-radio 
-        v-for="option in options"
+        v-for="(option, idx) in options"
         :key="option.value"
         v-model="inputVal"
         :value="option.value"
@@ -12,8 +12,8 @@
         :name="config.name"
         >
           {{ option.text }}
-          <b-icon-question-circle v-if="option.helptext != null" class="annotation-help-prompt"></b-icon-question-circle>
-          <b-tooltip v-if="option.helptext != null" :target="option.value" :title="option.helptext"></b-tooltip>
+          <b-icon-question-circle v-if="option.helptext != null" :id="config.name + '__opt' + idx" class="annotation-help-prompt"></b-icon-question-circle>
+          <b-tooltip v-if="option.helptext != null" :target="config.name + '__opt' + idx" :title="option.helptext"></b-tooltip>
         </b-form-radio>
     </b-form-group>
   </InputErrorDisplay>
