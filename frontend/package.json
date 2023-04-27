@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "serve": "vite",
+    "preserve": "node build_template.js",
     "build": "vite build",
     "postbuild": "node build_template.js",
     "test:unit": "vitest run",
@@ -24,6 +25,7 @@
     "js-cookie": "^2.2.1",
     "jsonl-parse-stringify": "^1.0.1",
     "jszip": "^3.7.1",
+    "lodash": "^4.17.21",
     "markdown-it-vue": "^1.1.6",
     "mustache": "^4.2.0",
     "sass": "^1.32.8",

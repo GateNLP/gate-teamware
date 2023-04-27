@@ -1,5 +1,5 @@
 """
-Settings for integration testing
+Settings for local integration testing
 
 Uses a clean database every time
 """

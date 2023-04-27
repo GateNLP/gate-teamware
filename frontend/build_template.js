@@ -7,25 +7,33 @@
 
 const fs = require("fs")
 const path = require("path")
-const mustache = require("mustache")
-const manifest = require("./dist/manifest.json")
+const _ = require("lodash")
+
+let mainJsPath = ""
+let mainCssPath = ""
+try{
+    const manifest = require("./dist/manifest.json")
+    mainJsPath = manifest["src/main.js"].file
+    mainCssPath = manifest["src/main.js"].css
+}catch (e) {
+    //manifest.json will only be created after frontend is built
+    //so we use blank values for the js and css include paths otherwise
+}
+
 
 try{
     // Gets the base template
-    const baseTemplate = fs.readFileSync("./base_index.mustache", "utf-8")
+    const baseTemplate = fs.readFileSync("./base_index.html", "utf-8")
 
     // Provide mustache with context values from the manifest
     const context = {
-        "main_js": manifest["src/main.js"].file,
-        "main_css": manifest["src/main.js"].css,
-        // also supply the strings "{{" and "}}" as variables, so we can output Django template
-        // placeholders without having them interpreted by Mustache on the way.
-        "open_braces": "{{",
-        "close_braces": "}}",
+        "main_js": mainJsPath,
+        "main_css": mainCssPath,
     }
 
     // Render and save it to templates/index.html
-    let outputHtml = mustache.render(baseTemplate, context)
+    let outputHtmlTemplate = _.template(baseTemplate)
+    let outputHtml = outputHtmlTemplate(context)
     const templateDir = "templates"
     if(!fs.existsSync(templateDir))
         fs.mkdirSync(templateDir)

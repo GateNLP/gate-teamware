@@ -116,24 +116,27 @@ The route shown above maps the root path e.g. `https://your-deployed-teamware-do
 
 ### index.html, templates and bundling
 
-A html page is required to place our application in. Teamware uses Django to serve up the main html page which is located at `/frontend/templates/index.html` (see `MainView` class in `/backend/views.py`). This `index.html` page has to know where to load the generated javascript files. Where these files are differ depending on whether you're in development (debug) or production mode.  
+A html page is required to place our application in. Teamware uses Django to serve up the main html page which is located at `/frontend/templates/index.html` (see `MainView` class in `/backend/views.py`). This `index.html` page has to know where to load the generated javascript files. Where these files are differ depending on whether you're running the vite development server or using vite's statically built files.  
 
-#### In debug mode (Django's `settings.DEBUG` is `true`)
-In debug mode, we expect to be running the vite dev server alongside django server (when running `npm run serve` from the root of the project). In this case `index.html` imports javascript directly from the vite dev server:
+#### Using vite's development server (Django's `settings.FRONTEND_DEV_SERVER_USE` is `True`)
+In during development we expect to be running the vite dev server alongside django server (when running `npm run serve` from the root of the project). In this case `index.html` imports javascript directly from the vite dev server:
 
 ```html
 <script type="module" src="http://localhost:5173/@vite/client"></script>
 <script type="module" src="http://localhost:5173/src/main.js"></script>
 ```
 
+This applies when running the `base`, `test` and `integration` django configurations.
 
-#### In production mode (Django's `settings.DEBUG` is `false`)
-In production mode, vite converts `.vue` files into plain javascript and bundles them to `/frontend/dist/static` directory. The `/frontend/src/main.js` becomes `/frontend/dist/static/assets/main-bb58d055.js`. The scripts are imported as static asset of going through the vite server, for example:
+#### Using vite's statically built assets (Django's `settings.FRONTEND_DEV_SERVER_USE` is `false`)
+When deploying the application, vite converts `.vue` files into plain javascript and bundles them to `/frontend/dist/static` directory. The `/frontend/src/main.js` becomes `/frontend/dist/static/assets/main-bb58d055.js`. The scripts are imported as static asset of going through the vite server, for example:
 
 ```html
 <link rel="stylesheet" href="/static/assets/main-89ece1f8.css" />
 <script type="module" src="/static/assets/main-bb58d055.js"></script>
 ```
+
+This applies when running the `deployment`, `docker-test` and `docker-integration` django configurations.
 
 #### index.html generation
 

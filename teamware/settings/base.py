@@ -265,3 +265,7 @@ DELETED_USER_FIRSTNAME = "Deleted"
 DELETED_USER_LASTNAME = "Deleted"
 DELETED_USER_EMAIL_DOMAIN = "teamware-deleted.com"
 
+"""
+Frontend dev server configuration
+"""
+FRONTEND_DEV_SERVER_USE = True
