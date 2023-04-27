@@ -3,7 +3,6 @@ node_modules
 /dist
 
 /static
-frontend/static
 
 # Ignore auto-generated documentation site content
 docs/site/
