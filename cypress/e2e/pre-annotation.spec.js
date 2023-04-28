@@ -22,7 +22,7 @@ describe('Pre annotation test', () => {
 
         // Turn on pre-annotation
         cy.contains(projectsPageStr).click()
-        cy.contains("Test project").click()
+        cy.get("a").contains("Test project").click()
         cy.get("input[name='pre-annotation-field']").clear().type("preanno")
         cy.contains("Save").click()
 
@@ -39,13 +39,13 @@ describe('Pre annotation test', () => {
 
         // Turn off pre-annotation
         cy.contains(projectsPageStr).click()
-        cy.contains("Test project").click()
+        cy.get("a").contains("Test project").click()
         cy.wait(500) //Wait for page load
         cy.get("input[name='pre-annotation-field']").clear()
         cy.contains("Save").click()
         // Make sure the pre-annotation field is actually empty
         cy.contains(projectsPageStr).click()
-        cy.contains("Test project").click()
+        cy.get("a").contains("Test project").click()
         cy.wait(500) //Wait for page load
         cy.get("input[name='pre-annotation-field']").should("be.empty")
 

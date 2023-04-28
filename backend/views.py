@@ -16,7 +16,7 @@ class MainView(View):
     The main view of the app (index page)
     """
 
-    template_page = "base-vue.html"
+    template_page = "index.html"
 
 
     def get(self, request, *args, **kwargs):

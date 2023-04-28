@@ -1,11 +1,10 @@
-# Node build currently only works on amd64
-FROM --platform=linux/amd64 node:14-buster-slim as nodebuilder
-RUN mkdir /app/
-WORKDIR /app/
-COPY package.json package-lock.json ./
-COPY frontend/package.json frontend/package-lock.json ./frontend/
+# only need to do the node build once, even if we're building multi-arch
+FROM --platform=$BUILDPLATFORM node:14-buster-slim as nodebuilder
+COPY package.json package-lock.json /app/
+COPY frontend/package.json frontend/package-lock.json /app/frontend/
+WORKDIR /app
 RUN npm install --unsafe-perm --only=production --no-optional
-COPY frontend/ ./frontend/
+COPY frontend/ /app/frontend/
 RUN npm run build
 
 
@@ -31,14 +30,14 @@ COPY --chown=gate:gate examples/ ./examples/
 COPY --chown=gate:gate teamware/ ./teamware/
 COPY --chown=gate:gate backend/ ./backend
 COPY --chown=gate:gate frontend/ ./frontend/
-COPY --chown=gate:gate --from=nodebuilder /app/frontend/templates/base-vue.html ./backend/templates/
+COPY --chown=gate:gate --from=nodebuilder /app/frontend/templates/index.html ./backend/templates/
 ENTRYPOINT [ "/app/run-server.sh" ]
 
 
 FROM nginx:stable-alpine as frontend
 COPY nginx/health.conf.template /etc/nginx/templates/
-COPY --from=nodebuilder /app/frontend/static /usr/share/nginx/html/static
 COPY --from=nodebuilder /app/frontend/public/static /usr/share/nginx/html/static
+COPY --from=nodebuilder /app/frontend/dist/static /usr/share/nginx/html/static
 ENV HEALTH_PORT=8888
 
 
@@ -47,7 +46,7 @@ ENV DJANGO_SETTINGS_MODULE teamware.settings.test
 WORKDIR /app/
 USER root
 RUN apt-get update && \
-    apt-get -y install curl gnupg xvfb
+    apt-get -y install curl gnupg xvfb libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2 libxtst6 xauth
 RUN curl -sL https://deb.nodesource.com/setup_14.x  | bash -
 RUN apt-get -y install nodejs
 USER gate:gate

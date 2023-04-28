@@ -130,7 +130,7 @@
 <script>
 
 import {mapActions} from 'vuex'
-import MarkdownRenderer from "@/components/MarkdownRenderer";
+import MarkdownRenderer from "@/components/MarkdownRenderer.vue";
 
 export default {
   name: "Privacy Policy",

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    {% if settings.FRONTEND_DEV_SERVER_USE %}
+      <link rel="icon" href="http://localhost:5173/static/img/GATE.svg">
+    {% else %}
+      <link rel="icon" href="/static/img/GATE.svg">
+      <link rel="stylesheet" href="/<%= main_css %>" />
+    {% endif %}
+    <title>{{settings.APP_NAME}}</title>
+
+  <body>
+    {% csrf_token %}
+    <noscript>
+      <strong>We're sorry but {{settings.APP_NAME}} doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
+    </noscript>
+    <div id="app"></div>
+    {% if settings.FRONTEND_DEV_SERVER_USE %}
+        <script type="module" src="http://localhost:5173/@vite/client"></script>
+        <script type="module" src="http://localhost:5173/src/main.js"></script>
+    {% else %}
+        <script type="module" src="/<%= main_js %>"></script>
+    {% endif %}
+  </body>
+</html>

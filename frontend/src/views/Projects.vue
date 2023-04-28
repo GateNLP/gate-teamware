@@ -49,13 +49,13 @@
 
 <script>
 import {mapActions, mapState} from 'vuex'
-import Pagination from "@/components/Pagination";
-import PaginationAsync from "@/components/PaginationAsync";
-import Search from "@/components/Search";
+import Pagination from "@/components/Pagination.vue";
+import PaginationAsync from "@/components/PaginationAsync.vue";
+import Search from "@/components/Search.vue";
 import _ from "lodash"
 import {toastError} from "@/utils";
-import ProjectIcon from "@/components/ProjectIcon";
-import ProjectStatusBadges from "@/components/ProjectStatusBadges";
+import ProjectIcon from "@/components/ProjectIcon.vue";
+import ProjectStatusBadges from "@/components/ProjectStatusBadges.vue";
 
 export default {
   name: 'Projects',

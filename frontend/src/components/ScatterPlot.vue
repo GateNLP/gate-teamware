@@ -1,21 +1,24 @@
+<template>
+  <Scatter :options="options" :data="chartData"></Scatter>
+</template>
 <script>
 import { Scatter } from "vue-chartjs";
+import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, PointElement} from 'chart.js'
+
+ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, PointElement)
 
 export default {
-  extends: Scatter,
   name: "ScatterPlot",
+  components: { Scatter },
   props:{
       chartData: {
         type: Object,
-        default: null
+        default: {}
       },
       options: {
         type: Object,
-        default: null,
+        default: {},
       }
-  },
-  mounted() {
-    this.renderChart(this.chartData, this.options);
   },
 };
 </script>

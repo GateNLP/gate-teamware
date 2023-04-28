@@ -34,10 +34,10 @@
 <script>
 import {readFileAsync, toastError} from "@/utils";
 import {mapActions} from "vuex";
-import DocumentUploaderItem from "@/components/DocumentUploaderItem";
+import DocumentUploaderItem from "@/components/DocumentUploaderItem.vue";
 
-const csv = require("csvtojson")
-const JSZip = require("jszip")
+import csv from "csvtojson"
+import JSZip from "jszip"
 import JSONL from 'jsonl-parse-stringify'
 import {DocumentType} from '@/enum/DocumentTypes'
 

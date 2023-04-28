@@ -1,3 +1,4 @@
+import 'vite/modulepreload-polyfill'
 import Vue from 'vue'
 import AnnotationApp from './AnnotationApp.vue'
 import router from './router'

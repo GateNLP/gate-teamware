@@ -11,3 +11,4 @@ DATABASES['default']['NAME'] = "teamware_integration_db"
 ACTIVATION_WITH_EMAIL = False
 
 TELEMETRY_ON = False
+FRONTEND_DEV_SERVER_USE = False

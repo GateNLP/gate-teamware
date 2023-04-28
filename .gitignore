@@ -3,13 +3,10 @@ node_modules
 /dist
 
 /static
-frontend/static
 
 # Ignore auto-generated documentation site content
 docs/site/
 
-# Vue generated html template
-base-vue.html
 
 #Cypress
 cypress/screenshots

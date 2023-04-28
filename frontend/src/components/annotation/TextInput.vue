@@ -5,7 +5,7 @@
 </template>
 
 <script>
-import InputErrorDisplay from "@/components/annotation/InputErrorDisplay";
+import InputErrorDisplay from "@/components/annotation/InputErrorDisplay.vue";
 
 export default {
   name: "TextInput",

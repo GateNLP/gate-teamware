@@ -1,7 +1,8 @@
+import { afterEach, beforeEach, describe, it ,expect, vi } from 'vitest'
 import axios from 'axios'
 import JRPCClient from '@/jrpc'
 
-jest.mock('axios')
+vi.mock('axios')
 
 describe("jrpc lib test", () => {
     it("Test normal response", async () => {
