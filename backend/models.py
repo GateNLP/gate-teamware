@@ -530,7 +530,12 @@ class Project(models.Model):
         annotatable_docs = Document.objects.filter(project_id=self.pk, doc_type=doc_type) \
             .annotate(num_occupied=occupied_count) \
             .annotate(num_user_occupied=user_occupied_count) \
-            .filter(num_occupied__lt=self.annotations_per_doc, num_user_occupied__lt=1)
+            .filter(num_user_occupied__lt=1)
+
+        if doc_type == DocumentType.ANNOTATION:
+            # Enforce the max number of annotations per document for ANNOTATION docs only (not
+            # for TRAINING or TEST, which can be annotated by everyone)
+            annotatable_docs = annotatable_docs.filter(num_occupied__lt=self.annotations_per_doc)
 
         return annotatable_docs
 
@@ -887,7 +892,9 @@ class Document(models.Model):
             raise Exception("Unknown document type")
 
     def user_can_annotate_document(self, user):
-        """ User must not have completed, pending or rejected the document"""
+        """ User must not have completed, pending or rejected the document,
+        and if the document is not a training or test document then it must
+        not already be fully annotated."""
         num_user_annotation_in_doc = self.annotations.filter(
             Q(user_id=user.pk, status=Annotation.COMPLETED) |
             Q(user_id=user.pk, status=Annotation.PENDING) |
@@ -897,8 +904,10 @@ class Document(models.Model):
             raise RuntimeError(
                 f"The user {user.username} has more than one annotation ({num_user_annotation_in_doc}) in the document.")
 
-        return (num_user_annotation_in_doc < 1 and
-                self.num_completed_and_pending_annotations < self.project.annotations_per_doc)
+        return num_user_annotation_in_doc < 1 and (
+            self.doc_type in (DocumentType.TRAINING, DocumentType.TEST) or
+            self.num_completed_and_pending_annotations < self.project.annotations_per_doc
+        )
 
     def num_user_completed_annotations(self, user):
         return self.annotations.filter(user_id=user.pk, status=Annotation.COMPLETED).count()
