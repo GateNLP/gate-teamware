@@ -8,7 +8,7 @@
                    :name="elemConfig.name"
                    :config="elemConfig"
                    :document="document"
-                   v-model="annotationOutput[elemConfig.name]"
+                   v-model="annotationData[elemConfig.name]"
                    :state="validation[elemConfig.name]"
                    :msg-success="elemConfig.valSuccess"
                    :msg-error="elemConfig.valError"
@@ -85,7 +85,7 @@ export default {
   components: {TextInput, TextareaInput, RadioInput, CheckboxInput, SelectorInput, HtmlDisplay, MarkdownRenderer},
   data() {
     return {
-      annotationOutput: {},
+      annotationData: {},
       validation: {},
       validationErrorMsg: {},
       inputTypes: {
@@ -100,7 +100,7 @@ export default {
       startTime: null,
       DocumentType,
       answerBgColor: {},
-      condition: {},
+      conditions: [],
     }
   },
   props: {
@@ -155,29 +155,37 @@ export default {
       if (!this.config) {
         return [];
       }
-      return this.config.filter((elemConfig) => {
-        if (this.condition[elemConfig.name]) {
-          try {
-            return !!this.condition[elemConfig.name]({
-              document: this.document,
-              annotation: this.annotationOutput,
-              // add useful JS functions to the context
-              String, Object, Array, Date, RegExp,
-              JSON, Math, parseInt, parseFloat,
-              encodeURIComponent, decodeURIComponent
-            });
-          } catch (_) {
-            // treat error as "don't show"
-          }
+      const exprContext = {
+        document: this.document,
+        annotation: this.annotationData,
+        // add useful JS functions to the context
+        String, Object, Array, Date, RegExp,
+        JSON, Math, parseInt, parseFloat,
+        encodeURIComponent, decodeURIComponent
+      };
+      return this.config.filter((elemConfig, i) => {
+        try {
+          return !!this.conditions[i](exprContext);
+        } catch (_) {
+          // treat error as "don't show"
           return false;
         }
-        return true;
       })
+    },
+    annotationOutput() {
+      const output = {}
+      for(const elemConfig of this.shownElements) {
+        const annValue = this.annotationData[elemConfig.name];
+        if(annValue !== undefined && annValue !== null) {
+          output[elemConfig.name] = annValue
+        }
+      }
+      return output
     }
   },
   methods: {
     setAnnotationData(data){
-      this.annotationOutput = data
+      this.annotationData = data
     },
     startTimer(){
       this.startTime = new Date();
@@ -201,18 +209,21 @@ export default {
     },
     generateValidationTracker(config) {
       if (config) {
+        const truePredicate = () => true;
         this.validation = {}
-        this.condition = {}
+        this.conditions = []
         for (let elemConfig of config) {
           this.validation[elemConfig.name] = null
+          let thisElementPredicate = truePredicate;
           if (elemConfig["if"]) {
             try {
-              this.condition[elemConfig.name] = compile(elemConfig["if"])
+              thisElementPredicate = compile(elemConfig["if"])
             } catch (_) {
               // error compiling expression -> treat the same as if the element
               // did not have an "if" at all, and always show it.
             }
           }
+          this.conditions.push(thisElementPredicate)
         }
       }
     },
@@ -233,14 +244,14 @@ export default {
           this.validation[elemName] = false
 
           // Entry exists
-          if (elemName in this.annotationOutput && this.valueNotEmpty(this.annotationOutput[elemName])) {
+          if (elemName in this.annotationData && this.valueNotEmpty(this.annotationData[elemName])) {
 
             if ((elemType === "text" || elemType === "textarea") && "regex" in elemConfig) {
               const regex = new RegExp(elemConfig.regex)
-              this.validation[elemName] = regex.test(this.annotationOutput[elemName])
+              this.validation[elemName] = regex.test(this.annotationData[elemName])
 
             } else if (elemType === "checkbox" && "minSelected" in elemConfig) {
-              this.validation[elemName] = elemConfig.minSelected <= this.annotationOutput[elemName].length
+              this.validation[elemName] = elemConfig.minSelected <= this.annotationData[elemName].length
 
             } else {
               this.validation[elemName] = true
@@ -288,7 +299,7 @@ export default {
       }
     },
     clearForm() {
-      this.annotationOutput = {}
+      this.annotationData = {}
       this.validation = {}
       this.fillWithPreAnnotation()
 
@@ -305,7 +316,7 @@ export default {
       this.startTimer();
     },
     getAnswerBgColor(elemConfig){
-      let answer = this.annotationOutput[elemConfig.name];
+      let answer = this.annotationData[elemConfig.name];
       let expected = this.document[this.doc_gold_field][elemConfig.name].value;
 
       if (Object.keys(elemConfig.options).includes(answer)) {
@@ -322,14 +333,14 @@ export default {
 
       if (elemConfig.type == 'html'){
         return false
-      } else if ((this.document_type == DocumentType.Training) && (this.annotationOutput[elemConfig.name] !== null)) {
+      } else if ((this.document_type == DocumentType.Training) && (this.annotationData[elemConfig.name] !== null)) {
         return true
       } else {
         return false
       }
     },
     answerText(elemConfig){
-      let answer = this.annotationOutput[elemConfig.name];
+      let answer = this.annotationData[elemConfig.name];
       let expected = this.document[this.doc_gold_field][elemConfig.name].value;
 
       if (Object.keys(elemConfig.options) !== null) {
@@ -367,7 +378,7 @@ export default {
         this.fillWithPreAnnotation()
       }
     },
-    annotationOutput: {
+    annotationData: {
       immediate: true,
       deep: true,
       handler() {
