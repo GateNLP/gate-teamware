@@ -5,6 +5,22 @@
 
 ### Fixed
 
+## [2.1.0] 2023-05-03
+
+### Added
+- Radio buttons and checkbox widgets can optionally have a per-choice helptext tooltip ([#329](https://github.com/GateNLP/gate-teamware/pull/329))
+
+### Changed
+- Frontend build chain now uses [Vite](https://vitejs.dev/) ([#342](https://github.com/GateNLP/gate-teamware/pull/342))
+- Navbar and footer are now more responsive ([#339](https://github.com/GateNLP/gate-teamware/pull/339))
+- Node version upgraded to 18 ([#357](https://github.com/GateNLP/gate-teamware/pull/357))
+- Python and Node base images upgraded to used Bullseye Debian ([#357](https://github.com/GateNLP/gate-teamware/pull/357))
+
+### Fixed
+- Footer no longer covers over content ([#339](https://github.com/GateNLP/gate-teamware/pull/339))
+- Maximum annotations per document limit is no longer erroneously enforced on training and test documents ([#355](https://github.com/GateNLP/gate-teamware/pull/355))
+- Release workflow fixed ([#341](https://github.com/GateNLP/gate-teamware/pull/341))
+
 ## [2.0.0] 2023-04-13
 ### Added
 - Isolate documentation build chain ([#326](https://github.com/GateNLP/gate-teamware/pull/326))
