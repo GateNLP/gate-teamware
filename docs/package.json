@@ -6,7 +6,7 @@
   "scripts": {
     "create_version": "node manage_versions.js create $npm_package_version",
     "serve": "vuepress dev docs",
-    "build": "node manage_versions.js build"
+    "build": "NODE_OPTIONS=--openssl-legacy-provider node manage_versions.js build"
   },
   "repository": {
     "type": "git",
