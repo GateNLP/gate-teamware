@@ -1,5 +1,5 @@
 # only need to do the node build once, even if we're building multi-arch
-FROM --platform=$BUILDPLATFORM node:18-buster-slim as nodebuilder
+FROM --platform=$BUILDPLATFORM node:18-bullseye-slim as nodebuilder
 COPY package.json package-lock.json /app/
 COPY frontend/package.json frontend/package-lock.json /app/frontend/
 WORKDIR /app
@@ -8,7 +8,7 @@ COPY frontend/ /app/frontend/
 RUN npm run build
 
 
-FROM python:3.9-slim-buster AS backend
+FROM python:3.9-slim-bullseye AS backend
 ARG TARGETARCH
 ENV PYTHONUNBUFFERED 1
 RUN apt-get --allow-releaseinfo-change update && \
