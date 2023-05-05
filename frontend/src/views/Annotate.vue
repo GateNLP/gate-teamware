@@ -167,12 +167,12 @@
 <script>
 import _ from "lodash"
 import {mapActions, mapState} from "vuex";
-import AnnotationRenderer from "@/components/AnnotationRenderer";
-import MarkdownRenderer from "@/components/MarkdownRenderer";
-import CollapseText from "@/components/CollapseText";
+import AnnotationRenderer from "@/components/AnnotationRenderer.vue";
+import MarkdownRenderer from "@/components/MarkdownRenderer.vue";
+import CollapseText from "@/components/CollapseText.vue";
 import {toastError, toastSuccess} from "@/utils";
 import {DocumentType} from '@/enum/DocumentTypes';
-import DeleteModal from "@/components/DeleteModal";
+import DeleteModal from "@/components/DeleteModal.vue";
 
 export default {
   name: "Annotate",

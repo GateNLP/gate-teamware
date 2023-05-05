@@ -1,7 +1,14 @@
 //@import 'node_modules/bootstrap/scss/bootstrap';
 
 body {
-  background: #fff
+  background: #fff;
+}
+
+// pad the bottom only when the footer is shown
+@media only screen and (min-width: 768px) {
+  body {
+    padding-bottom: 70px;
+  }
 }
 
 legend {
@@ -34,4 +41,9 @@ legend {
 }
 .fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
   opacity: 0;
+}
+
+// annotation help tooltip question mark
+.annotation-help-prompt{
+  color: gray;
 }

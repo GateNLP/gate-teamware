@@ -25,7 +25,7 @@
 </template>
 
 <script>
-const csv = require("csvtojson")
+import csv from "csvtojson"
 import {readFileAsync} from "@/utils";
 
 /**

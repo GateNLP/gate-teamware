@@ -1332,9 +1332,16 @@ class TestAnnotationTaskManagerTrainTestMode(TestEndpoint):
         self.manager = self.get_default_user()
         self.manager_request = self.get_loggedin_request()
 
-        self.ann1 = get_user_model().objects.create(username="ann1")
-        self.ann1_request = self.get_request()
-        self.ann1_request.user = self.ann1
+        self.num_annotators = 6
+        annotator_users = [get_user_model().objects.create(username=f"ann{i}") for i in range(self.num_annotators)]
+        # self.annotators is a list of (user, request) tuples
+        self.annotators = []
+        for ann in annotator_users:
+            req = self.get_request()
+            req.user = ann
+            self.annotators.append((ann, req))
+
+        self.ann1, self.ann1_request = self.annotators[0]
 
         self.proj = Project.objects.create(owner=self.manager)
         self.proj.annotations_per_doc = 3
@@ -1594,19 +1601,74 @@ class TestAnnotationTaskManagerTrainTestMode(TestEndpoint):
         self.assertEqual(0, self.proj.num_annotator_task_remaining(self.ann1))
 
 
-    def complete_annotations(self, num_annotations_to_complete, expected_doc_type_str, use_wrong_answer=False):
+    def test_annotations_per_doc_not_enforced_for_training_or_test(self):
+        self.proj.has_training_stage = True
+        self.proj.has_test_stage = True
+        self.proj.min_test_pass_threshold = 1.0
+        self.proj.can_annotate_after_passing_training_and_test = True
+        self.proj.save()
+
+        docs_annotated_per_user = []
+        for (i, (ann_user, _)) in enumerate(self.annotators):
+            # Add to project
+            self.assertTrue(add_project_annotator(self.manager_request, self.proj.id, ann_user.username))
+
+            # Every annotator should be able to complete every training document, even though
+            # max annotations per document is less than the total number of annotators
+            self.assertEqual(self.num_training_docs,
+                             self.complete_annotations(self.num_training_docs, "Training", annotator=i))
+
+            # Expect perfect score
+            self.proj.refresh_from_db()
+            self.assertEqual(self.num_training_docs,
+                             self.proj.get_annotator_document_score(ann_user, DocumentType.TRAINING))
+
+            # Every annotator should be able to complete every test document, even though
+            # max annotations per document is less than the total number of annotators
+            self.assertEqual(self.num_test_docs,
+                             self.complete_annotations(self.num_test_docs, "Test", annotator=i))
+
+            # Expect perfect score
+            self.proj.refresh_from_db()
+            self.assertEqual(self.num_training_docs,
+                             self.proj.get_annotator_document_score(ann_user, DocumentType.TRAINING))
+
+            # Now attempt to complete task normally
+            num_annotated = self.complete_annotations(self.num_docs, "Annotation", annotator=i)
+            docs_annotated_per_user.append(num_annotated)
+            self.assertLessEqual(num_annotated, self.proj.max_num_task_per_annotator,
+                                 f"Annotator {i} was allowed to annotate too many documents")
+
+        # All documents should now be fully annotated
+        self.assertEqual(sum(docs_annotated_per_user), self.num_docs * self.proj.annotations_per_doc,
+                         "Project was not fully annotated")
+
+        # But at least one user must have annotated strictly less than max_num_task_per_annotator,
+        # since the project was set up such that 20 docs * 3 annotations per doc is less than
+        # 6 annotators * 12 docs per annotator (60% of the corpus) - this verifies that the max
+        # annotators per document _does_ apply to the annotation phase
+        self.assertTrue(any(n < self.proj.max_num_task_per_annotator for n in docs_annotated_per_user),
+                        "All users got their full quota of documents - this is more than 3 annotations per doc")
+
+
+    def complete_annotations(self, num_annotations_to_complete, expected_doc_type_str, *, annotator=0,
+                             use_wrong_answer=False):
 
         answer = "positive"
         if use_wrong_answer:
             answer = "negative"
 
+        ann, ann_req = self.annotators[annotator]
+
         # Expect to get self.num_training_docs tasks
         num_completed_tasks = 0
         for i in range(num_annotations_to_complete):
-            task_context = get_annotation_task(self.ann1_request)
+            task_context = get_annotation_task(ann_req)
             if task_context:
-                self.assertEqual(expected_doc_type_str, task_context["document_type"])
-                complete_annotation_task(self.ann1_request, task_context["annotation_id"], {"sentiment": answer})
+                self.assertEqual(expected_doc_type_str, task_context.get("document_type"),
+                                 f"Document type does not match in task {task_context!r}, " +
+                                 "annotator {ann.username}, document {i}")
+                complete_annotation_task(ann_req, task_context["annotation_id"], {"sentiment": answer})
                 num_completed_tasks += 1
 
         return num_completed_tasks

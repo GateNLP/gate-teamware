@@ -140,7 +140,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "frontend/public/static"),
-    os.path.join(BASE_DIR, "frontend/static"),
+    os.path.join(BASE_DIR, "frontend/dist/static"),
 ]
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
@@ -265,3 +265,7 @@ DELETED_USER_FIRSTNAME = "Deleted"
 DELETED_USER_LASTNAME = "Deleted"
 DELETED_USER_EMAIL_DOMAIN = "teamware-deleted.com"
 
+"""
+Frontend dev server configuration
+"""
+FRONTEND_DEV_SERVER_USE = True

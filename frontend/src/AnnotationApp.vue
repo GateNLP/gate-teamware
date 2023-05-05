@@ -2,7 +2,7 @@
   <div id="app">
     <navbar></navbar>
     <router-view :key="$route.fullPath"></router-view>
-    <pagefooter></pagefooter>
+    <pagefooter class="d-none d-md-block"></pagefooter>
   </div>
 </template>
 <script>

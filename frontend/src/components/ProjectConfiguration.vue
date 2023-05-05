@@ -224,14 +224,14 @@
 
 <script>
 import {mapActions, mapGetters, mapState} from "vuex";
-import ProjectStatusBadges from "@/components/ProjectStatusBadges";
-import ProjectIcon from "@/components/ProjectIcon";
-import MarkdownEditor from "@/components/MarkdownEditor";
-import JsonEditor from "@/components/JsonEditor";
-import AnnotationRenderer from "@/components/AnnotationRenderer";
+import ProjectStatusBadges from "@/components/ProjectStatusBadges.vue";
+import ProjectIcon from "@/components/ProjectIcon.vue";
+import MarkdownEditor from "@/components/MarkdownEditor.vue";
+import JsonEditor from "@/components/JsonEditor.vue";
+import AnnotationRenderer from "@/components/AnnotationRenderer.vue";
 import VJsoneditor from "v-jsoneditor";
 import {flatten, readFileAsync, toastError, toastSuccess} from "@/utils";
-import CSVDisplay from "@/components/CSVDisplay";
+import CSVDisplay from "@/components/CSVDisplay.vue";
 
 
 export default {

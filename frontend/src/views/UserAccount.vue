@@ -131,10 +131,10 @@
 <script>
 import {mapState, mapActions, mapGetters} from "vuex";
 
-import AccountActivationGenerator from "@/components/AccountActivationGenerator";
-import ProjectIcon from "@/components/ProjectIcon";
-import UserAnnotatedProject from "@/components/UserAnnotatedProject";
-import DeleteModal from "../components/DeleteModal";
+import AccountActivationGenerator from "@/components/AccountActivationGenerator.vue";
+import ProjectIcon from "@/components/ProjectIcon.vue";
+import UserAnnotatedProject from "@/components/UserAnnotatedProject.vue";
+import DeleteModal from "@/components/DeleteModal.vue";
 import {toastError, toastSuccess} from "@/utils";
 
 export default {

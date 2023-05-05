@@ -66,6 +66,10 @@ describe('Annotation tests', () => {
         cy.contains(annotatePageStr).click()
         cy.contains("New project name")
         cy.contains("Start annotating").click()
+
+        // Check tooltip prompt is visible, hovers aren't supported in cypress, see: https://docs.cypress.io/api/commands/hover
+        cy.get('.annotation-help-prompt').should('be.visible')
+
         cy.contains("Negative").click()
         cy.contains("Submit").click()
 

@@ -55,9 +55,8 @@ describe('User options', () => {
 
     it('About page', () => {
         cy.visit("/")
-        cy.contains('About').click()
+        cy.contains('About').click({force: true})
         cy.contains('About GATE Teamware')
-        expect(true).to.equal(true) // Example assert
         cy.contains('TEAMWARE')
     })
 

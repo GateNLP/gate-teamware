@@ -11,7 +11,7 @@
 
 <script>
 import {mapActions} from "vuex";
-import ScatterPlot from "@/components/ScatterPlot";
+import ScatterPlot from "@/components/ScatterPlot.vue";
 
 export default {
     name: "AnnotationStatistics",
@@ -27,19 +27,20 @@ export default {
             medianAnnotationTime: 0,
             chartOptions: {
                 scales:{
-                    xAxes: [{
-                        scaleLabel:{
-                            labelString: 'Time to complete annotation (seconds)',
-                            display: true,
-                            fontSize: 20,
-                        },
-                    }],
-                    yAxes: [{
-                        display: false,
-                    }],
+                    x: {
+                      type: "linear",
+                      title: {
+                        text: "Time to complete annotation (seconds)",
+                        display: true
+                      }
+                    },
+                    y: {
+                      type: "linear",
+                      display: false,
+
+                    },
                 },
-                responsive: true,
-                maintainAspectRatio: false,
+                responsive: true
             },
         }
     },

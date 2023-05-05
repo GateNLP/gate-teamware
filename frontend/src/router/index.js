@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import Home from '../views/Home.vue'
-import store from "../store"
+import Home from '@/views/Home.vue'
+import store from "@/store"
 
 Vue.use(VueRouter)
 
@@ -18,87 +18,87 @@ const routes = [
         // route level code-splitting
         // this generates a separate chunk (about.[hash].js) for this route
         // which is lazy-loaded when the route is visited.
-        component: () => import(/* webpackChunkName: "about" */ '../views/About.vue'),
+        component: () => import(/* webpackChunkName: "about" */ '@/views/About.vue'),
         meta: {guest: true},
     },
     {
         path: '/privacypolicy',
         name: 'Privacy Policy',
-        component: () => import('../views/PrivacyPolicy.vue'),
+        component: () => import('@/views/PrivacyPolicy.vue'),
         meta: {guest: true},
     },
     {
         path: '/terms',
         name: 'Terms & Conditions',
-        component: () => import('../views/TermsAndConditions.vue'),
+        component: () => import('@/views/TermsAndConditions.vue'),
         meta: {guest: true},
     },
     {
         path: '/login',
         name: 'Login',
-        component: () => import('../views/Login.vue'),
+        component: () => import('@/views/Login.vue'),
         meta: {guest: true},
     },
     {
         path: '/register',
         name: 'Register',
-        component: () => import('../views/Register.vue'),
+        component: () => import('@/views/Register.vue'),
         meta: {guest: true},
     },
 
     {
         path: '/activate',
         name: 'ActivateAccount',
-        component: () => import('../views/ActivateAccount'),
+        component: () => import('@/views/ActivateAccount.vue'),
         meta: {guest: true},
     },
     {
         path: '/passwordreset',
         name: 'PasswordReset',
-        component: () => import('../views/PasswordReset'),
+        component: () => import('@/views/PasswordReset.vue'),
         meta: {guest: true},
     },
     {
         path: '/account',
         name: 'UserAccount',
-        component: () => import('../views/UserAccount.vue'),
+        component: () => import('@/views/UserAccount.vue'),
         meta: {requiresAuth: true},
     },
     {
         path: '/user_annotations',
         name: 'UserAnnotations',
-        component: () => import('../views/UserAnnotations.vue'),
+        component: () => import('@/views/UserAnnotations.vue'),
         meta: {requiresAuth: true},
     },
     {
         path: '/projects',
         name: 'Projects',
-        component: () => import('../views/Projects.vue'),
+        component: () => import('@/views/Projects.vue'),
         meta: {requiresManager: true},
     },
     {
         path: '/project/:projectId',
         name: 'Project',
-        component: () => import('../views/Project'),
+        component: () => import('@/views/Project.vue'),
         props: true,
         meta: {requiresManager: true},
     },
     {
         path: '/annotate',
         name: 'Annotate',
-        component: () => import('../views/Annotate'),
+        component: () => import('@/views/Annotate.vue'),
         meta: {requiresAuth: true},
     },
     {
         path: '/manageusers',
         name: 'ManageUsers',
-        component: () => import('../views/ManageUsers'),
+        component: () => import('@/views/ManageUsers.vue'),
         meta: {requiresAdmin: true},
     },
     {
         path: '/cookies',
         name: 'Cookies',
-        component: () => import('../views/Cookies'),
+        component: () => import('@/views/Cookies.vue'),
         meta: {guest: true},
     },
 

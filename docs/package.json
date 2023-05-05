@@ -1,12 +1,12 @@
 {
   "name": "gate-teamware-docs",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Documentation for GATE Teamware.",
   "main": "index.js",
   "scripts": {
     "create_version": "node manage_versions.js create $npm_package_version",
     "serve": "vuepress dev docs",
-    "build": "node manage_versions.js build"
+    "build": "NODE_OPTIONS=--openssl-legacy-provider node manage_versions.js build"
   },
   "repository": {
     "type": "git",

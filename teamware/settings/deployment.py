@@ -8,6 +8,8 @@ MIDDLEWARE.append(
 'django.middleware.csrf.CsrfViewMiddleware'
 )
 
+DEBUG = (os.environ.get('DJANGO_DEBUG', "false").lower() in ['true', 'yes', 'on', '1'])
+
 if 'DJANGO_ALLOWED_HOSTS' in os.environ:
     # This looks a bit horrible, but the logic is split DJANGO_ALLOWED_HOSTS on
     # commas, strip surrounding whitespace off each element, and filter out any
@@ -51,3 +53,5 @@ DATABASES = {
 }
 
 TELEMETRY_ON = True
+
+FRONTEND_DEV_SERVER_USE = False

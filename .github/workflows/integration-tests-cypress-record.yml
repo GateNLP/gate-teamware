@@ -40,7 +40,7 @@ jobs:
           
       - uses: actions/setup-node@v3
         with:
-          node-version: 14
+          node-version: 18
 
       - name: Run integration tests with cypress
         uses: cypress-io/github-action@v4

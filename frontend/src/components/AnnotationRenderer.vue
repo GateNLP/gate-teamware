@@ -23,27 +23,27 @@
         </b-card>
       </b-form-group>
     </div>
-    <b-row>
+    <BRow>
       <b-col>
         <BButton @click.prevent="submitHandler" class="mr-4" variant="success">Submit</BButton>
         <BButton @click.prevent="clearFormHandler" class="mr-4" variant="warning">Clear</BButton>
         <BButton v-if="allow_document_reject" @click.prevent="rejectHandler" variant="danger">Reject document</BButton>
         <BButton v-if="allow_cancel" @click.prevent="cancelHandler" variant="danger">Cancel</BButton>
       </b-col>
-    </b-row>
+    </BRow>
   </div>
 </template>
 
 <script>
 
-import TextInput from "@/components/annotation/TextInput";
-import TextareaInput from "@/components/annotation/TextareaInput";
-import RadioInput from "@/components/annotation/RadioInput";
-import CheckboxInput from "@/components/annotation/CheckboxInput";
-import SelectorInput from "@/components/annotation/SelectorInput";
-import HtmlDisplay from "@/components/annotation/HtmlDisplay";
+import TextInput from "@/components/annotation/TextInput.vue";
+import TextareaInput from "@/components/annotation/TextareaInput.vue";
+import RadioInput from "@/components/annotation/RadioInput.vue";
+import CheckboxInput from "@/components/annotation/CheckboxInput.vue";
+import SelectorInput from "@/components/annotation/SelectorInput.vue";
+import HtmlDisplay from "@/components/annotation/HtmlDisplay.vue";
 import {DocumentType} from '@/enum/DocumentTypes';
-import MarkdownRenderer from "@/components/MarkdownRenderer";
+import MarkdownRenderer from "@/components/MarkdownRenderer.vue";
 import _ from "lodash"
 import {getValueFromKeyPath} from "@/utils/dict";
 
@@ -265,7 +265,7 @@ export default {
 
       if (elemConfig.type == 'html'){
         return false
-      } else if ((this.document_type == DocumentType.Training) && (Object.keys(elemConfig.options).includes(this.annotationOutput[elemConfig.name]))) {
+      } else if ((this.document_type == DocumentType.Training) && (this.annotationOutput[elemConfig.name] !== null)) {
         return true
       } else {
         return false
@@ -275,7 +275,7 @@ export default {
       let answer = this.annotationOutput[elemConfig.name];
       let expected = this.document[this.doc_gold_field][elemConfig.name].value;
 
-      if (Object.keys(elemConfig.options).includes(answer)) {
+      if (Object.keys(elemConfig.options) !== null) {
         if (answer == expected){
           return "Correct! ✔️"
         } else {

@@ -1,12 +1,30 @@
 <template>
   <InputErrorDisplay :state="state" :msg-error="msgError" :msg-success="msgSuccess">
-    <b-form-checkbox-group v-model="inputVal" :name="config.name" :options="options" :state="state" :stacked="config.orientation === 'vertical'"></b-form-checkbox-group>
+
+    <b-form-checkbox-group 
+      v-model="inputVal"
+      :stacked="config.orientation=='vertical'"
+      :name="config.name"
+      >
+      
+      <b-form-checkbox 
+        :key="option.value" 
+        :value="option.value" 
+        :state="state"
+        v-for="(option, idx) in options"
+        >
+        {{ option.text }}
+        <b-icon-question-circle v-if="option.helptext != null" :id="config.name + '__opt' + idx" class="annotation-help-prompt"></b-icon-question-circle>
+        <b-tooltip v-if="option.helptext != null" :target="config.name + '__opt' + idx" :title="option.helptext"></b-tooltip>
+      </b-form-checkbox>
+
+    </b-form-checkbox-group>
   </InputErrorDisplay>
 </template>
 
 <script>
 import { generateBVOptions } from '@/utils/annotations'
-import InputErrorDisplay from "@/components/annotation/InputErrorDisplay";
+import InputErrorDisplay from "@/components/annotation/InputErrorDisplay.vue";
 export default {
 name: "CheckboxInput",
   components: {InputErrorDisplay},

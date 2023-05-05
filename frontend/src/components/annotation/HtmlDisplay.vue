@@ -3,7 +3,7 @@
 </template>
 
 <script>
-let Mustache = require('mustache')
+import Mustache from "mustache"
 
 export default {
   name: "HtmlDisplay",
