@@ -485,6 +485,9 @@ class Project(models.Model):
             annotator_project.status = AnnotatorProject.COMPLETED
             annotator_project.rejected = True
             annotator_project.save()
+
+            Annotation.clear_all_pending_user_annotations(user)
+
         except ObjectDoesNotExist:
             raise Exception(f"User {user.username} is not an annotator of the project.")
 
@@ -623,7 +626,7 @@ class Project(models.Model):
 
         annotation = current_annotations.first()
         if annotation.document.project != self:
-            return RuntimeError(
+            raise RuntimeError(
                 "The annotation doesn't belong to this project! Annotator should only work on one project at a time")
 
         return annotation
