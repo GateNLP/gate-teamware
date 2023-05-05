@@ -623,7 +623,7 @@ class Project(models.Model):
 
         annotation = current_annotations.first()
         if annotation.document.project != self:
-            return RuntimeError(
+            raise RuntimeError(
                 "The annotation doesn't belong to this project! Annotator should only work on one project at a time")
 
         return annotation
