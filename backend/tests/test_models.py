@@ -411,6 +411,26 @@ class TestProjectModel(ModelTestCase):
         self.assertEqual(AnnotatorProject.COMPLETED, annotator_project.status)
         self.assertEqual(True, annotator_project.rejected)
 
+    def test_remove_annotator_clears_pending(self):
+        annotator = self.annotators[0]
+        # Start a task - should be one pending annotation
+        self.project.get_annotator_task(annotator)
+        self.assertEqual(1, annotator.annotations.filter(status=Annotation.PENDING).count())
+
+        # remove annotator from project - pending annotations should be cleared
+        self.project.remove_annotator(annotator)
+        self.assertEqual(0, annotator.annotations.filter(status=Annotation.PENDING).count())
+
+    def test_reject_annotator_clears_pending(self):
+        annotator = self.annotators[0]
+        # Start a task - should be one pending annotation
+        self.project.get_annotator_task(annotator)
+        self.assertEqual(1, annotator.annotations.filter(status=Annotation.PENDING).count())
+
+        # reject annotator from project - pending annotations should be cleared
+        self.project.reject_annotator(annotator)
+        self.assertEqual(0, annotator.annotations.filter(status=Annotation.PENDING).count())
+
     def test_num_documents(self):
         self.assertEqual(self.project.num_documents, self.num_docs)
 
