@@ -510,7 +510,7 @@ describe("AnnotationRenderer", () => {
             })
         })
 
-        it('Test array condition', () => {
+        it('Test quantifier and regex', () => {
             cy.mount(AnnotationRenderer, {
                 propsData: {
                     config: [
@@ -526,7 +526,7 @@ describe("AnnotationRenderer", () => {
                         },
                         {
                             name: "has_a",
-                            if: "annotation.fruits.some((val) => val.includes('a'))",
+                            if: "any(val in annotation.fruits, val =~ /a/)",
                             type: "html",
                             text: "You like fruit with an 'a' in its name"
                         }
@@ -544,57 +544,6 @@ describe("AnnotationRenderer", () => {
             // check apple as well, label should now appear
             cy.get("input[name='fruits'][value='apple']").check({force: true})
             cy.contains('in its name').should('exist')
-        })
-
-        it('Test global objects', () => {
-            cy.mount(AnnotationRenderer, {
-                propsData: {
-                    config: [
-                        {
-                            name: "number1",
-                            type: "radio",
-                            title: "Pick a number",
-                            options: [
-                                {"value": "1", "label": "One"},
-                                {"value": "2", "label": "Two"},
-                                {"value": "3", "label": "Three"}
-                            ]
-                        },
-                        {
-                            name: "number2",
-                            type: "radio",
-                            title: "Pick another number",
-                            options: [
-                                {"value": "1", "label": "One"},
-                                {"value": "2", "label": "Two"},
-                                {"value": "3", "label": "Three"}
-                            ]
-                        },
-                        {
-                            name: "more_than_two",
-                            if: "Math.max(annotation.number1, annotation.number2) > 2",
-                            type: "html",
-                            text: "The highest number you picked was greater than 2"
-                        }
-                    ],
-                }
-            })
-
-            // html label should not be visible
-            cy.contains('highest number').should('not.exist')
-
-            // select 1 and 2
-            cy.get("input[name='number1'][value='1']").check({force: true})
-            cy.get("input[name='number2'][value='2']").check({force: true})
-
-            // html label should still not be visible
-            cy.contains('highest number').should('not.exist')
-
-            // select a 3
-            cy.get("input[name='number1'][value='3']").check({force: true})
-
-            // html label should appear
-            cy.contains('highest number').should('exist')
         })
     })
 })

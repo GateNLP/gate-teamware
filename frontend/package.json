@@ -13,8 +13,6 @@
     "test": "run-s test:unit test:component"
   },
   "dependencies": {
-    "@jsep-plugin/arrow": "^1.0.5",
-    "@jsep-plugin/new": "^1.0.3",
     "@jsep-plugin/numbers": "^1.0.1",
     "@jsep-plugin/object": "^1.2.1",
     "@jsep-plugin/regex": "^1.0.3",

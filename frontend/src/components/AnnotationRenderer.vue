@@ -46,31 +46,7 @@ import {DocumentType} from '@/enum/DocumentTypes';
 import MarkdownRenderer from "@/components/MarkdownRenderer.vue";
 import _ from "lodash"
 import {getValueFromKeyPath} from "@/utils/dict";
-import {compile, registerPlugin} from "jse-eval";
-
-// set up jsep extensions
-// arrow functions, to allow things like "annotations.myCheckboxes.some(v => v < 4)"
-// to test multi-select checkboxes
-import jsepArrow from "@jsep-plugin/arrow";
-// new operator to allow for date comparisons with "new Date()" or similar
-import jsepNew from "@jsep-plugin/new";
-// hex and octal numeric literals
-import jsepNumbers from "@jsep-plugin/numbers";
-// object expressions
-import jsepObject from "@jsep-plugin/object";
-// regex support, to allow for if tests that check a text field against a regex
-import jsepRegex from "@jsep-plugin/regex";
-// destructuring, useful in filtering functions etc.
-import jsepSpread from "@jsep-plugin/spread";
-
-registerPlugin(
-    jsepArrow,
-    jsepNew,
-    jsepNumbers,
-    jsepObject,
-    jsepRegex,
-    jsepSpread,
-)
+import {compile} from "@/utils/expressions"
 
 /**
  * Renders annotation display and input capture from the config property
@@ -155,17 +131,12 @@ export default {
       if (!this.config) {
         return [];
       }
-      const exprContext = {
-        document: this.document,
-        annotation: this.annotationData,
-        // add useful JS functions to the context
-        String, Object, Array, Date, RegExp,
-        JSON, Math, parseInt, parseFloat,
-        encodeURIComponent, decodeURIComponent
-      };
       return this.config.filter((elemConfig, i) => {
         try {
-          return !!this.conditions[i](exprContext);
+          return this.conditions[i]({
+            document: this.document,
+            annotation: this.annotationData,
+          });
         } catch (_) {
           // treat error as "don't show"
           return false;
