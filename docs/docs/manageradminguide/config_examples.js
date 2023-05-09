@@ -204,6 +204,26 @@ export default {
         ]
     },
 
+    configConditional1: [
+        {
+            "name": "uri",
+            "type": "radio",
+            "title": "Select the most appropriate URI",
+            "options":[
+                {"fromDocument": "candidates"},
+                {"value": "other", "label": "Other"}
+            ]
+        },
+        {
+            "name": "otherValue",
+            "type": "text",
+            "title": "Please specify another value",
+            "if": "annotation.uri == 'other'",
+            "regex": "^(https?|urn):",
+            "valError": "Please specify a URI (starting http:, https: or urn:)"
+        }
+    ],
+
 
     doc1: {text: "Sometext with <strong>html</strong>"},
     doc2: {

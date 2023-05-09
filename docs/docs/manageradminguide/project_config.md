@@ -135,7 +135,7 @@ Another field can be added to collect more information, e.g. a text field for op
 </AnnotationRendererPreview>
 
 Note that for the above case, the `optional` field is added ensure that allows user to not have to input any value.
-This `optional` field can be used on all components.
+This `optional` field can be used on all components.  Any component may optionally have a field named `if`, containing an expression that is used to determine whether or not the component appears based on information in the document and/or the values entered in the other components.  For example the user could be presented with a set of options that includes an "other" choice, and if the annotator chooses "other" then an additional free text field appears for them to fill in.  The `if` option is described in more detail under the [conditional components](#conditional-components) section below.
 
 Some fields are available to configure which are specific to components, e.g. the `options` field are only available for
 the `radio`, `checkbox` and `selector` components. See details below on the usage of each specific component.
@@ -512,6 +512,93 @@ The separators can be more than one character, and you can set `"valueLabelSepar
 ### Mixing static and dynamic options
 
 Static and `fromDocument` options may be freely interspersed in any order, so you can have a fully-dynamic set of options by specifying _only_ a `fromDocument` entry with no static options, or you can have static options that are listed first followed by dynamic options, or dynamic options first followed by static, etc.
+
+### Conditional components
+
+By default all components listed in the project configuration will be shown for all documents. However this is not always appropriate, for example you may have some components that are only relevant to certain documents, or only relevant for particular combinations of values in _other_ components.  To allow for these kinds of scenarios any component can have a field named `if` specifying the conditions under which that component should be shown.
+
+The `if` field is an _expression_ that is able to refer to fields in both the current _document_ being annotated and the current state of the other annotation components.  The expression language is largely based on a subset of the standard JavaScript expression syntax but with a few additional syntax elements to ease working with array data and regular expressions.
+
+The following simple example shows how you might implement an "Other (please specify)" pattern, where the user can select from a list of choices but also has the option to supply their own answer if none of the choices are appropriate.  The free text field is only shown if the user selects the "other" choice.
+
+<AnnotationRendererPreview :config="configs.configConditional1" :document="configs.docDbpediaExample">
+
+**Project configuration**
+
+```json
+[
+  {
+    "name": "uri",
+    "type": "radio",
+    "title": "Select the most appropriate URI",
+    "options":[
+      {"fromDocument": "candidates"},
+      {"value": "other", "label": "Other"}
+    ]
+  },
+  {
+    "name": "otherValue",
+    "type": "text",
+    "title": "Please specify another value",
+    "if": "annotation.uri == 'other'",
+    "regex": "^(https?|urn):",
+    "valError": "Please specify a URI (starting http:, https: or urn:)"
+  }
+]
+```
+
+**Document**
+
+```json
+{
+  "text": "President Bush visited the air base yesterday...",
+  "candidates": [
+    {
+      "value": "http://dbpedia.org/resource/George_W._Bush",
+      "label": "George W. Bush (Jnr)"
+    },
+    {
+      "value": "http://dbpedia.org/resource/George_H._W._Bush",
+      "label": "George H. W. Bush (Snr)"
+    }
+  ]
+}
+```
+</AnnotationRendererPreview>
+
+The full list of supported constructions is as follows:
+
+- the `annotation` variable refers to the current state of the annotation components for this document
+  - the current value of a particular component can be accessed as `annotation.componentName` or `annotation['component name']` - the brackets version will always work, the dot version works if the component's `name` is a valid JavaScript identifier
+  - if a component has not been set since the form was last cleared the value may be `null` or `undefined` - the expression should be written to cope with both
+  - the value of a `text`, `textarea`, `radio` or `selector` component will be a single string (or null/undefined), the value of a `checkbox` component will be an _array_ of strings since more than one value may be selected.  If no value is selected the array may be null, undefined or empty, the expression must be prepared to handle any of these
+- the `document` variable refers to the current document that is being annotated
+  - again properties of the document can be accessed as `document.propertyName` or `document['property name']`
+  - continue the same pattern for nested properties e.g. `document.scores.label1`
+  - individual elements of array properties can be accessed by zero-based index (e.g. `document.options[0]`)
+- various comparison operators are available:
+  - `==` and `!=` (equal and not-equal)
+  - `<`, `<=`, `>=`, `>` (less-than, less-or-equal, greater-or-equal, greater-than)
+    - these operators follow JavaScript rules, which are not always intuitive.  Generally if both arguments are strings then they will be compared by lexicographic order, but if either argument is a number then the other one will also be converted to a number before comparing.  So if the `score` component is set to the value "10" (a string of two digits) then `annotation.score < 5` would be _false_ (10 is converted to number and compared to 5) but `annotation.score < '5'` would be _true_ (the string "10" sorts before the string "5")
+  - `in` checks for the presence of an item in an array or a key in an object
+    - e.g. `'other' in annotation.someCheckbox` checks if the `other` option has been ticked in a checkbox component (whose value is an array)
+    - this is different from normal JavaScript rules, where `i in myArray` checks for the presence of an array _index_ rather than an array _item_
+- other operators
+  - `+` (concatenate strings, or add numbers)
+    - if either argument is a string then both sides are converted to strings and concatenated together
+    - otherwise both sides are treated as numbers and added
+  - `-`, `*`, `/`, `%` (subtraction, multiplication, division and remainder)
+  - `&&`, `||` (boolean AND and OR)
+  - `!` (prefix boolean NOT, e.g. `!annotation.selected` is true if `selected` is false/null/undefined and false otherwise)
+  - conditional operator `expr ? valueIfTrue : valueIfFalse` (exactly as in JavaScript, first evaluates the test `expr`, then either the `valueIfTrue` or `valueIfFalse` depending on the outcome of the test)
+- `value =~ /regex/` tests whether the given string value contains any matches for the given [regular expression](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions#writing_a_regular_expression_pattern)
+  - use `^` and/or `$` to anchor the match to the start and/or end of the value, for example `annotation.example =~ /^a/i` checks whether the `example` annotation value _starts with_ "a" or "A" (the `/i` flag makes the expression case-insensitive)
+  - since the project configuration is entered as JSON, any backslash characters within the regex must be doubled to escape them from the JSON parser, i.e. `"if": "annotation.option =~ /\\s/"` would check if `option` contains any space characters (for which the regular expression literal is `/\s/`)
+- _Quantifier_ expressions let you check whether `any` or `all` of the items in an array or key/value pairs in an object match a predicate expression.  The general form is `any(x in expr, predicate)` or `all(x in expr, predicate)`, where `expr` is an expression that resolves to an array or object value, `x` is a new identifier, and `predicate` is the expression to test each item against.  The `predicate` expression can refer to the `x` identifier
+  - `any(option in annotation.someCheckbox, option > 3)`
+  - `all(e in document.scores, e.value < 0.7)` (assuming `scores` is an object mapping labels to scores, e.g. `{"scores": {"positive": 0.5, "negative": 0.3}}`)
+    - when testing a predicate against an _object_ each entry has `.key` and `.value` properties giving the key and value of the current entry
+  - on a null, undefined or empty array/object, `any` will return _false_ (since there are no items that pass the test) and `all` will return _true_ (since there are no items that _fail_ the test)
 
 <script>
 import configs from './config_examples';
