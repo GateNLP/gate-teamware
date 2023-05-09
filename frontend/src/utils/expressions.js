@@ -22,7 +22,9 @@ ExpressionEval.registerPlugin(
 // B.includes(A) if B is an array, otherwise it mean the same as the normal Javascript
 // "A in B" checking whether B has a property named (the result of evaluating) A
 function inOperator(a, b) {
-    if(Array.isArray(b)) {
+    if(!b) {
+        return false
+    } else if(Array.isArray(b)) {
         return b.includes(a)
     } else {
         return a in b
@@ -106,8 +108,11 @@ function preprocessQuantifier(type, args) {
  *
  * all(x in expr, predicate)
  *
- * expr should evaluate to an array, we then evaluate predicate for each item in
- * the array in turn, stopping if one of them returns a falsy value.
+ * expr should evaluate to an array or object - if it is an array we will be
+ * iterating over the array elements, otherwise over its properties as returned
+ * by {@link Object.entries} and converted to objects with properties "key" and
+ * "value". We then evaluate predicate for each item in turn, stopping if one of
+ * them returns a falsy value.
  * @param exprEval ExpressionEval instance
  * @param args array of nodes representing the arguments - there should be either
  * one argument (evaluating to a list) or two arguments the first of which is
@@ -116,15 +121,25 @@ function preprocessQuantifier(type, args) {
 function evalAllQuantifier(exprEval, args) {
     let [bindingVar, arrayExpr, predicateExpr] = preprocessQuantifier("all", args)
 
-    const newContext = { ...exprEval.context }
     return exprEval.eval(arrayExpr, (arr) => {
+        if(!arr) {
+            // treat null or undefined the same as an empty array
+            return true;
+        }
+        const wasArray = Array.isArray(arr);
+        if (!wasArray) {
+            arr = Object.entries(arr);
+        }
         if(arr.length === 0) {
             // trivially true if no items in the array
             return true;
         }
+        const newContext = { ...exprEval.context }
         if (exprEval.isAsync) {
             const evalOnce = (item, i) => {
-                newContext[bindingVar] = item
+                // if we are iterating over an Object.entries, wrap the entry array into
+                // an object with named properties
+                newContext[bindingVar] = wasArray ? item : {key: item[0], value: item[1]};
                 return ExpressionEval.evalAsync(predicateExpr, newContext).then((result) => {
                     if(result) {
                         i++;
@@ -141,7 +156,9 @@ function evalAllQuantifier(exprEval, args) {
             return evalOnce(arr[0], 0)
         } else {
             return arr.every((item) => {
-                newContext[bindingVar] = item;
+                // if we are iterating over an Object.entries, wrap the entry array into
+                // an object with named properties
+                newContext[bindingVar] = wasArray ? item : {key: item[0], value: item[1]};
                 return ExpressionEval.eval(predicateExpr, newContext)
             })
         }
@@ -153,8 +170,11 @@ function evalAllQuantifier(exprEval, args) {
  *
  * any(x in expr, predicate)
  *
- * expr should evaluate to an array, we then evaluate predicate for each item in
- * the array in turn, stopping if one of them returns a truthy value.
+ * expr should evaluate to an array or object - if it is an array we will be
+ * iterating over the array elements, otherwise over its properties as returned
+ * by {@link Object.entries} and converted to objects with properties "key" and
+ * "value". We then evaluate predicate for each item in turn, stopping if one of
+ * them returns a truthy value.
  * @param exprEval ExpressionEval instance
  * @param args array of nodes representing the arguments - there should be either
  * one argument (evaluating to a list) or two arguments the first of which is
@@ -163,15 +183,25 @@ function evalAllQuantifier(exprEval, args) {
 function evalAnyQuantifier(exprEval, args) {
     let [bindingVar, arrayExpr, predicateExpr] = preprocessQuantifier("any", args)
 
-    const newContext = { ...exprEval.context }
     return exprEval.eval(arrayExpr, (arr) => {
+        if(!arr) {
+            // treat null or undefined the same as an empty array
+            return false;
+        }
+        const wasArray = Array.isArray(arr);
+        if (!wasArray) {
+            arr = Object.entries(arr);
+        }
         if (arr.length === 0) {
             // trivially false if no items in the array
             return false;
         }
+        const newContext = { ...exprEval.context }
         if (exprEval.isAsync) {
             const evalOnce = (item, i) => {
-                newContext[bindingVar] = item
+                // if we are iterating over an Object.entries, wrap the entry array into
+                // an object with named properties
+                newContext[bindingVar] = wasArray ? item : {key: item[0], value: item[1]};
                 return ExpressionEval.evalAsync(predicateExpr, newContext).then((result) => {
                     if (result) {
                         return true;
@@ -188,7 +218,9 @@ function evalAnyQuantifier(exprEval, args) {
             return evalOnce(arr[0], 0)
         } else {
             return arr.some((item) => {
-                newContext[bindingVar] = item;
+                // if we are iterating over an Object.entries, wrap the entry array into
+                // an object with named properties
+                newContext[bindingVar] = wasArray ? item : {key: item[0], value: item[1]};
                 return ExpressionEval.eval(predicateExpr, newContext)
             })
         }

@@ -49,19 +49,41 @@ describe("Expression parsing & evaluation", () => {
         })).toBeFalsy()
     })
 
-    it("Test existential quantifier with predicate", () => {
-        const allFn = compile("any(v in annotation.values, v < 3)")
+    it("Test universal quantifier over object", () => {
+        const allFn = compile("all(prop in document.labels, prop.value > 0.5)")
         expect(allFn({
+            document: {
+                labels: {
+                    "a": 0.3,
+                    "b": 0.8,
+                    "c": 0.95
+                }
+            }
+        })).toBeFalsy()
+        expect(allFn({
+            document: {
+                labels: {
+                    "a": 0.6,
+                    "b": 0.8,
+                    "c": 0.95
+                }
+            }
+        })).toBeTruthy()
+    })
+
+    it("Test existential quantifier with predicate", () => {
+        const anyFn = compile("any(v in annotation.values, v < 3)")
+        expect(anyFn({
             annotation: {
                 values: []
             }
         })).toBeFalsy()
-        expect(allFn({
+        expect(anyFn({
             annotation: {
                 values: ["1", "4"]
             }
         })).toBeTruthy()
-        expect(allFn({
+        expect(anyFn({
             annotation: {
                 values: ["3", "4"]
             }
@@ -78,6 +100,28 @@ describe("Expression parsing & evaluation", () => {
         expect(anyFnNoPredicate({
             annotation: {
                 values: [null, "", 0]
+            }
+        })).toBeFalsy()
+    })
+
+    it("Test existential quantifier over object", () => {
+        const anyFn = compile("any(prop in document.labels, prop.value < 0.5)")
+        expect(anyFn({
+            document: {
+                labels: {
+                    "a": 0.3,
+                    "b": 0.8,
+                    "c": 0.95
+                }
+            }
+        })).toBeTruthy()
+        expect(anyFn({
+            document: {
+                labels: {
+                    "a": 0.6,
+                    "b": 0.8,
+                    "c": 0.95
+                }
             }
         })).toBeFalsy()
     })
