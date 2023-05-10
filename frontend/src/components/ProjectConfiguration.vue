@@ -169,6 +169,7 @@
             <AnnotationRenderer :config="local_project.configuration"
                                 :doc_preannotation_field="local_project.document_pre_annotation_field"
                                 :document="previewDocument"
+                                :show_expression_errors="true"
                                 data-cy="annotation-renderer"
                                 @input="annotationOutputHandler"
             ></AnnotationRenderer>

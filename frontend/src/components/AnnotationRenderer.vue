@@ -31,6 +31,19 @@
         <BButton v-if="allow_cancel" @click.prevent="cancelHandler" variant="danger">Cancel</BButton>
       </b-col>
     </BRow>
+    <template v-if="show_expression_errors && (exceptions.parse.length || exceptions.evaluate.length)">
+      <b-card class="mt-3"
+              header="Expression errors">
+        <b-alert v-for="e in exceptions.parse" :key="e.config.name" variant="danger" show>
+          <p><strong>Error parsing "if" expression for component "{{e.config.name}}"</strong></p>
+          <p>{{e.error}}</p>
+        </b-alert>
+        <b-alert v-for="e in exceptions.evaluate" :key="e.config.name" variant="warning" show>
+          <p><strong>Error evaluating "if" expression for component "{{e.config.name}}"</strong></p>
+          <p>{{e.error}}</p>
+        </b-alert>
+      </b-card>
+    </template>
   </div>
 </template>
 
@@ -77,6 +90,10 @@ export default {
       DocumentType,
       answerBgColor: {},
       conditions: [],
+      exceptions: {
+        parse: [],
+        evaluate: []
+      },
     }
   },
   props: {
@@ -118,6 +135,9 @@ export default {
     clear_after_submit: {
       default: true,
       type: Boolean
+    },
+    show_expression_errors: {
+      default: null
     }
   },
   computed: {
@@ -128,6 +148,7 @@ export default {
       return null
     },
     shownElements() {
+      this.exceptions.evaluate = []
       if (!this.config) {
         return [];
       }
@@ -137,7 +158,11 @@ export default {
             document: this.document,
             annotation: this.annotationData,
           });
-        } catch (_) {
+        } catch (e) {
+          this.exceptions.evaluate.push({
+            config: elemConfig,
+            error: e
+          })
           // treat error as "don't show"
           return false;
         }
@@ -183,15 +208,20 @@ export default {
         const truePredicate = () => true;
         this.validation = {}
         this.conditions = []
+        this.exceptions.parse = []
         for (let elemConfig of config) {
           this.validation[elemConfig.name] = null
           let thisElementPredicate = truePredicate;
           if (elemConfig["if"]) {
             try {
               thisElementPredicate = compile(elemConfig["if"])
-            } catch (_) {
+            } catch (e) {
               // error compiling expression -> treat the same as if the element
               // did not have an "if" at all, and always show it.
+              this.exceptions.parse.push({
+                config: elemConfig,
+                error: e
+              })
             }
           }
           this.conditions.push(thisElementPredicate)
