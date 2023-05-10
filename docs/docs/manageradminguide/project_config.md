@@ -566,6 +566,62 @@ The following simple example shows how you might implement an "Other (please spe
 ```
 </AnnotationRendererPreview>
 
+Note that validation rules (such as `optional`, `minSelected` or `regex`) are not applied to components that are hidden by an `if` expression - hidden components will never be included in the annotation output, even if they would be considered "required" had they been visible.
+
+Components can also be made conditional on properties of the _document_, or a combination of the document and the annotation values, for example
+
+<AnnotationRendererPreview :config="configs.configConditional2" :document="configs.docsConditional2" pre-annotation="preanno">
+
+**Project configuration**
+
+```json
+[
+    {
+        "name": "htmldisplay",
+        "type": "html",
+        "text": "{{{text}}}"
+    },
+    {
+        "name": "sentiment",
+        "type": "radio",
+        "title": "Sentiment",
+        "description": "Please select a sentiment of the text above.",
+        "options": [
+            {"value": "negative", "label": "Negative"},
+            {"value": "neutral", "label": "Neutral"},
+            {"value": "positive", "label": "Positive"}
+        ]
+    },
+    {
+        "name": "reason",
+        "type": "text",
+        "title": "Why do you disagree with the suggested value?",
+        "if": "annotation.sentiment !== document.preanno.sentiment"
+    }
+]
+```
+
+**Documents**
+
+```json
+[
+    {
+        "text": "I love the thing!",
+        "preanno": { "sentiment": "positive" }
+    },
+    {
+        "text": "I hate the thing!",
+        "preanno": { "sentiment": "negative" }
+    },
+    {
+        "text": "The thing is ok, I guess...",
+        "preanno": { "sentiment": "neutral" }
+    }
+]
+```
+
+</AnnotationRendererPreview>
+
 The full list of supported constructions is as follows:
 
 - the `annotation` variable refers to the current state of the annotation components for this document
@@ -599,6 +655,23 @@ The full list of supported constructions is as follows:
   - `all(e in document.scores, e.value < 0.7)` (assuming `scores` is an object mapping labels to scores, e.g. `{"scores": {"positive": 0.5, "negative": 0.3}}`)
     - when testing a predicate against an _object_ each entry has `.key` and `.value` properties giving the key and value of the current entry
   - on a null, undefined or empty array/object, `any` will return _false_ (since there are no items that pass the test) and `all` will return _true_ (since there are no items that _fail_ the test)
+  - the predicate is optional - `any(arrayExpression)` resolves to `true` if any item in the array has a value that JavaScript considers to be "truthy", i.e. anything other than the number 0, the empty string, null or undefined.  So `any(annotation.myCheckbox)` is a convenient way to check whether _at least one_ option has been selected in a `checkbox` component. 
+
+If the `if` expression for a particular component is _syntactically invalid_ (missing operands, mis-matched brackets, etc.) then the condition will be ignored and the component will always be displayed as though it did not have an `if` expression at all.  Conversely, if the expression is valid but an error occurs while _evaluating_ it, this will be treated the same as if the expression returned `false`, and the associated component will not be displayed.  The behaviour is this way around as the most common reason for errors during evaluation is attempting to refer to annotation components that have not yet been filled in - if this is not appropriate in your use case you must account for the possibility within your expression.  For example, suppose `confidence` is a `radio` or `selector` component with values ranging from 1 to 5, then another component that declares
+
+```
+"if": "annotation.confidence && annotation.confidence < 4"`
+```
+
+will hide this component if `confidence` is unset, displaying it only if `confidence` is set to a value less than 4, whereas
+
+```
+"if": "!annotation.confidence || annotation.confidence < 4"
+```
+
+will hide this component only if `confidence` is actually _set_ to a value of 4 or greater - it will _show_ this component if `confidence` is unset.  Either approach may be correct depending on your project's requirements.
+
+To assist managers in authoring project configurations with `if` conditions, the "preview" mode on the project configuration page will display details of any errors that occur when parsing the expressions, or when evaluating them against the **Document input preview** data.  You are encouraged to test your expressions thoroughly against a variety of inputs to ensure they behave as intended, before opening your project to annotators.
 
 <script>
 import configs from './config_examples';
