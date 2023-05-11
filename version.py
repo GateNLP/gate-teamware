@@ -8,6 +8,7 @@ DOCS_PACKAGE_JSON_FILE_PATH = "docs/package.json"
 CITATION_FILE_PATH = "CITATION.cff"
 MASTER_VERSION_FILE = "VERSION"
 README_FILE_PATH = "README.md"
+README_VERSION_REGEX = r"\(Version ([^)]*)\)"
 
 def check():
     """
@@ -49,7 +50,7 @@ def get_readme_version(file_path: str) -> str:
     with open(file_path, 'r') as f:
         readme_text = f.read()
     
-    match = re.search(r'\(Version (.*)\)', readme_text)
+    match = re.search(README_VERSION_REGEX, readme_text)
 
     if match is None:
         print(f"No version found in {README_FILE_PATH}.")
@@ -99,7 +100,7 @@ def update_readme_version(file_path:str, version_no:str):
         readme_text = f.read()
     
     readme_text = re.sub(
-           r'\(Version (.*)\)', 
+           README_VERSION_REGEX, 
            f'(Version {version_no})', 
            readme_text
        )
