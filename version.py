@@ -1,11 +1,13 @@
 import json
 import yaml
+import re
 import sys
 
 PACKAGE_JSON_FILE_PATH = "package.json"
 DOCS_PACKAGE_JSON_FILE_PATH = "docs/package.json"
 CITATION_FILE_PATH = "CITATION.cff"
 MASTER_VERSION_FILE = "VERSION"
+README_FILE_PATH = "README.md"
 
 def check():
     """
@@ -22,12 +24,15 @@ def check():
         citation_file = yaml.safe_load(f)
 
     citation_version = citation_file['version']
-    print(f"CITATION.cff version is {citation_version}")
+    print(f"{CITATION_FILE_PATH} version is {citation_version}")
+
+    readme_version = get_readme_version(README_FILE_PATH)
+    print(f"{README_FILE_PATH} version is {readme_version}")
 
     master_version = get_master_version()
     print(f"VERSION file version is {master_version}")
 
-    if js_version != master_version or docs_js_version != master_version or citation_version != master_version:
+    if js_version != master_version or docs_js_version != master_version or citation_version != master_version or readme_version != master_version:
         print("One or more versions does not match")
         sys.exit(1)
     else:
@@ -40,6 +45,20 @@ def get_package_json_version(file_path: str) -> str:
     js_version = package_json['version']
     return js_version
 
+def get_readme_version(file_path: str) -> str:
+    with open(file_path, 'r') as f:
+        readme_text = f.read()
+    
+    match = re.search(r'\(Version (.*)\)', readme_text)
+
+    if match is None:
+        print(f"No version found in {README_FILE_PATH}.")
+        return
+    elif len(match.groups()) > 1:
+        print(f"{len(match.groups())} matches found in {README_FILE_PATH}, expected 1.")
+        return
+    else:
+        return match.groups(1)[0]
 
 def get_master_version():
     with open(MASTER_VERSION_FILE, "r") as f:
@@ -55,6 +74,8 @@ def update():
     update_package_json_version(PACKAGE_JSON_FILE_PATH, master_version)
 
     update_package_json_version(DOCS_PACKAGE_JSON_FILE_PATH, master_version)
+
+    update_readme_version(README_FILE_PATH, master_version)
 
     with open(CITATION_FILE_PATH, "r") as f:
         citation_file = yaml.safe_load(f)
@@ -72,6 +93,19 @@ def update_package_json_version(file_path:str, version_no:str):
     with open(file_path, "w") as f:
         package_json['version'] = version_no
         json.dump(package_json, f, indent=2)
+
+def update_readme_version(file_path:str, version_no:str):
+    with open(file_path, 'r') as f:
+        readme_text = f.read()
+    
+    readme_text = re.sub(
+           r'\(Version (.*)\)', 
+           f'(Version {version_no})', 
+           readme_text
+       )
+
+    with open(file_path, 'w') as f:
+        f.write(readme_text)
 
 
 if __name__ == "__main__":
