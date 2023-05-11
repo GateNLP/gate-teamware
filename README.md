@@ -2,13 +2,13 @@
 
 ![](/frontend/public/static/img/gate-teamware-logo.svg "GATE Teamware")
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7821718.svg)](https://doi.org/10.5281/zenodo.7821718)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7899193.svg)](https://doi.org/10.5281/zenodo.7899193)
 
 A web application for collaborative document annotation. 
 
 Full documentation can be [found here][docs].
 
-GATE teamware provides a flexible web app platform for managing classification of documents by human annotators.
+GATE Teamware provides a flexible web app platform for managing classification of documents by human annotators.
 
 ## Key Features
 * Configure annotation options using a highly flexible JSON config.
@@ -63,7 +63,7 @@ Teamware is developed by the [GATE](https://gate.ac.uk) team, an academic resear
 ## Citation
 For published work that has used Teamware, please cite this repository. One way is to include a citation such as:
 
-> Karmakharm, T., Wilby, D., Roberts, I., & Bontcheva, K. (2022). GATE Teamware (Version 0.1.4) [Computer software]. https://github.com/GateNLP/gate-teamware
+> Karmakharm, T., Wilby, D., Roberts, I., & Bontcheva, K. (2022). GATE Teamware (Version 2.1.0) [Computer software]. https://github.com/GateNLP/gate-teamware
 
 Please use the `Cite this repository` button at the top of the [project's GitHub repository](https://github.com/GATENLP/gate-teamware) to get an up to date citation.
 
