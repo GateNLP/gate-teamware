@@ -241,7 +241,6 @@ export default {
     // Go to previous task in the history
     toPreviousTask() {
       if (this.hasPreviousTask()) {
-        this.triggerAnnotationRendererTransition()
         this.currentTaskIndex += 1
         this.getCurrentTask()
       }
@@ -249,14 +248,12 @@ export default {
     // Goes to next task in history
     toNextTask() {
       if (this.hasNextTask()) {
-        this.triggerAnnotationRendererTransition()
         this.currentTaskIndex -= 1
         this.getCurrentTask()
       }
     },
     // Goes to the latest task
     toLatestTask() {
-      this.triggerAnnotationRendererTransition()
       this.currentTaskIndex = 0
       this.getCurrentTask()
     },
@@ -287,13 +284,15 @@ export default {
             this.$refs.annotationRenderer.setAnnotationData(this.currentAnnotationTask.annotation_data)
         }
 
+        this.triggerAnnotationRendererTransition()
+
       } catch (e) {
         toastError("Could not get annotation task", e, this)
         console.log(e)
       }
     },
     async submitHandler(value, time) {
-      this.triggerAnnotationRendererTransition()
+
 
       if (this.isLatestTask()) {
         // Complete a current task
@@ -325,7 +324,6 @@ export default {
     },
 
     async rejectHandler() {
-      this.triggerAnnotationRendererTransition()
 
       try {
         await this.rejectUserAnnotationTask(this.annotationTask.annotation_id)
