@@ -408,10 +408,10 @@ class Project(models.Model):
 
         for document in test_docs:
             # Checks answers for all test documents
-            user_annotations = document.annotations.filter(user_id=user.pk)
+            user_annotations = document.annotations.filter(user_id=user.pk, status=Annotation.COMPLETED)
             if user_annotations.count() > 1:
                 # User should not have more than 1 annotation per document
-                raise Exception(f"User {user.username} has more than 1 annotation in document")
+                raise Exception(f"User {user.username} has more than 1 completed annotation in document")
 
             annotation = user_annotations.first()
 
