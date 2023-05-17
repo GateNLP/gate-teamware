@@ -1,3 +1,4 @@
+import argparse
 import json
 import yaml
 import re
@@ -14,6 +15,8 @@ def check():
     """
     Intended for use in CI pipelines, checks versions in files and exits with non-zero exit code if they don't match.
     """
+
+    print("Checking versions...")
 
     js_version = get_package_json_version(PACKAGE_JSON_FILE_PATH)
     print(f"package.json version is {js_version}")
@@ -66,11 +69,15 @@ def get_master_version():
             master_version = f.readline().strip()
     return master_version
 
-def update():
+def update(master_version:str = None):
     """
     Updates all versions to match the master version file.
     """
-    master_version = get_master_version()
+    if master_version is None:
+        master_version = get_master_version()
+    else:
+        with open(MASTER_VERSION_FILE, 'w') as f:
+            f.write(master_version)
 
     update_package_json_version(PACKAGE_JSON_FILE_PATH, master_version)
 
@@ -111,10 +118,14 @@ def update_readme_version(file_path:str, version_no:str):
 
 if __name__ == "__main__":
     if sys.argv[1] == 'check':
-        print("Checking versions...")
+
+        if len(sys.argv) > 2:
+            print('WARNING: Additional arguments not supported for "check"')
         check()
     elif sys.argv[1] == 'update':
-        print("Updating versions...")
-        update()
+        if len(sys.argv) > 2:
+            update(sys.argv[2])
+        else:
+            update()
     else:
         print(f"Unknown function {sys.argv[1]}, available functions are 'check' and 'update'.")
