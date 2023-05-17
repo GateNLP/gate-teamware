@@ -30,7 +30,7 @@
           </b-navbar-nav>
 
           <!-- Footer content to display in navbar menu on smaller screens -->
-          <b-navbar-nav class="d-block d-md-none" small="true">
+          <b-navbar-nav class="d-block d-md-none" :small=true>
             <b-nav-item href="https://github.com/GATENLP/gate-teamware" target="_blank">
               Source Code
               <b-icon-box-arrow-up-right
