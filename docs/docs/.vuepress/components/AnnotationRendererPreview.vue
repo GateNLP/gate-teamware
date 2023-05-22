@@ -7,11 +7,15 @@
 
       </b-tab>
       <b-tab title="Preview">
+        <p v-if="documents.length > 1">Document {{documentIndex + 1}} of {{documents.length}}</p>
         <b-card class="mb-2 mt-2">
-          <AnnotationRenderer :config="config"
-                              :document="document" :allow_document_reject="true"
+          <AnnotationRenderer ref="annotationRenderer"
+                              :config="config"
+                              :document="currentDocument" :allow_document_reject="true"
                               v-model="annotationOutput"
                               :doc_preannotation_field="preAnnotation"
+                              @submit="nextDocument()"
+                              @reject="nextDocument()"
           ></AnnotationRenderer>
         </b-card>
         <b-card class="mb-2 mt-2">
@@ -35,10 +39,22 @@ export default {
   },
   data(){
     return {
-      annotationOutput: {}
-
+      annotationOutput: {},
+      documentIndex: 0
     }
 
+  },
+  computed: {
+    documents() {
+      if(Array.isArray(this.document)) {
+        return this.document
+      } else {
+        return [this.document]
+      }
+    },
+    currentDocument() {
+      return this.documents[this.documentIndex]
+    }
   },
   props: {
     preAnnotation: {
@@ -74,6 +90,12 @@ export default {
           ]
       }
     },
+  },
+  methods: {
+    nextDocument() {
+      this.documentIndex = (this.documentIndex + 1) % this.documents.length;
+      this.$refs.annotationRenderer.clearForm()
+    }
   }
 }
 </script>
