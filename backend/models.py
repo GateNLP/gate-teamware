@@ -64,6 +64,13 @@ class ServiceUser(AbstractUser):
     agreed_privacy_policy = models.BooleanField(default=False)
     is_deleted = models.BooleanField(default=False)
 
+    def lock_user(self):
+        """
+        Lock this user with a SELECT FOR UPDATE.  This method must be called within a transaction,
+        the lock will be released when the transaction commits or rolls back.
+        """
+        return type(self).objects.filter(id=self.id).select_for_update().get()
+
     @property
     def has_active_project(self):
         return self.annotatorproject_set.filter(status=AnnotatorProject.ACTIVE).count() > 0
@@ -592,6 +599,9 @@ class Project(models.Model):
             user from annotator list if there's no more tasks or user reached quota.
         """
 
+        # Lock required to prevent concurrent calls from assigning two different tasks
+        # to the same user
+        user = user.lock_user()
         annotation = self.get_current_annotator_task(user)
         if annotation:
             # User has existing task
