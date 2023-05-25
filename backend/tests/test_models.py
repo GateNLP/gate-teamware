@@ -678,7 +678,7 @@ class TestProjectModel(ModelTestCase):
 
         # All incorrect
         for doc in self.test_docs:
-            anno = Annotation.objects.create(user=annotator, document=doc)
+            anno = Annotation.objects.create(user=annotator, document=doc, status=Annotation.COMPLETED)
             anno.data = incorrect_data
 
         self.assertEqual(0, self.project.get_annotator_document_score(annotator, DocumentType.TEST))
@@ -690,7 +690,7 @@ class TestProjectModel(ModelTestCase):
                 "label1": doc.data["gold"]["label1"]["value"],
                 "label2": doc.data["gold"]["label2"]["value"],
             }
-            anno = Annotation.objects.create(user=annotator2, document=doc)
+            anno = Annotation.objects.create(user=annotator2, document=doc, status=Annotation.COMPLETED)
             anno.data = correct_annotation_data
 
         self.assertEqual(self.num_test_docs, self.project.get_annotator_document_score(annotator2, DocumentType.TEST))
@@ -705,7 +705,7 @@ class TestProjectModel(ModelTestCase):
                 "label2": doc.data["gold"]["label2"]["value"],
             }
             data = correct_annotation_data if counter < num_correct else incorrect_data
-            anno = Annotation.objects.create(user=annotator3, document=doc)
+            anno = Annotation.objects.create(user=annotator3, document=doc, status=Annotation.COMPLETED)
             anno.data = data
             counter += 1
 
