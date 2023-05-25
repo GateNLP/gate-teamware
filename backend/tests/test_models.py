@@ -1113,6 +1113,11 @@ class TestDocumentAnnotationModelExport(TestCase):
                     "feature1": "Testvalue 1",
                     "feature2": "Testvalue 1",
                     "feature3": "Testvalue 1",
+                    "features": {
+                        "gate_format_feature1": "Gate feature test value",
+                        "gate_format_feature2": "Gate feature test value",
+                        "gate_format_feature3": "Gate feature test value",
+                    }
 
                 }
             )
@@ -1148,6 +1153,8 @@ class TestDocumentAnnotationModelExport(TestCase):
     def test_export_raw(self):
 
         for document in self.project.documents.all():
+            # Fields should remain exactly the same as what's been uploaded
+            # aside from  annotation_sets
             doc_dict = document.get_doc_annotation_dict("raw")
             print(doc_dict)
             self.assertTrue("id" in doc_dict)
@@ -1155,6 +1162,11 @@ class TestDocumentAnnotationModelExport(TestCase):
             self.assertTrue("feature1" in doc_dict)
             self.assertTrue("feature2" in doc_dict)
             self.assertTrue("feature3" in doc_dict)
+            self.assertTrue("features" in doc_dict)
+            doc_features = doc_dict["features"]
+            self.assertTrue("gate_format_feature1" in doc_features)
+            self.assertTrue("gate_format_feature2" in doc_features)
+            self.assertTrue("gate_format_feature3" in doc_features)
 
             self.check_raw_gate_annotation_formatting(doc_dict)
             self.check_teamware_status(doc_dict, self.anon_annotator_names)
@@ -1162,6 +1174,8 @@ class TestDocumentAnnotationModelExport(TestCase):
     def test_export_gate(self):
 
         for document in self.project.documents.all():
+            # All top-level fields apart from name, text, features and annotation_sets should be
+            # nested inside the features field
             doc_dict = document.get_doc_annotation_dict("gate")
             print(doc_dict)
 
@@ -1172,6 +1186,10 @@ class TestDocumentAnnotationModelExport(TestCase):
             self.assertTrue("feature1" in doc_features)
             self.assertTrue("feature2" in doc_features)
             self.assertTrue("feature3" in doc_features)
+            self.assertFalse("features" in doc_features, "Double nesting of features field")
+            self.assertTrue("gate_format_feature1" in doc_features)
+            self.assertTrue("gate_format_feature2" in doc_features)
+            self.assertTrue("gate_format_feature3" in doc_features)
 
             self.check_raw_gate_annotation_formatting(doc_dict)
             self.check_teamware_status(doc_features, self.anon_annotator_names)

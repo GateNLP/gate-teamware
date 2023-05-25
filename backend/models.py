@@ -980,9 +980,12 @@ class Document(models.Model):
         if json_format == "raw" or json_format == "csv":
             doc_dict = self.data.copy()
         elif json_format == "gate":
+            # GATE json format are expected to have an existing "features" field
+            features_dict = self.data["features"] if "features" in self.data and isinstance(self.data["features"], dict) else {}
 
-            ignore_keys = {"text", self.project.document_id_field}
-            features_dict = {key: value for key, value in self.data.items() if key not in ignore_keys}
+            # Add any non-compliant top-level fields into the "features" field instead
+            ignore_keys = {"text", "features", self.project.document_id_field}
+            features_dict.update({key: value for key, value in self.data.items() if key not in ignore_keys})
 
             doc_dict = {
                 "text": self.data["text"],
