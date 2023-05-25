@@ -1098,8 +1098,9 @@ class TestAnnotationModel(ModelTestCase):
 class TestDocumentAnnotationModelExport(TestCase):
 
     def setUp(self):
+        self.unanonymized_prefix = "namedperson"
         self.test_user = get_user_model().objects.create(username="project_creator")
-        self.annotator_names = [f"anno{i}" for i in range(3)]
+        self.annotator_names = [f"{self.unanonymized_prefix}{i}" for i in range(3)]
         self.annotators = [get_user_model().objects.create(username=u) for u in self.annotator_names]
         self.annotator_ids = [a.id for a in self.annotators]
         self.project = Project.objects.create(owner=self.test_user)
@@ -1233,7 +1234,8 @@ class TestDocumentAnnotationModelExport(TestCase):
             doc_dict = document.get_doc_annotation_dict("raw", anonymize=True)
 
             for aset_key, aset_data in doc_dict["annotation_sets"].items():
-                self.assertTrue(isinstance(aset_data.get("name", None), int))
+                self.assertFalse(aset_key.startswith(self.unanonymized_prefix))
+                self.assertFalse(aset_data.get("name", None).startswith(self.unanonymized_prefix))
 
             self.check_teamware_status(doc_dict, self.annotator_ids)
 
@@ -1243,7 +1245,8 @@ class TestDocumentAnnotationModelExport(TestCase):
             doc_dict = document.get_doc_annotation_dict("raw", anonymize=False)
 
             for aset_key, aset_data in doc_dict["annotation_sets"].items():
-                self.assertTrue(isinstance(aset_data.get("name", None), str))
+                self.assertTrue(aset_key.startswith(self.unanonymized_prefix))
+                self.assertTrue(aset_data.get("name", None).startswith(self.unanonymized_prefix))
 
             # for non-anonymized export the rejected/aborted/timed_out status
             # uses names rather than ID numbers
@@ -1255,7 +1258,8 @@ class TestDocumentAnnotationModelExport(TestCase):
             doc_dict = document.get_doc_annotation_dict("gate", anonymize=True)
 
             for aset_key, aset_data in doc_dict["annotation_sets"].items():
-                self.assertTrue(isinstance(aset_data.get("name", None), int))
+                self.assertFalse(aset_key.startswith(self.unanonymized_prefix))
+                self.assertFalse(aset_data.get("name", None).startswith(self.unanonymized_prefix))
 
             self.check_teamware_status(doc_dict["features"], self.annotator_ids)
 
@@ -1265,7 +1269,8 @@ class TestDocumentAnnotationModelExport(TestCase):
             doc_dict = document.get_doc_annotation_dict("gate", anonymize=False)
 
             for aset_key, aset_data in doc_dict["annotation_sets"].items():
-                self.assertTrue(isinstance(aset_data.get("name", None), str))
+                self.assertTrue(aset_key.startswith(self.unanonymized_prefix))
+                self.assertTrue(aset_data.get("name", None).startswith(self.unanonymized_prefix))
 
             # for non-anonymized export the rejected/aborted/timed_out status
             # uses names rather than ID numbers

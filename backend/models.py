@@ -1019,8 +1019,9 @@ class Document(models.Model):
             annotation_sets = {}
             for annotation in annotations:
                 a_data = annotation.data
+                anonymized_name = f"{settings.ANONYMIZATION_PREFIX}{annotation.user.id}"
                 annotation_set = {
-                    "name": annotation.user.id if anonymize else annotation.user.username,
+                    "name": anonymized_name if anonymize else annotation.user.username,
                     "annotations": [
                         {
                             "type": "Document",
@@ -1035,7 +1036,7 @@ class Document(models.Model):
                     ],
                     "next_annid": 1,
                 }
-                annotation_sets[annotation.user.username] = annotation_set
+                annotation_sets[anonymized_name if anonymize else annotation.user.username] = annotation_set
             doc_dict["annotation_sets"] = annotation_sets
 
         # Add to the export the lists (possibly empty) of users who rejected,
