@@ -1123,7 +1123,7 @@ class TestDocumentAnnotationModelExport(TestCase):
                         "existing_annotator1": {
                             "sentiment": "positive"
                         },
-                        f"2": {
+                        f"{settings.ANONYMIZATION_PREFIX}{self.annotators[0].pk}": {
                             "sentiment": "positive"
                         }
 
@@ -1144,8 +1144,8 @@ class TestDocumentAnnotationModelExport(TestCase):
                             ],
                             "next_annid": 1
                         },
-                        f"{settings.ANONYMIZATION_PREFIX}2": {
-                            "name": f"{settings.ANONYMIZATION_PREFIX}1",
+                        f"{settings.ANONYMIZATION_PREFIX}{self.annotators[0].pk}": {
+                            "name": f"{settings.ANONYMIZATION_PREFIX}{self.annotators[0].pk}",
                             "annotations": [
                                 {
                                     "type": "Document",
@@ -1254,9 +1254,9 @@ class TestDocumentAnnotationModelExport(TestCase):
             self.assertEqual(doc_dict["offset_type"], "p", "offset_type should default to p")
 
 
-    def check_raw_gate_annotation_formatting(self, doc_dict):
+    def check_raw_gate_annotation_formatting(self, doc_dict: dict):
         self.assertTrue("annotation_sets" in doc_dict)
-        self.assertEqual(len(doc_dict["annotation_sets"]), 4)
+        self.assertEqual(len(doc_dict["annotation_sets"]), 4, doc_dict)
 
         # Test annotation formatting
         for aset_key, aset_data in doc_dict["annotation_sets"].items():
@@ -1304,7 +1304,7 @@ class TestDocumentAnnotationModelExport(TestCase):
             self.assertTrue("feature2" in doc_dict)
             self.assertTrue("feature3" in doc_dict)
             self.assertTrue("annotations" in doc_dict)
-            self.assertEqual(len(doc_dict["annotations"]), 4)
+            self.assertEqual(len(doc_dict["annotations"]), 4, doc_dict)
             anno_set_dict = doc_dict["annotations"]
             for set_key in anno_set_dict:
                 if set_key != "existing_annotator1":
@@ -1318,6 +1318,10 @@ class TestDocumentAnnotationModelExport(TestCase):
     def test_export_raw_anonymized(self):
 
         for document in self.project.documents.all():
+            # Mask any existing annotations that came with the document upload
+            document.data.pop("annotation_sets")
+            document.save()
+
             doc_dict = document.get_doc_annotation_dict("raw", anonymize=True)
 
             for aset_key, aset_data in doc_dict["annotation_sets"].items():
@@ -1329,6 +1333,10 @@ class TestDocumentAnnotationModelExport(TestCase):
     def test_export_raw_deanonymized(self):
 
         for document in self.project.documents.all():
+            # Mask any existing annotations that came with the document upload
+            document.data.pop("annotation_sets")
+            document.save()
+
             doc_dict = document.get_doc_annotation_dict("raw", anonymize=False)
 
             for aset_key, aset_data in doc_dict["annotation_sets"].items():
@@ -1342,6 +1350,10 @@ class TestDocumentAnnotationModelExport(TestCase):
     def test_export_gate_anonymized(self):
 
         for document in self.project.documents.all():
+            # Mask any existing annotations that came with the document upload
+            document.data.pop("annotation_sets")
+            document.save()
+
             doc_dict = document.get_doc_annotation_dict("gate", anonymize=True)
 
             for aset_key, aset_data in doc_dict["annotation_sets"].items():
@@ -1353,6 +1365,10 @@ class TestDocumentAnnotationModelExport(TestCase):
     def test_export_gate_deanonymized(self):
 
         for document in self.project.documents.all():
+            # Mask any existing annotations that came with the document upload
+            document.data.pop("annotation_sets")
+            document.save()
+
             doc_dict = document.get_doc_annotation_dict("gate", anonymize=False)
 
             for aset_key, aset_data in doc_dict["annotation_sets"].items():
