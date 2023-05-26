@@ -1117,7 +1117,51 @@ class TestDocumentAnnotationModelExport(TestCase):
                         "gate_format_feature1": "Gate feature test value",
                         "gate_format_feature2": "Gate feature test value",
                         "gate_format_feature3": "Gate feature test value",
+                    },
+                    "offset_type": "x",
+                    "annotations": {
+                        "existing_annotator1": {
+                            "sentiment": "positive"
+                        },
+                        f"2": {
+                            "sentiment": "positive"
+                        }
+
+                    },
+                    "annotation_sets": {
+                        "existing_annotator1": {
+                            "name": "existing_annotator1",
+                            "annotations": [
+                                {
+                                    "type": "Document",
+                                    "start": 0,
+                                    "end": 10,
+                                    "id": 0,
+                                    "features": {
+                                        "sentiment": "positive"
+                                    }
+                                }
+                            ],
+                            "next_annid": 1
+                        },
+                        f"{settings.ANONYMIZATION_PREFIX}2": {
+                            "name": f"{settings.ANONYMIZATION_PREFIX}1",
+                            "annotations": [
+                                {
+                                    "type": "Document",
+                                    "start": 0,
+                                    "end": 10,
+                                    "id": 0,
+                                    "features": {
+                                        "sentiment": "positive"
+                                    }
+                                }
+                            ],
+                            "next_annid": 1
+                        }
+
                     }
+
 
                 }
             )
@@ -1163,10 +1207,13 @@ class TestDocumentAnnotationModelExport(TestCase):
             self.assertTrue("feature2" in doc_dict)
             self.assertTrue("feature3" in doc_dict)
             self.assertTrue("features" in doc_dict)
+            self.assertTrue("offset_type" in doc_dict)
+            self.assertTrue("annotations" in doc_dict)
             doc_features = doc_dict["features"]
             self.assertTrue("gate_format_feature1" in doc_features)
             self.assertTrue("gate_format_feature2" in doc_features)
             self.assertTrue("gate_format_feature3" in doc_features)
+
 
             self.check_raw_gate_annotation_formatting(doc_dict)
             self.check_teamware_status(doc_dict, self.anon_annotator_names)
@@ -1181,12 +1228,16 @@ class TestDocumentAnnotationModelExport(TestCase):
 
             self.assertTrue("text" in doc_dict)
             self.assertTrue("features" in doc_dict)
+            self.assertFalse("annotations" in doc_dict)
+            self.assertEqual(doc_dict["offset_type"], "x")
             doc_features = doc_dict["features"]
             self.assertTrue("id" in doc_features)
             self.assertTrue("feature1" in doc_features)
             self.assertTrue("feature2" in doc_features)
             self.assertTrue("feature3" in doc_features)
+            self.assertTrue("annotations" in doc_features)
             self.assertFalse("features" in doc_features, "Double nesting of features field")
+            self.assertFalse("offset_type" in doc_features, "Double nesting of offset_type field")
             self.assertTrue("gate_format_feature1" in doc_features)
             self.assertTrue("gate_format_feature2" in doc_features)
             self.assertTrue("gate_format_feature3" in doc_features)
@@ -1194,25 +1245,40 @@ class TestDocumentAnnotationModelExport(TestCase):
             self.check_raw_gate_annotation_formatting(doc_dict)
             self.check_teamware_status(doc_features, self.anon_annotator_names)
 
+    def test_export_gate_with_no_offset_type(self):
+
+        for document in self.project.documents.all():
+            document.data.pop("offset_type")
+
+            doc_dict = document.get_doc_annotation_dict("gate")
+            self.assertEqual(doc_dict["offset_type"], "p", "offset_type should default to p")
+
+
     def check_raw_gate_annotation_formatting(self, doc_dict):
         self.assertTrue("annotation_sets" in doc_dict)
-        self.assertTrue(len(doc_dict["annotation_sets"]) == 3)
+        self.assertEqual(len(doc_dict["annotation_sets"]), 4)
 
         # Test annotation formatting
         for aset_key, aset_data in doc_dict["annotation_sets"].items():
-            self.assertTrue("name" in aset_data)
-            self.assertTrue("annotations" in aset_data)
-            self.assertEqual(len(aset_data["annotations"]), 1)
-            anno_dict = aset_data["annotations"][0]
-            self.assertTrue("type" in anno_dict)
-            self.assertTrue("start" in anno_dict)
-            self.assertTrue("end" in anno_dict)
-            self.assertTrue("id" in anno_dict)
-            self.assertTrue("features" in anno_dict)
-            self.assertTrue("label" in anno_dict["features"])
-            label_dict = anno_dict["features"]["label"]
-            self.assertTrue("text1" in label_dict)
-            self.assertTrue("checkbox1" in label_dict)
+            if aset_key != "existing_annotator1":
+                self.assertTrue("name" in aset_data)
+                self.assertTrue("annotations" in aset_data)
+                self.assertEqual(len(aset_data["annotations"]), 1)
+                anno_dict = aset_data["annotations"][0]
+                self.assertTrue("type" in anno_dict)
+                self.assertTrue("start" in anno_dict)
+                self.assertTrue("end" in anno_dict)
+                self.assertTrue("id" in anno_dict)
+                self.assertTrue("features" in anno_dict)
+                features_dict = anno_dict["features"]
+                self.assertTrue("text1" in features_dict)
+                self.assertTrue("checkbox1" in features_dict)
+            else:
+                # Check that existing annotation from document upload is carried over
+                self.assertEqual(aset_data["annotations"][0]["features"]["sentiment"], "positive")
+
+
+
 
     def check_teamware_status(self, containing_dict, expected_value):
         self.assertTrue("teamware_status" in containing_dict)
@@ -1238,11 +1304,14 @@ class TestDocumentAnnotationModelExport(TestCase):
             self.assertTrue("feature2" in doc_dict)
             self.assertTrue("feature3" in doc_dict)
             self.assertTrue("annotations" in doc_dict)
-            self.assertTrue(len(doc_dict["annotations"]) == 3)
+            self.assertEqual(len(doc_dict["annotations"]), 4)
             anno_set_dict = doc_dict["annotations"]
             for set_key in anno_set_dict:
-                self.assertTrue(isinstance(anno_set_dict[set_key]["text1"], str))
-                self.assertTrue(isinstance(anno_set_dict[set_key]["checkbox1"], str))
+                if set_key != "existing_annotator1":
+                    self.assertTrue(isinstance(anno_set_dict[set_key]["text1"], str))
+                    self.assertTrue(isinstance(anno_set_dict[set_key]["checkbox1"], str))
+                else:
+                    self.assertEqual(anno_set_dict[set_key]["sentiment"], "positive")
 
             self.check_teamware_status(doc_dict, ",".join(str(i) for i in self.anon_annotator_names))
 
