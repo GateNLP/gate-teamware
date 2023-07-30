@@ -67,7 +67,7 @@ services:
       - ./create-django-db.sh:/docker-entrypoint-initdb.d/001-create-django-db.sh
 
   pgbackups:
-    image: prodrigestivill/postgres-backup-local:12
+    image: prodrigestivill/postgres-backup-local:14
     restart: always
     user: ${BACKUPS_USER_GROUP}
     volumes:

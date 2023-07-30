@@ -175,7 +175,7 @@ $ ./backup_restore.sh path/to/my/backup.sql.gz
 
 This will first launch the database container, then via Django's `dbshell` command, running in the `backend` service, execute a number of SQL commands before and after running all the SQL from the backup file.
 
-4. Redeploy the stack, via `./deploy.sh staging` or `./deploy.sh production`, whichever is the case.
+4. Redeploy the stack, via `./deploy.sh staging`, `./deploy.sh production`, or simply `docker compose up -d`, whichever is the case.
 5. The database *should* be restored.
 
 ## Configuration
@@ -188,7 +188,7 @@ and this must be overridden depending on use.
 ### Database
 A SQLite3 database is used during development and during integration testing.
 
-For staging and production, postgreSQL is used, running from a `postgres-12` docker container. Settings are found in `teamware/settings/base.py` and `deployment.py` as well as being set as environment variables by `./generate-docker-env.sh` and passed to the container as configured in `docker-compose.yml`.
+For staging and production, postgreSQL is used, running from a `postgres-14` docker container. Settings are found in `teamware/settings/base.py` and `deployment.py` as well as being set as environment variables by `./generate-docker-env.sh` and passed to the container as configured in `docker-compose.yml`.
 
 In Kubernetes deployments the PostgreSQL database is installed using the Bitnami `postresql` public chart. 
 

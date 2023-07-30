@@ -5,6 +5,28 @@
 
 ### Fixed
 
+In versions from 0.2.0 to 2.1.0 inclusive the default `docker-compose.yml` file fails to back up the database, due to a mismatch between the version of the database server and the version of the backup client.  This is now fixed, but in order to create a proper database backup before attempting to upgrade you will need to manually edit your `docker-compose.yml` file and change
+
+```yaml
+  pgbackups:
+    image: prodrigestivill/postgres-backup-local:12
+```
+
+to
+
+```yaml
+  pgbackups:
+    image: prodrigestivill/postgres-backup-local:14
+```
+ 
+(change the "12" to "14"), then run `docker compose up -d` (or `docker-compose up -d`) again to upgrade just the backup tool.  Once the correct backup tool is running you can start an immediate backup using
+
+```
+docker compose run --rm -it pgbackups /backup.sh
+```
+
+(or `docker-compose` if your version of Docker does not support compose v2).
+
 ## [2.1.0] 2023-05-03
 
 ### Added
