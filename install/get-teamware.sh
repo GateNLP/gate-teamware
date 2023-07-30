@@ -263,6 +263,8 @@ chmod 644 nginx/*.template Caddyfile
 
 echo "Generating configuration file"
 
+# tell generate-docker-env not to load an existing .env itself, since we already have
+SKIP_EXISTING_ENV=yes
 source ./generate-docker-env.sh
 
 if [ "${COMPOSE[0]/ /_}" = "${COMPOSE[0]}" ]; then
