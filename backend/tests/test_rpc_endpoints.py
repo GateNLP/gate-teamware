@@ -8,6 +8,7 @@ from django.test import TestCase, Client
 
 from django.utils import timezone
 import json
+import logging
 
 from backend.models import Annotation, Document, DocumentType, Project, AnnotatorProject, UserDocumentFormatPreference
 from backend.rpc import create_project, update_project, add_project_document, add_document_annotation, \
@@ -28,7 +29,7 @@ from backend.tests.test_models import create_each_annotation_status_for_user, Te
 from backend.tests.test_rpc_server import TestEndpoint
 
 
-
+LOGGER = logging.getLogger(__name__)
 
 class TestUserAuth(TestCase):
 
@@ -1379,7 +1380,7 @@ class TestAnnotationTaskManagerTrainTestMode(TestEndpoint):
         self.num_training_docs = 5
         self.training_docs = []
         for i in range(self.num_training_docs):
-            self.docs.append(Document.objects.create(project=self.proj,
+            self.training_docs.append(Document.objects.create(project=self.proj,
                                                      doc_type=DocumentType.TRAINING,
                                                      data={
                                                         "text": f"Document {i}",
@@ -1396,7 +1397,7 @@ class TestAnnotationTaskManagerTrainTestMode(TestEndpoint):
         self.num_test_docs = 10
         self.test_docs = []
         for i in range(self.num_test_docs):
-            self.docs.append(Document.objects.create(project=self.proj,
+            self.test_docs.append(Document.objects.create(project=self.proj,
                                                      doc_type=DocumentType.TEST,
                                                      data={
                                                          "text": f"Document {i}",
@@ -1609,10 +1610,11 @@ class TestAnnotationTaskManagerTrainTestMode(TestEndpoint):
         self.proj.save()
 
         docs_annotated_per_user = []
-        for (i, (ann_user, _)) in enumerate(self.annotators):
+        for (ann_user, _) in self.annotators:
             # Add to project
             self.assertTrue(add_project_annotator(self.manager_request, self.proj.id, ann_user.username))
 
+        for (i, (ann_user, _)) in enumerate(self.annotators):
             # Every annotator should be able to complete every training document, even though
             # max annotations per document is less than the total number of annotators
             self.assertEqual(self.num_training_docs,
@@ -1623,6 +1625,7 @@ class TestAnnotationTaskManagerTrainTestMode(TestEndpoint):
             self.assertEqual(self.num_training_docs,
                              self.proj.get_annotator_document_score(ann_user, DocumentType.TRAINING))
 
+        for (i, (ann_user, _)) in enumerate(self.annotators):
             # Every annotator should be able to complete every test document, even though
             # max annotations per document is less than the total number of annotators
             self.assertEqual(self.num_test_docs,
@@ -1633,6 +1636,7 @@ class TestAnnotationTaskManagerTrainTestMode(TestEndpoint):
             self.assertEqual(self.num_training_docs,
                              self.proj.get_annotator_document_score(ann_user, DocumentType.TRAINING))
 
+        for (i, (ann_user, _)) in enumerate(self.annotators):
             # Now attempt to complete task normally
             num_annotated = self.complete_annotations(self.num_docs, "Annotation", annotator=i)
             docs_annotated_per_user.append(num_annotated)
@@ -1662,14 +1666,29 @@ class TestAnnotationTaskManagerTrainTestMode(TestEndpoint):
 
         # Expect to get self.num_training_docs tasks
         num_completed_tasks = 0
+        if expected_doc_type_str == 'Annotation':
+            all_docs = self.docs
+        elif expected_doc_type_str == 'Training':
+            all_docs = self.training_docs
+        else:
+            all_docs = self.test_docs
+
+        annotated_docs = {doc.pk: ' ' for doc in all_docs}
         for i in range(num_annotations_to_complete):
             task_context = get_annotation_task(ann_req)
             if task_context:
                 self.assertEqual(expected_doc_type_str, task_context.get("document_type"),
                                  f"Document type does not match in task {task_context!r}, " +
                                  "annotator {ann.username}, document {i}")
+                annotated_docs[task_context['document_id']] = "\u2714"
                 complete_annotation_task(ann_req, task_context["annotation_id"], {"sentiment": answer})
                 num_completed_tasks += 1
+
+        # Draw a nice markdown table of exactly which documents each annotator was given
+        if annotator == 0:
+            LOGGER.debug("Annotator | " + (" | ".join(str(i) for i in annotated_docs.keys())))
+            LOGGER.debug(" | ".join(["--"] * (len(annotated_docs)+1)))
+        LOGGER.debug(ann.username + " | " + (" | ".join(str(v) for v in annotated_docs.values())))
 
         return num_completed_tasks
 
