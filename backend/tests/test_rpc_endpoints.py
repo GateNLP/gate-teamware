@@ -1609,10 +1609,11 @@ class TestAnnotationTaskManagerTrainTestMode(TestEndpoint):
         self.proj.save()
 
         docs_annotated_per_user = []
-        for (i, (ann_user, _)) in enumerate(self.annotators):
+        for (ann_user, _) in self.annotators:
             # Add to project
             self.assertTrue(add_project_annotator(self.manager_request, self.proj.id, ann_user.username))
 
+        for (i, (ann_user, _)) in enumerate(self.annotators):
             # Every annotator should be able to complete every training document, even though
             # max annotations per document is less than the total number of annotators
             self.assertEqual(self.num_training_docs,
@@ -1623,6 +1624,7 @@ class TestAnnotationTaskManagerTrainTestMode(TestEndpoint):
             self.assertEqual(self.num_training_docs,
                              self.proj.get_annotator_document_score(ann_user, DocumentType.TRAINING))
 
+        for (i, (ann_user, _)) in enumerate(self.annotators):
             # Every annotator should be able to complete every test document, even though
             # max annotations per document is less than the total number of annotators
             self.assertEqual(self.num_test_docs,
@@ -1633,6 +1635,7 @@ class TestAnnotationTaskManagerTrainTestMode(TestEndpoint):
             self.assertEqual(self.num_training_docs,
                              self.proj.get_annotator_document_score(ann_user, DocumentType.TRAINING))
 
+        for (i, (ann_user, _)) in enumerate(self.annotators):
             # Now attempt to complete task normally
             num_annotated = self.complete_annotations(self.num_docs, "Annotation", annotator=i)
             docs_annotated_per_user.append(num_annotated)
