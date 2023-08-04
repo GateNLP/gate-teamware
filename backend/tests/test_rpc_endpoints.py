@@ -1379,7 +1379,7 @@ class TestAnnotationTaskManagerTrainTestMode(TestEndpoint):
         self.num_training_docs = 5
         self.training_docs = []
         for i in range(self.num_training_docs):
-            self.docs.append(Document.objects.create(project=self.proj,
+            self.training_docs.append(Document.objects.create(project=self.proj,
                                                      doc_type=DocumentType.TRAINING,
                                                      data={
                                                         "text": f"Document {i}",
@@ -1396,7 +1396,7 @@ class TestAnnotationTaskManagerTrainTestMode(TestEndpoint):
         self.num_test_docs = 10
         self.test_docs = []
         for i in range(self.num_test_docs):
-            self.docs.append(Document.objects.create(project=self.proj,
+            self.test_docs.append(Document.objects.create(project=self.proj,
                                                      doc_type=DocumentType.TEST,
                                                      data={
                                                          "text": f"Document {i}",
