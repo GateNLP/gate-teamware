@@ -54,6 +54,27 @@ fi
 set -a
 
 if [ -f .env -a -f docker-compose.yml ]; then
+
+  if [ ! ( -f create-django-db.sh -a -f generate-docker-env.sh ) ]; then
+    echo 'You have run this upgrade script in a folder that contains a docker compose'
+    echo 'application stack, but it does not appear to be an installation of GATE'
+    echo 'Teamware.  You should run this script either in a completely empty directory'
+    echo 'if you want to install a fresh copy of GATE Teamware, or in the directory'
+    echo 'containing an existing installation that you want to upgrade.  Running in'
+    echo 'a directory that contains a different docker compose application stack will'
+    echo 'not work and may cause damage or data loss.'
+    echo ''
+    read -e -p 'Do you wish to continue anyway? [y/N]: ' CONTINUE_UPGRADE
+    case "$CONTINUE_UPGRADE" in
+      [Yy]*)
+        unset CONTINUE_UPGRADE
+        ;;
+      *)
+        exit 1
+        ;;
+    esac
+  fi
+
   echo 'Existing settings found, assuming this is an upgrade.'
   NEW__IMAGE_TAG="${IMAGE_TAG}"
   . .env
