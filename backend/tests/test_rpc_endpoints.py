@@ -8,6 +8,7 @@ from django.test import TestCase, Client
 
 from django.utils import timezone
 import json
+import logging
 
 from backend.models import Annotation, Document, DocumentType, Project, AnnotatorProject, UserDocumentFormatPreference
 from backend.rpc import create_project, update_project, add_project_document, add_document_annotation, \
@@ -28,7 +29,7 @@ from backend.tests.test_models import create_each_annotation_status_for_user, Te
 from backend.tests.test_rpc_server import TestEndpoint
 
 
-
+LOGGER = logging.getLogger(__name__)
 
 class TestUserAuth(TestCase):
 
@@ -1665,14 +1666,29 @@ class TestAnnotationTaskManagerTrainTestMode(TestEndpoint):
 
         # Expect to get self.num_training_docs tasks
         num_completed_tasks = 0
+        if expected_doc_type_str == 'Annotation':
+            all_docs = self.docs
+        elif expected_doc_type_str == 'Training':
+            all_docs = self.training_docs
+        else:
+            all_docs = self.test_docs
+
+        annotated_docs = {doc.pk: ' ' for doc in all_docs}
         for i in range(num_annotations_to_complete):
             task_context = get_annotation_task(ann_req)
             if task_context:
                 self.assertEqual(expected_doc_type_str, task_context.get("document_type"),
                                  f"Document type does not match in task {task_context!r}, " +
                                  "annotator {ann.username}, document {i}")
+                annotated_docs[task_context['document_id']] = "\u2714"
                 complete_annotation_task(ann_req, task_context["annotation_id"], {"sentiment": answer})
                 num_completed_tasks += 1
+
+        # Draw a nice markdown table of exactly which documents each annotator was given
+        if annotator == 0:
+            LOGGER.debug("Annotator | " + (" | ".join(str(i) for i in annotated_docs.keys())))
+            LOGGER.debug(" | ".join(["--"] * (len(annotated_docs)+1)))
+        LOGGER.debug(ann.username + " | " + (" | ".join(str(v) for v in annotated_docs.values())))
 
         return num_completed_tasks
 
