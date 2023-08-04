@@ -737,9 +737,18 @@ class Project(models.Model):
         Annotation task performs an extra check for remaining annotation task (num_annotation_tasks_remaining),
         testing and training does not do this check as the annotator must annotate all documents.
         """
-        if (DocumentType.ANNOTATION and self.num_annotation_tasks_remaining > 0) or \
-                DocumentType.TEST or DocumentType.TRAINING:
-            for doc in self.documents.filter(doc_type=doc_type).order_by('?'):
+        if (doc_type == DocumentType.ANNOTATION and self.num_annotation_tasks_remaining > 0) or \
+                doc_type == DocumentType.TEST or doc_type == DocumentType.TRAINING:
+            if doc_type == DocumentType.TEST or doc_type == DocumentType.TRAINING:
+                queryset = self.documents.filter(doc_type=doc_type).order_by('?')
+            else:
+                # Prefer documents which have fewer complete or pending annotations, in order to
+                # spread the annotators as evenly as possible across the available documents
+                queryset = self.documents.filter(doc_type=doc_type).alias(
+                    occupied_annotations=Count("annotations", filter=Q(annotations__status=Annotation.COMPLETED)
+                                                                     | Q(annotations__status=Annotation.PENDING))
+                ).order_by('occupied_annotations', '?')
+            for doc in queryset:
                 # Check that annotator hasn't annotated and that
                 # doc hasn't been fully annotated
                 if doc.user_can_annotate_document(user):
