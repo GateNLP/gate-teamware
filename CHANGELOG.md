@@ -27,6 +27,12 @@ docker compose run --rm -it pgbackups /backup.sh
 
 (or `docker-compose` if your version of Docker does not support compose v2).
 
+## [2.1.1] 2023-10-02
+
+### Added 
+- Script for extracting annotations without web UI
+
+
 ## [2.1.0] 2023-05-03
 
 ### Added
