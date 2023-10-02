@@ -58,36 +58,10 @@ class DownloadAnnotationsView(View):
 
     def generate_download(self, project_id, doc_type="all", export_type="json", json_format="raw", anonymize=True, chunk_size=512, documents_per_file=500):
 
-        project = Project.objects.get(pk=project_id)
-
         with tempfile.TemporaryFile() as z:
-            with ZipFile(z, "w") as zip:
-                    all_docs = project.documents.all()
-                    if doc_type == "training":
-                        all_docs = project.documents.filter(doc_type=DocumentType.TRAINING)
-                    elif doc_type == "test":
-                        all_docs = project.documents.filter(doc_type=DocumentType.TEST)
-                    elif doc_type == "annotation":
-                        all_docs = project.documents.filter(doc_type=DocumentType.ANNOTATION)
-
-
-                    num_docs = all_docs.count()
-                    num_slices = math.ceil(num_docs/documents_per_file)
-
-                    for slice_index in range(num_slices):
-                        start_index = slice_index*documents_per_file
-                        end_index = ((slice_index+1)*documents_per_file)
-                        if end_index >= num_docs:
-                            end_index = num_docs
-
-                        slice_docs = all_docs[start_index:end_index]
-
-                        with tempfile.NamedTemporaryFile("w+") as f:
-                            self.write_docs_to_file(f, slice_docs, export_type, json_format, anonymize)
-                            zip.write(f.name, f"project-{project_id}-{doc_type}-{slice_index:04d}.{export_type}")
+            self.write_zip_to_file(z, project_id, doc_type, export_type, json_format, anonymize, documents_per_file)
 
             # Stream file output
-
             z.seek(0)
             while True:
                 c = z.read(chunk_size)
@@ -95,6 +69,34 @@ class DownloadAnnotationsView(View):
                     yield c
                 else:
                     break
+
+
+    def write_zip_to_file(self, file_stream, project_id, doc_type="all", export_type="json", json_format="raw", anonymize=True, documents_per_file=500):
+
+        project = Project.objects.get(pk=project_id)
+        with ZipFile(file_stream, "w") as zip:
+            all_docs = project.documents.all()
+            if doc_type == "training":
+                all_docs = project.documents.filter(doc_type=DocumentType.TRAINING)
+            elif doc_type == "test":
+                all_docs = project.documents.filter(doc_type=DocumentType.TEST)
+            elif doc_type == "annotation":
+                all_docs = project.documents.filter(doc_type=DocumentType.ANNOTATION)
+
+            num_docs = all_docs.count()
+            num_slices = math.ceil(num_docs / documents_per_file)
+
+            for slice_index in range(num_slices):
+                start_index = slice_index * documents_per_file
+                end_index = ((slice_index + 1) * documents_per_file)
+                if end_index >= num_docs:
+                    end_index = num_docs
+
+                slice_docs = all_docs[start_index:end_index]
+
+                with tempfile.NamedTemporaryFile("w+") as f:
+                    self.write_docs_to_file(f, slice_docs, export_type, json_format, anonymize)
+                    zip.write(f.name, f"project-{project_id}-{doc_type}-{slice_index:04d}.{export_type}")
 
     def write_docs_to_file(self, file, documents, export_type, json_format, anonymize):
         if export_type == "json":
