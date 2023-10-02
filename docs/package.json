@@ -1,6 +1,6 @@
 {
   "name": "gate-teamware-docs",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Documentation for GATE Teamware.",
   "main": "index.js",
   "scripts": {
