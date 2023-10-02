@@ -5,6 +5,10 @@
 
 ### Fixed
 
+
+## [2.1.1] 2023-10-02
+
+### Important Notice!
 In versions from 0.2.0 to 2.1.0 inclusive the default `docker-compose.yml` file fails to back up the database, due to a mismatch between the version of the database server and the version of the backup client.  This is now fixed, but in order to create a proper database backup before attempting to upgrade you will need to manually edit your `docker-compose.yml` file and change
 
 ```yaml
@@ -27,10 +31,24 @@ docker compose run --rm -it pgbackups /backup.sh
 
 (or `docker-compose` if your version of Docker does not support compose v2).
 
-## [2.1.1] 2023-10-02
-
 ### Added 
-- Script for extracting annotations without web UI
+- Script for extracting annotations without web UI ([#386](https://github.com/GateNLP/gate-teamware/pull/386))
+- Support upgrades as well as fresh installs for get-teamware.sh script ([#383](https://github.com/GateNLP/gate-teamware/pull/383))
+- Add transition effect when document changes ([#367](https://github.com/GateNLP/gate-teamware/pull/367))
+- Implement conditional widgets ([#350](https://github.com/GateNLP/gate-teamware/pull/350))
+
+### Changed
+- Attempt to spread documents more evenly across annotators ([#384](https://github.com/GateNLP/gate-teamware/pull/384))
+- Upgrade postgres-backup-local to version 14 ([#382](https://github.com/GateNLP/gate-teamware/pull/382))
+- enable version.py update to take version number as argument ([#365](https://github.com/GateNLP/gate-teamware/pull/365))
+
+### Fixed
+- Correct error in navbar property setting ([#376](https://github.com/GateNLP/gate-teamware/pull/376))
+- User-level DB lock in get_annotator_task to avoid race condition #375 ([#376](https://github.com/GateNLP/gate-teamware/pull/376))
+- Better frontend error page when backend is down ([#368](https://github.com/GateNLP/gate-teamware/pull/368))
+- Correct DOI ([#364](https://github.com/GateNLP/gate-teamware/pull/364))
+- Clear pending annotations when rejecting a user from a project ([#362](https://github.com/GateNLP/gate-teamware/pull/362))
+
 
 
 ## [2.1.0] 2023-05-03
