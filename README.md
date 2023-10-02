@@ -73,7 +73,7 @@ Teamware is developed by the [GATE](https://gate.ac.uk) team, an academic resear
 ## Citation
 For published work that has used Teamware, please cite this repository. One way is to include a citation such as:
 
-> Karmakharm, T., Wilby, D., Roberts, I., & Bontcheva, K. (2022). GATE Teamware (Version 2.1.0) [Computer software]. https://github.com/GateNLP/gate-teamware
+> Karmakharm, T., Wilby, D., Roberts, I., & Bontcheva, K. (2022). GATE Teamware (Version 2.1.1) [Computer software]. https://github.com/GateNLP/gate-teamware
 
 Please use the `Cite this repository` button at the top of the [project's GitHub repository](https://github.com/GATENLP/gate-teamware) to get an up to date citation.
 
