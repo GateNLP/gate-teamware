@@ -32,7 +32,8 @@ export default {
               "description": {"type": "string"},
               "optional": {"type": "boolean"},
               "valSuccess": {"type": "string"},
-              "valError": {"type": "string"}
+              "valError": {"type": "string"},
+              "if": {"type": "string"}
             },
             "allOf": [
               {

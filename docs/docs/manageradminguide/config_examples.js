@@ -204,6 +204,70 @@ export default {
         ]
     },
 
+    configConditional1: [
+        {
+            "name": "uri",
+            "type": "radio",
+            "title": "Select the most appropriate URI",
+            "options":[
+                {"fromDocument": "candidates"},
+                {"value": "other", "label": "Other"}
+            ]
+        },
+        {
+            "name": "otherValue",
+            "type": "text",
+            "title": "Please specify another value",
+            "if": "annotation.uri == 'other'",
+            "regex": "^(https?|urn):",
+            "valError": "Please specify a URI (starting http:, https: or urn:)"
+        }
+    ],
+    configConditional2: [
+        {
+            "name": "htmldisplay",
+            "type": "html",
+            "text": "{{{text}}}"
+        },
+        {
+            "name": "sentiment",
+            "type": "radio",
+            "title": "Sentiment",
+            "description": "Please select a sentiment of the text above.",
+            "options": [
+                {"value": "negative", "label": "Negative"},
+                {"value": "neutral", "label": "Neutral"},
+                {"value": "positive", "label": "Positive"}
+            ]
+        },
+        {
+            "name": "reason",
+            "type": "text",
+            "title": "Why do you disagree with the suggested value?",
+            "if": "annotation.sentiment !== document.preanno.sentiment"
+        }
+    ],
+    docsConditional2: [
+        {
+            "text": "I love the thing!",
+            "preanno": {
+                "sentiment": "positive"
+            }
+        },
+        {
+            "text": "I hate the thing!",
+            "preanno": {
+                "sentiment": "negative"
+            }
+        },
+        {
+            "text": "The thing is ok, I guess...",
+            "preanno": {
+                "sentiment": "neutral"
+            }
+        }
+    ],
+
 
     doc1: {text: "Sometext with <strong>html</strong>"},
     doc2: {

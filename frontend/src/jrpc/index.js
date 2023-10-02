@@ -73,8 +73,9 @@ class JRPCClient{
                 // Not a fully formed json-rpc response, may be a problem with the endpoint
                 // or connection to the server
                 // TODO: Do we care about specific connection errors?
-                const err = new Error("Unknown error")
+                const err = new Error("There appears to be a problem with the connection")
                 err.code = JRPCClient.INTERNAL_ERROR
+                err.response = e.response
                 throw err
             }
         }

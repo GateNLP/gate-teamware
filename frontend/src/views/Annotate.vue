@@ -103,6 +103,7 @@
                               :doc_preannotation_field="currentAnnotationTask.document_pre_annotation_field"
                               :allow_document_reject="isLatestTask() && currentAnnotationTask.allow_document_reject"
                               :clear_after_submit="clearFormAfterSubmit"
+                              :class="{documentChanged : annotationRendererTransitionEnabled}"
                               @submit="submitHandler"
                               @reject="rejectHandler"
           ></AnnotationRenderer>
@@ -188,6 +189,7 @@ export default {
       showLeaveProjectModal: false,
       showStageIntroCard: false,
       showThankyouCard: false,
+      annotationRendererTransitionEnabled: false,
     }
   },
 
@@ -195,6 +197,12 @@ export default {
     ...mapActions(["getUserAnnotationTask", "getUserAnnotationTaskWithID",
       "completeUserAnnotationTask", "rejectUserAnnotationTask", "annotatorLeaveProject",
       "changeAnnotation"]),
+    triggerAnnotationRendererTransition(){
+      this.annotationRendererTransitionEnabled = true
+      setTimeout(()=>{
+        this.annotationRendererTransitionEnabled = false
+      }, 500)
+    },
     getAnnotationContainerBgClass() {
       return {
         "mt-4": true,
@@ -276,12 +284,15 @@ export default {
             this.$refs.annotationRenderer.setAnnotationData(this.currentAnnotationTask.annotation_data)
         }
 
+        this.triggerAnnotationRendererTransition()
+
       } catch (e) {
         toastError("Could not get annotation task", e, this)
         console.log(e)
       }
     },
     async submitHandler(value, time) {
+
 
       if (this.isLatestTask()) {
         // Complete a current task
@@ -313,6 +324,7 @@ export default {
     },
 
     async rejectHandler() {
+
       try {
         await this.rejectUserAnnotationTask(this.annotationTask.annotation_id)
       } catch (e) {
@@ -417,6 +429,19 @@ export default {
   background-image: none;
   background: white;
 
+}
+
+.documentChanged {
+  animation: fadein 0.5s;
+}
+
+@keyframes fadein {
+  from{
+    opacity: 0;
+  }
+  to{
+    opacity: 1.0;
+  }
 }
 
 </style>

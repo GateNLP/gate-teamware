@@ -1,0 +1,43 @@
+[
+  {
+    "name": "Document",
+    "text": "{{{text}}}",
+    "type": "html"
+  },
+  {
+    "name": "sentiment",
+    "type": "radio",
+    "title": "Sentiment",
+    "options": [
+      {"value": "negative", "label":"Negative", "helptext": "some example help text"},
+      {"value": "neutral", "label":"Neutral"},
+      {"value": "positive", "label":"Positive"}
+    ]
+  },
+  {
+    "if": "'sentiment' in document.preanno && annotation.sentiment !== document.preanno.sentiment",
+    "name": "reason",
+    "type": "text",
+    "title": "Why?",
+    "description": "Why do you disagree with the original suggestion?"
+  },
+  {
+    "type": "radio",
+    "title": "Confidence",
+    "description": "How confident are you in your choice?",
+    "name": "confidence",
+    "options": [
+      {"value": "1", "label": "1 (Not at all)"},
+      {"value": "2", "label": "2"},
+      {"value": "3", "label": "3"},
+      {"value": "4", "label": "4"},
+      {"value": "5", "label": "5 (dead certain)"}
+    ]
+  },
+  {
+    "if": "annotation.confidence && annotation.confidence < 4",
+    "name": "confidence_reason",
+    "type": "text",
+    "title": "What makes you unsure?"
+  }
+]

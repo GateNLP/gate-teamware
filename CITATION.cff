@@ -26,7 +26,7 @@ identifiers:
 - description: The collection of archived snapshots of all versions of GATE Teamware
     2
   type: doi
-  value: 10.5281/zenodo.7821718
+  value: 10.5281/zenodo.7899193
 keywords:
 - NLP
 - machine learning

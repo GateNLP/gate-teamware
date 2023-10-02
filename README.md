@@ -2,13 +2,13 @@
 
 ![](/frontend/public/static/img/gate-teamware-logo.svg "GATE Teamware")
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7821718.svg)](https://doi.org/10.5281/zenodo.7821718)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7899193.svg)](https://doi.org/10.5281/zenodo.7899193)
 
 A web application for collaborative document annotation. 
 
 Full documentation can be [found here][docs].
 
-GATE teamware provides a flexible web app platform for managing classification of documents by human annotators.
+GATE Teamware provides a flexible web app platform for managing classification of documents by human annotators.
 
 ## Key Features
 * Configure annotation options using a highly flexible JSON config.
@@ -37,6 +37,16 @@ bash ./get-teamware.sh
 
 [A Helm chart](https://github.com/GateNLP/charts/tree/main/gate-teamware) is also available to allow deployment on Kubernetes.
 
+### Upgrading
+
+**When upgrading GATE Teamware it is strongly recommended to ensure you have a recent backup of your database before starting the upgrade procedure.**  Database schema changes should be applied automatically as part of the upgrade but unexpected errors may cause data corruption - **always** take a backup before starting any significant changes to your database, so you can roll back in the event of failure.
+
+Check the [changelog](CHANGELOG.md) - any breaking changes and special considerations for upgrades to particular versions will be documented there.
+
+To upgrade a GATE Teamware installation that you installed using `get-teamware.sh`, simply download and run the latest version of the script in the same folder.  It will detect your existing configuration and prompt you for any new settings that have been introduced in the new version.  Note that any manual changes you have made to the `docker-compose.yml` and other files will not be duplicated automatically for the new version, you will have to port the necessary changes to the new files by hand.
+
+Upgrading a Kubernetes deployment generally consists simply of installing the new chart version with `help upgrade`.  As above, check the GATE Teamware changelog and the [chart readme](https://github.com/GateNLP/charts/tree/main/gate-teamware) for any special considerations, new or changed configuration values, etc. and ensure you have a recent database backup before starting the upgrade process.
+
 ## Building locally
 Follow these steps to run the app on your local machine using `docker-compose`:
 1. Clone this repository by running `git clone https://github.com/GateNLP/gate-teamware.git` and move into the `gate-teamware` directory.
@@ -63,7 +73,7 @@ Teamware is developed by the [GATE](https://gate.ac.uk) team, an academic resear
 ## Citation
 For published work that has used Teamware, please cite this repository. One way is to include a citation such as:
 
-> Karmakharm, T., Wilby, D., Roberts, I., & Bontcheva, K. (2022). GATE Teamware (Version 0.1.4) [Computer software]. https://github.com/GateNLP/gate-teamware
+> Karmakharm, T., Wilby, D., Roberts, I., & Bontcheva, K. (2022). GATE Teamware (Version 2.1.0) [Computer software]. https://github.com/GateNLP/gate-teamware
 
 Please use the `Cite this repository` button at the top of the [project's GitHub repository](https://github.com/GATENLP/gate-teamware) to get an up to date citation.
 

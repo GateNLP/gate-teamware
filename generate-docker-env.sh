@@ -20,7 +20,9 @@ if [ -f .env ]; then
   cp .env saved-env.$BAKNAME
 
   # load any existing environment variables from .env
-  . .env
+  if [ -z "$SKIP_EXISTING_ENV" ]; then
+    . .env
+  fi
    sed -n '/^### generate-docker-env\.sh will not touch anything below this line/,$p' .env | sed 1d > .env.tmpsave
 fi
 

@@ -68,7 +68,7 @@ export default new Vuex.Store({
 
             }catch(e){
                 console.log(e)
-                throw e
+                // Error is not thrown as this function is called before the UI is loaded
             }
         },
         async login({dispatch, commit}, params) {

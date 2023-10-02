@@ -64,6 +64,13 @@ class ServiceUser(AbstractUser):
     agreed_privacy_policy = models.BooleanField(default=False)
     is_deleted = models.BooleanField(default=False)
 
+    def lock_user(self):
+        """
+        Lock this user with a SELECT FOR UPDATE.  This method must be called within a transaction,
+        the lock will be released when the transaction commits or rolls back.
+        """
+        return type(self).objects.filter(id=self.id).select_for_update().get()
+
     @property
     def has_active_project(self):
         return self.annotatorproject_set.filter(status=AnnotatorProject.ACTIVE).count() > 0
@@ -485,6 +492,9 @@ class Project(models.Model):
             annotator_project.status = AnnotatorProject.COMPLETED
             annotator_project.rejected = True
             annotator_project.save()
+
+            Annotation.clear_all_pending_user_annotations(user)
+
         except ObjectDoesNotExist:
             raise Exception(f"User {user.username} is not an annotator of the project.")
 
@@ -589,6 +599,9 @@ class Project(models.Model):
             user from annotator list if there's no more tasks or user reached quota.
         """
 
+        # Lock required to prevent concurrent calls from assigning two different tasks
+        # to the same user
+        user = user.lock_user()
         annotation = self.get_current_annotator_task(user)
         if annotation:
             # User has existing task
@@ -623,7 +636,7 @@ class Project(models.Model):
 
         annotation = current_annotations.first()
         if annotation.document.project != self:
-            return RuntimeError(
+            raise RuntimeError(
                 "The annotation doesn't belong to this project! Annotator should only work on one project at a time")
 
         return annotation
@@ -724,9 +737,18 @@ class Project(models.Model):
         Annotation task performs an extra check for remaining annotation task (num_annotation_tasks_remaining),
         testing and training does not do this check as the annotator must annotate all documents.
         """
-        if (DocumentType.ANNOTATION and self.num_annotation_tasks_remaining > 0) or \
-                DocumentType.TEST or DocumentType.TRAINING:
-            for doc in self.documents.filter(doc_type=doc_type).order_by('?'):
+        if (doc_type == DocumentType.ANNOTATION and self.num_annotation_tasks_remaining > 0) or \
+                doc_type == DocumentType.TEST or doc_type == DocumentType.TRAINING:
+            if doc_type == DocumentType.TEST or doc_type == DocumentType.TRAINING:
+                queryset = self.documents.filter(doc_type=doc_type).order_by('?')
+            else:
+                # Prefer documents which have fewer complete or pending annotations, in order to
+                # spread the annotators as evenly as possible across the available documents
+                queryset = self.documents.filter(doc_type=doc_type).alias(
+                    occupied_annotations=Count("annotations", filter=Q(annotations__status=Annotation.COMPLETED)
+                                                                     | Q(annotations__status=Annotation.PENDING))
+                ).order_by('occupied_annotations', '?')
+            for doc in queryset:
                 # Check that annotator hasn't annotated and that
                 # doc hasn't been fully annotated
                 if doc.user_can_annotate_document(user):
