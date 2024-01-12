@@ -12,16 +12,21 @@
 
     <h3>Citation</h3>
     <p>
-    For published work that has used Teamware, please cite the <a href="https://github.com/GATENLP/gate-teamware" target="_blank">project's GitHub repository</a>. One way is to include a citation such as:
+    For published work that has used Teamware, please cite the <a href="https://aclanthology.org/2023.eacl-demo.17/" target="_blank">EACL23 demo paper</a>. One way is to include a citation such as:
     </p>
 
     <p>
     <blockquote>
-      Karmakharm, T., Wilby, D., Roberts, I., & Bontcheva, K. (2022). GATE Teamware (Version {{ appVersion }}) [Computer software]. https://github.com/GateNLP/gate-teamware
+      Wilby, D., Karmakharm, T., Roberts, I., Song, X. & Bontcheva, K. (2023). GATE Teamware 2: An open-source tool for collaborative document classification annotation. In Proceedings of the 17th Conference of the European Chapter of the Association for Computational Linguistics: System Demonstrations, pages 145–151, Dubrovnik, Croatia. Association for Computational Linguistics. https://aclanthology.org/2023.eacl-demo.17/
     </blockquote>
       </p>
 
-    Please use the <b>Cite this repository</b> button at the top of the <a href="https://github.com/GATENLP/gate-teamware" target="_blank">project's GitHub repository</a> to get an up to date citation.
+    <p>
+      Please use the <b>Cite this repository</b> button at the top of the <a href="https://github.com/GATENLP/gate-teamware" target="_blank">project's GitHub repository</a> to get an up to date citation.
+    </p>
+    <p>
+      Permanent references to each version of the software are available from <a href="https://doi.org/10.5281/zenodo.7899193">Zenodo</a>.
+    </p>
 
     <h3>Version</h3>
     <p>
