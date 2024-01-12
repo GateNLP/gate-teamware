@@ -69,9 +69,13 @@ preferred-citation:
   doi: 10.18653/v1/2023.eacl-demo.17
   title: "GATE Teamware 2: An open-source tool for collaborative document classification annotation"
   collection-title: "Proceedings of the 17th Conference of the European Chapter of the Association for Computational Linguistics: System Demonstrations"    
+  location: Dubrovnik, Croatia
   year: 2023
   month: 5
   start: 145
   end: 151
   publisher:
     name: Association for Computational Linguistics
+  conference:
+    name: 17th Conference of the European Chapter of the Association for Computational Linguistics
+    year: 2023
