@@ -76,6 +76,4 @@ preferred-citation:
   end: 151
   publisher:
     name: Association for Computational Linguistics
-  conference:
-    name: 17th Conference of the European Chapter of the Association for Computational Linguistics
-    year: 2023
+    address: Dubrovnik, Croatia
