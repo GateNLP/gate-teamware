@@ -1,6 +1,6 @@
 abstract: A web application for collaborative document annotation. GATE teamware provides
   a flexible web app platform for managing classification of documents by human annotators.
-authors:
+authors: 
 - affiliation: The University of Sheffield
   email: t.karmakharm@sheffield.ac.uk
   family-names: Karmakharm
@@ -38,3 +38,42 @@ title: GATE Teamware
 type: software
 url: https://gatenlp.github.io/gate-teamware/
 version: 2.1.1
+preferred-citation:
+  type: conference-paper
+  authors:
+  - affiliation: The University of Sheffield
+    email: d.wilby@sheffield.ac.uk
+    family-names: Wilby
+    given-names: David
+    orcid: https://orcid.org/0000-0002-6553-8739
+  - affiliation: The University of Sheffield
+    email: t.karmakharm@sheffield.ac.uk
+    family-names: Karmakharm
+    given-names: Twin
+    orcid: https://orcid.org/0000-0002-1888-7098
+  - affiliation: The University of Sheffield
+    email: i.roberts@sheffield.ac.uk
+    family-names: Roberts
+    given-names: Ian
+    orcid: https://orcid.org/0000-0002-7296-5851
+  - affiliation: The University of Sheffield
+    email: x.song@sheffield.ac.uk
+    family-names: Song
+    given-names: Xingyi
+    orcid: https://orcid.org/0000-0002-4188-6974
+  - affiliation: The University of Sheffield
+    email: k.bontcheva@sheffield.ac.uk
+    family-names: Bontcheva
+    given-names: Kalina
+    orcid: https://orcid.org/0000-0001-6152-9600
+  doi: 10.18653/v1/2023.eacl-demo.17
+  title: "GATE Teamware 2: An open-source tool for collaborative document classification annotation"
+  collection-title: "Proceedings of the 17th Conference of the European Chapter of the Association for Computational Linguistics: System Demonstrations"    
+  location:
+    name: Dubrovnik, Croatia
+  year: 2023
+  month: 5
+  start: 145
+  end: 151
+  publisher:
+    name: Association for Computational Linguistics

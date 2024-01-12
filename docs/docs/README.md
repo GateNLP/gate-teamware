@@ -129,10 +129,10 @@ Please make bug reports and feature requests as Issues on the [GATE Teamware Git
 Teamware is developed by the [GATE](https://gate.ac.uk) team, an academic research group at The University of Sheffield. As a result, future funding relies on evidence of the impact that the software provides. If you use Teamware, please let us know using the contact form at [gate.ac.uk](https://gate.ac.uk/g8/contact). Please include details on grants, publications, commercial products etc. Any information that can help us to secure future funding for our work is greatly appreciated.
 
 ## Citation
-For published work that has used Teamware, please cite this repository. One way is to include a citation such as:
+For published work that has used Teamware, please cite the [EACL23 demo paper](https://aclanthology.org/2023.eacl-demo.17/). One way is to include a citation such as:
 
-> Karmakharm, T., Wilby, D., Roberts, I., & Bontcheva, K. (2022). GATE Teamware (Version 0.1.4) [Computer software]. https://github.com/GateNLP/gate-teamware
+> Wilby, D., Karmakharm, T., Roberts, I., Song, X. & Bontcheva, K. (2023). GATE Teamware 2: An open-source tool for collaborative document classification annotation. In Proceedings of the 17th Conference of the European Chapter of the Association for Computational Linguistics: System Demonstrations, pages 145–151, Dubrovnik, Croatia. Association for Computational Linguistics. https://aclanthology.org/2023.eacl-demo.17/
 
 Please use the `Cite this repository` button at the top of the [project's GitHub repository](https://github.com/GATENLP/gate-teamware) to get an up to date citation.
 
-The Teamware version can be found on the 'About' page of your Teamware instance.
+Permanent references to each version of the software are available from [Zenodo](https://doi.org/10.5281/zenodo.7899193). The Teamware version can be found on the 'About' page of your Teamware instance.
