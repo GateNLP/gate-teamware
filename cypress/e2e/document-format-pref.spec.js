@@ -61,8 +61,9 @@ describe("Tests for document format preference changes", () => {
         cy.visit("/")
         cy.get(".navbar").contains(adminUsername).click()
         cy.contains("Account").click()
+        cy.wait(1000)
         cy.contains("CSV").click()
-        cy.wait(2000)
+        cy.wait(1000)
 
         cy.contains("Projects").click()
         cy.contains("Test project").click()
