@@ -978,7 +978,7 @@ class Document(models.Model):
         # Create dictionary for document
         doc_dict = None
         if json_format == "raw" or json_format == "csv":
-            doc_dict = self.data
+            doc_dict = self.data.copy()
         elif json_format == "gate":
 
             ignore_keys = {"text", self.project.document_id_field}
@@ -990,7 +990,6 @@ class Document(models.Model):
                 "offset_type": "p",
                 "name": get_value_from_key_path(self.data, self.project.document_id_field)
             }
-            pass
 
         # Insert annotation sets into the doc dict
         annotations = self.annotations.filter(status=Annotation.COMPLETED)
