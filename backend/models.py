@@ -1008,7 +1008,7 @@ class Document(models.Model):
                 annotation_dict["duration_seconds"] = annotation.time_to_complete
 
                 if anonymize:
-                    annotation_sets[str(annotation.user.id)] = annotation_dict
+                    annotation_sets[f"{settings.ANONYMIZATION_PREFIX}{annotation.user.id}"] = annotation_dict
                 else:
                     annotation_sets[annotation.user.username] = annotation_dict
 
@@ -1048,7 +1048,7 @@ class Document(models.Model):
             ("aborted", Annotation.ABORTED),
         ]:
             teamware_status[key] = [
-                annotation.user.id if anonymize else annotation.user.username
+                f"{settings.ANONYMIZATION_PREFIX}{annotation.user.id}" if anonymize else annotation.user.username
                 for annotation in self.annotations.filter(status=status)
             ]
             if json_format == "csv":

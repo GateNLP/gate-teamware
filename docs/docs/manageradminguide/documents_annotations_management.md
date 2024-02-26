@@ -234,7 +234,7 @@ You can choose how documents are exported:
 
     In anonymous mode the name `user1` would instead be the user's opaque numeric identifier (e.g. `105`).
 
-    The field `teamware_status` gives the ids or usernames (depending on the "anonymize" setting) of those annotators
+    The field `teamware_status` gives the usernames or anonymous IDs (depending on the "anonymize" setting) of those annotators
     who rejected the document, "timed out" because they did not complete their annotation in the time allowed by the
     project, or "aborted" for some other reason (e.g. they were removed from the project).
 

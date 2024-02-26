@@ -1102,7 +1102,7 @@ class TestDocumentAnnotationModelExport(TestCase):
         self.test_user = get_user_model().objects.create(username="project_creator")
         self.annotator_names = [f"{self.unanonymized_prefix}{i}" for i in range(3)]
         self.annotators = [get_user_model().objects.create(username=u) for u in self.annotator_names]
-        self.annotator_ids = [a.id for a in self.annotators]
+        self.anon_annotator_names = [f"{settings.ANONYMIZATION_PREFIX}{a.id}" for a in self.annotators]
         self.project = Project.objects.create(owner=self.test_user)
         for i in range(10):
             document = Document.objects.create(
@@ -1157,7 +1157,7 @@ class TestDocumentAnnotationModelExport(TestCase):
             self.assertTrue("feature3" in doc_dict)
 
             self.check_raw_gate_annotation_formatting(doc_dict)
-            self.check_teamware_status(doc_dict, self.annotator_ids)
+            self.check_teamware_status(doc_dict, self.anon_annotator_names)
 
     def test_export_gate(self):
 
@@ -1174,7 +1174,7 @@ class TestDocumentAnnotationModelExport(TestCase):
             self.assertTrue("feature3" in doc_features)
 
             self.check_raw_gate_annotation_formatting(doc_dict)
-            self.check_teamware_status(doc_features, self.annotator_ids)
+            self.check_teamware_status(doc_features, self.anon_annotator_names)
 
     def check_raw_gate_annotation_formatting(self, doc_dict):
         self.assertTrue("annotation_sets" in doc_dict)
@@ -1226,7 +1226,7 @@ class TestDocumentAnnotationModelExport(TestCase):
                 self.assertTrue(isinstance(anno_set_dict[set_key]["text1"], str))
                 self.assertTrue(isinstance(anno_set_dict[set_key]["checkbox1"], str))
 
-            self.check_teamware_status(doc_dict, ",".join(str(i) for i in self.annotator_ids))
+            self.check_teamware_status(doc_dict, ",".join(str(i) for i in self.anon_annotator_names))
 
     def test_export_raw_anonymized(self):
 
@@ -1237,7 +1237,7 @@ class TestDocumentAnnotationModelExport(TestCase):
                 self.assertFalse(aset_key.startswith(self.unanonymized_prefix))
                 self.assertFalse(aset_data.get("name", None).startswith(self.unanonymized_prefix))
 
-            self.check_teamware_status(doc_dict, self.annotator_ids)
+            self.check_teamware_status(doc_dict, self.anon_annotator_names)
 
     def test_export_raw_deanonymized(self):
 
@@ -1261,7 +1261,7 @@ class TestDocumentAnnotationModelExport(TestCase):
                 self.assertFalse(aset_key.startswith(self.unanonymized_prefix))
                 self.assertFalse(aset_data.get("name", None).startswith(self.unanonymized_prefix))
 
-            self.check_teamware_status(doc_dict["features"], self.annotator_ids)
+            self.check_teamware_status(doc_dict["features"], self.anon_annotator_names)
 
     def test_export_gate_deanonymized(self):
 
