@@ -8,7 +8,7 @@
     
     <meta name="description" content="Documentation for GATE Teamware">
     
-    <link rel="preload" href="/gate-teamware/development/assets/css/0.styles.397cc0c4.css" as="style"><link rel="preload" href="/gate-teamware/development/assets/js/app.ba074348.js" as="script"><link rel="preload" href="/gate-teamware/development/assets/js/2.dd2f4b96.js" as="script"><link rel="preload" href="/gate-teamware/development/assets/js/4.439566c5.js" as="script"><link rel="preload" href="/gate-teamware/development/assets/js/11.1f5640e9.js" as="script"><link rel="preload" href="/gate-teamware/development/assets/js/5.66d76d97.js" as="script"><link rel="prefetch" href="/gate-teamware/development/assets/js/10.2cbeb792.js"><link rel="prefetch" href="/gate-teamware/development/assets/js/12.c7d73ada.js"><link rel="prefetch" href="/gate-teamware/development/assets/js/13.cf164ea5.js"><link rel="prefetch" href="/gate-teamware/development/assets/js/14.71f91137.js"><link rel="prefetch" href="/gate-teamware/development/assets/js/15.543a7b17.js"><link rel="prefetch" href="/gate-teamware/development/assets/js/16.4ffcc6b0.js"><link rel="prefetch" href="/gate-teamware/development/assets/js/17.48f0fa02.js"><link rel="prefetch" href="/gate-teamware/development/assets/js/18.92c42647.js"><link rel="prefetch" href="/gate-teamware/development/assets/js/19.3c819926.js"><link rel="prefetch" href="/gate-teamware/development/assets/js/20.421c48b7.js"><link rel="prefetch" href="/gate-teamware/development/assets/js/21.f31925a5.js"><link rel="prefetch" href="/gate-teamware/development/assets/js/22.5898ccfc.js"><link rel="prefetch" href="/gate-teamware/development/assets/js/23.6ffdb12d.js"><link rel="prefetch" href="/gate-teamware/development/assets/js/3.476f93e3.js"><link rel="prefetch" href="/gate-teamware/development/assets/js/6.2ca8a4a8.js"><link rel="prefetch" href="/gate-teamware/development/assets/js/7.655534d2.js"><link rel="prefetch" href="/gate-teamware/development/assets/js/8.0321307e.js"><link rel="prefetch" href="/gate-teamware/development/assets/js/9.6f717989.js">
+    <link rel="preload" href="/gate-teamware/development/assets/css/0.styles.397cc0c4.css" as="style"><link rel="preload" href="/gate-teamware/development/assets/js/app.898124c6.js" as="script"><link rel="preload" href="/gate-teamware/development/assets/js/2.dd2f4b96.js" as="script"><link rel="preload" href="/gate-teamware/development/assets/js/4.439566c5.js" as="script"><link rel="preload" href="/gate-teamware/development/assets/js/11.3f44e040.js" as="script"><link rel="preload" href="/gate-teamware/development/assets/js/5.66d76d97.js" as="script"><link rel="prefetch" href="/gate-teamware/development/assets/js/10.2cbeb792.js"><link rel="prefetch" href="/gate-teamware/development/assets/js/12.c7d73ada.js"><link rel="prefetch" href="/gate-teamware/development/assets/js/13.cf164ea5.js"><link rel="prefetch" href="/gate-teamware/development/assets/js/14.122e6052.js"><link rel="prefetch" href="/gate-teamware/development/assets/js/15.80bfb968.js"><link rel="prefetch" href="/gate-teamware/development/assets/js/16.884430bf.js"><link rel="prefetch" href="/gate-teamware/development/assets/js/17.318ef105.js"><link rel="prefetch" href="/gate-teamware/development/assets/js/18.659e035c.js"><link rel="prefetch" href="/gate-teamware/development/assets/js/19.5647e802.js"><link rel="prefetch" href="/gate-teamware/development/assets/js/20.c5ad7a18.js"><link rel="prefetch" href="/gate-teamware/development/assets/js/21.f31925a5.js"><link rel="prefetch" href="/gate-teamware/development/assets/js/22.076f0bde.js"><link rel="prefetch" href="/gate-teamware/development/assets/js/23.f295677e.js"><link rel="prefetch" href="/gate-teamware/development/assets/js/3.476f93e3.js"><link rel="prefetch" href="/gate-teamware/development/assets/js/6.2ca8a4a8.js"><link rel="prefetch" href="/gate-teamware/development/assets/js/7.655534d2.js"><link rel="prefetch" href="/gate-teamware/development/assets/js/8.0321307e.js"><link rel="prefetch" href="/gate-teamware/development/assets/js/9.6f717989.js">
     <link rel="stylesheet" href="/gate-teamware/development/assets/css/0.styles.397cc0c4.css">
   </head>
   <body>
@@ -152,10 +152,15 @@ named <code>value</code>:</p> <table><thead><tr><th>text</th> <th>gold.sentiment
     <span class="token punctuation">}</span>
 <span class="token punctuation">]</span>
 </code></pre></div><h2 id="exporting-documents"><a href="#exporting-documents" class="header-anchor">#</a> Exporting documents</h2> <p>Documents and annotations can be exported using the <strong>Export</strong> button. A zip file is generated containing files with 500
-documents each. You can choose how documents are exported:</p> <ul><li><code>.json</code> &amp; <code>.jsonl</code> - JSON or JSON Lines files can be generated in the format of:
+documents each. The option to &quot;anonymize annotators&quot; controls whether the individual annotators are identified with
+their numeric ID or by their actual username - since usernames are often personally identifiable information (e.g. an
+email address) the anonumous mode is recommended if you intend to share the annotation data with third parties.  Note
+that the anonymous IDs are consistent within a single installation of Teamware, so even in anonymous mode it is still
+possible to determine which documents were annotated by <em>the same person</em>, just not who that person was.</p> <p>You can choose how documents are exported:</p> <ul><li><code>.json</code> &amp; <code>.jsonl</code> - JSON or JSON Lines files can be generated in the format of:
 <ul><li><p><code>raw</code> - Exports unmodified JSON. If you've originally uploaded in GATE format then choose this option.</p> <p>An additional field named <code>annotation_sets</code> is added for storing annotations. The annotations are laid out in the
 same way as GATE JSON format. For example if a document has been annotated by <code>user1</code> with labels and values
-<code>text</code>:<code>Annotation text</code>, <code>radio</code>:<code>val3</code>, and <code>checkbox</code>:<code>[&quot;val2&quot;, &quot;val4&quot;]</code>:</p> <div class="language-json extra-class"><pre class="language-json"><code><span class="token punctuation">{</span>
+<code>text</code>:<code>Annotation text</code>, <code>radio</code>:<code>val3</code>, and <code>checkbox</code>:<code>[&quot;val2&quot;, &quot;val4&quot;]</code>, the non-anonymous export might look
+like this:</p> <div class="language-json extra-class"><pre class="language-json"><code><span class="token punctuation">{</span>
   <span class="token property">&quot;id&quot;</span><span class="token operator">:</span> <span class="token number">32</span><span class="token punctuation">,</span>
   <span class="token property">&quot;text&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Document text&quot;</span><span class="token punctuation">,</span>
   <span class="token property">&quot;text2&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Document text 2&quot;</span><span class="token punctuation">,</span>
@@ -183,28 +188,39 @@ same way as GATE JSON format. For example if a document has been annotated by <c
        <span class="token punctuation">]</span><span class="token punctuation">,</span>
        <span class="token property">&quot;next_annid&quot;</span><span class="token operator">:</span><span class="token number">1</span>
     <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">&quot;teamware_status&quot;</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">&quot;rejected_by&quot;</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">&quot;user2&quot;</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">&quot;timed_out&quot;</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">&quot;user3&quot;</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">&quot;aborted&quot;</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
   <span class="token punctuation">}</span>
 <span class="token punctuation">}</span>
-</code></pre></div></li> <li><p><code>gate</code> - Convert documents to GATE JSON format and export. A <code>name</code> field is added that takes the ID value from the
+</code></pre></div><p>In anonymous mode the name <code>user1</code> would instead be the user's opaque numeric identifier (e.g. <code>105</code>).</p> <p>The field <code>teamware_status</code> gives the ids or usernames (depending on the &quot;anonymize&quot; setting) of those annotators
+who rejected the document, &quot;timed out&quot; because they did not complete their annotation in the time allowed by the
+project, or &quot;aborted&quot; for some other reason (e.g. they were removed from the project).</p></li> <li><p><code>gate</code> - Convert documents to GATE JSON format and export. A <code>name</code> field is added that takes the ID value from the
 ID field specified in the project configuration. Fields apart from <code>text</code> and the ID field specified in the project
-config are placed in the <code>features</code> field. An <code>annotation_sets</code> field is added for storing annotations.</p> <p>For example in the case of this uploaded JSON document:</p> <div class="language-json extra-class"><pre class="language-json"><code><span class="token punctuation">{</span>
+config are placed in the <code>features</code> field, as is the <code>teamware_status</code> information. An <code>annotation_sets</code> field is
+added for storing annotations.</p> <p>For example in the case of this uploaded JSON document:</p> <div class="language-json extra-class"><pre class="language-json"><code><span class="token punctuation">{</span>
   <span class="token property">&quot;id&quot;</span><span class="token operator">:</span> <span class="token number">32</span><span class="token punctuation">,</span>
   <span class="token property">&quot;text&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Document text&quot;</span><span class="token punctuation">,</span>
   <span class="token property">&quot;text2&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Document text 2&quot;</span><span class="token punctuation">,</span>
   <span class="token property">&quot;feature1&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Feature text&quot;</span>
 <span class="token punctuation">}</span>
-</code></pre></div><p>The generated output is as follows. The annotations are formatted same as the <code>raw</code> output above:</p> <div class="language-json extra-class"><pre class="language-json"><code><span class="token punctuation">{</span>
+</code></pre></div><p>The generated output is as follows. The annotations and <code>teamware_status</code> are formatted same as the <code>raw</code> output
+above:</p> <div class="language-json extra-class"><pre class="language-json"><code><span class="token punctuation">{</span>
   <span class="token property">&quot;name&quot;</span><span class="token operator">:</span> <span class="token number">32</span><span class="token punctuation">,</span>
   <span class="token property">&quot;text&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Document text&quot;</span><span class="token punctuation">,</span>
   <span class="token property">&quot;features&quot;</span><span class="token operator">:</span> <span class="token punctuation">{</span>
     <span class="token property">&quot;text2&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Document text 2&quot;</span><span class="token punctuation">,</span>
-    <span class="token property">&quot;feature1&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Feature text&quot;</span>
+    <span class="token property">&quot;feature1&quot;</span><span class="token operator">:</span> <span class="token string">&quot;Feature text&quot;</span><span class="token punctuation">,</span>
+    <span class="token property">&quot;teamware_status&quot;</span><span class="token operator">:</span> <span class="token punctuation">{</span>...<span class="token punctuation">}</span>
   <span class="token punctuation">}</span><span class="token punctuation">,</span>
   <span class="token property">&quot;offset_type&quot;</span><span class="token operator">:</span><span class="token string">&quot;p&quot;</span><span class="token punctuation">,</span>
   <span class="token property">&quot;annotation_sets&quot;</span><span class="token operator">:</span> <span class="token punctuation">{</span>...<span class="token punctuation">}</span>
 <span class="token punctuation">}</span>
 </code></pre></div></li></ul></li> <li><code>.csv</code> - The JSON documents will be flattened to csv's column based format. Annotations are added as additional
-columns with the header of <code>annotations.username.label</code>.</li></ul> <h2 id="deleting-documents-and-annotations"><a href="#deleting-documents-and-annotations" class="header-anchor">#</a> Deleting documents and annotations</h2> <p>It is possible to click on the top left of corner of documents and annotations to select it, then click on the
+columns with the header of <code>annotations.username.label</code> and the status information is in columns named
+<code>teamware_status.rejected_by</code>, <code>teamware_status.timed_out</code> and <code>teamware_status.aborted</code>.</li></ul> <h2 id="deleting-documents-and-annotations"><a href="#deleting-documents-and-annotations" class="header-anchor">#</a> Deleting documents and annotations</h2> <p>It is possible to click on the top left of corner of documents and annotations to select it, then click on the
 <strong>Delete</strong> button to delete them.</p> <div class="custom-block tip"><p class="custom-block-title">TIP</p> <p>Selecting a document also selects all its associated annotations.</p></div></div> <footer class="page-edit"><!----> <!----></footer> <div class="page-nav"><p class="inner"><span class="prev">
       ←
       <a href="/gate-teamware/development/manageradminguide/project_config.html" class="prev">
@@ -214,6 +230,6 @@ columns with the header of <code>annotations.username.label</code>.</li></ul> <h
       </a>
       →
     </span></p></div> </main></div><div class="global-ui"></div></div>
-    <script src="/gate-teamware/development/assets/js/app.ba074348.js" defer></script><script src="/gate-teamware/development/assets/js/2.dd2f4b96.js" defer></script><script src="/gate-teamware/development/assets/js/4.439566c5.js" defer></script><script src="/gate-teamware/development/assets/js/11.1f5640e9.js" defer></script><script src="/gate-teamware/development/assets/js/5.66d76d97.js" defer></script>
+    <script src="/gate-teamware/development/assets/js/app.898124c6.js" defer></script><script src="/gate-teamware/development/assets/js/2.dd2f4b96.js" defer></script><script src="/gate-teamware/development/assets/js/4.439566c5.js" defer></script><script src="/gate-teamware/development/assets/js/11.3f44e040.js" defer></script><script src="/gate-teamware/development/assets/js/5.66d76d97.js" defer></script>
   </body>
 </html>
