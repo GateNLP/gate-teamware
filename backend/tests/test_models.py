@@ -1099,7 +1099,9 @@ class TestDocumentAnnotationModelExport(TestCase):
 
     def setUp(self):
         self.test_user = get_user_model().objects.create(username="project_creator")
-        self.annotators = [get_user_model().objects.create(username=f"anno{i}") for i in range(3)]
+        self.annotator_names = [f"anno{i}" for i in range(3)]
+        self.annotators = [get_user_model().objects.create(username=u) for u in self.annotator_names]
+        self.annotator_ids = [a.id for a in self.annotators]
         self.project = Project.objects.create(owner=self.test_user)
         for i in range(10):
             document = Document.objects.create(
@@ -1154,6 +1156,7 @@ class TestDocumentAnnotationModelExport(TestCase):
             self.assertTrue("feature3" in doc_dict)
 
             self.check_raw_gate_annotation_formatting(doc_dict)
+            self.check_teamware_status(doc_dict, self.annotator_ids)
 
     def test_export_gate(self):
 
@@ -1170,6 +1173,7 @@ class TestDocumentAnnotationModelExport(TestCase):
             self.assertTrue("feature3" in doc_features)
 
             self.check_raw_gate_annotation_formatting(doc_dict)
+            self.check_teamware_status(doc_features, self.annotator_ids)
 
     def check_raw_gate_annotation_formatting(self, doc_dict):
         self.assertTrue("annotation_sets" in doc_dict)
@@ -1191,6 +1195,18 @@ class TestDocumentAnnotationModelExport(TestCase):
             self.assertTrue("text1" in label_dict)
             self.assertTrue("checkbox1" in label_dict)
 
+    def check_teamware_status(self, containing_dict, expected_value):
+        self.assertTrue("teamware_status" in containing_dict)
+        teamware_status = containing_dict["teamware_status"]
+        if isinstance(expected_value, str):
+            self.assertEqual(teamware_status["rejected_by"], expected_value)
+            self.assertEqual(teamware_status["aborted"], expected_value)
+            self.assertEqual(teamware_status["timed_out"], expected_value)
+        else:
+            self.assertSetEqual(set(teamware_status["rejected_by"]), set(expected_value))
+            self.assertSetEqual(set(teamware_status["aborted"]), set(expected_value))
+            self.assertSetEqual(set(teamware_status["timed_out"]), set(expected_value))
+
     def test_export_csv(self):
 
         for document in self.project.documents.all():
@@ -1209,6 +1225,8 @@ class TestDocumentAnnotationModelExport(TestCase):
                 self.assertTrue(isinstance(anno_set_dict[set_key]["text1"], str))
                 self.assertTrue(isinstance(anno_set_dict[set_key]["checkbox1"], str))
 
+            self.check_teamware_status(doc_dict, ",".join(str(i) for i in self.annotator_ids))
+
     def test_export_raw_anonymized(self):
 
         for document in self.project.documents.all():
@@ -1216,6 +1234,8 @@ class TestDocumentAnnotationModelExport(TestCase):
 
             for aset_key, aset_data in doc_dict["annotation_sets"].items():
                 self.assertTrue(isinstance(aset_data.get("name", None), int))
+
+            self.check_teamware_status(doc_dict, self.annotator_ids)
 
     def test_export_raw_deanonymized(self):
 
@@ -1225,6 +1245,10 @@ class TestDocumentAnnotationModelExport(TestCase):
             for aset_key, aset_data in doc_dict["annotation_sets"].items():
                 self.assertTrue(isinstance(aset_data.get("name", None), str))
 
+            # for non-anonymized export the rejected/aborted/timed_out status
+            # uses names rather than ID numbers
+            self.check_teamware_status(doc_dict, self.annotator_names)
+
     def test_export_gate_anonymized(self):
 
         for document in self.project.documents.all():
@@ -1233,6 +1257,8 @@ class TestDocumentAnnotationModelExport(TestCase):
             for aset_key, aset_data in doc_dict["annotation_sets"].items():
                 self.assertTrue(isinstance(aset_data.get("name", None), int))
 
+            self.check_teamware_status(doc_dict["features"], self.annotator_ids)
+
     def test_export_gate_deanonymized(self):
 
         for document in self.project.documents.all():
@@ -1240,3 +1266,7 @@ class TestDocumentAnnotationModelExport(TestCase):
 
             for aset_key, aset_data in doc_dict["annotation_sets"].items():
                 self.assertTrue(isinstance(aset_data.get("name", None), str))
+
+            # for non-anonymized export the rejected/aborted/timed_out status
+            # uses names rather than ID numbers
+            self.check_teamware_status(doc_dict["features"], self.annotator_names)

@@ -978,7 +978,7 @@ class Document(models.Model):
         # Create dictionary for document
         doc_dict = None
         if json_format == "raw" or json_format == "csv":
-            doc_dict = self.data
+            doc_dict = self.data.copy()
         elif json_format == "gate":
 
             ignore_keys = {"text", self.project.document_id_field}
@@ -990,7 +990,6 @@ class Document(models.Model):
                 "offset_type": "p",
                 "name": get_value_from_key_path(self.data, self.project.document_id_field)
             }
-            pass
 
         # Insert annotation sets into the doc dict
         annotations = self.annotations.filter(status=Annotation.COMPLETED)
@@ -1038,6 +1037,27 @@ class Document(models.Model):
                 }
                 annotation_sets[annotation.user.username] = annotation_set
             doc_dict["annotation_sets"] = annotation_sets
+
+        # Add to the export the lists (possibly empty) of users who rejected,
+        # timed out or aborted annotation of this document
+        teamware_status = {}
+        for key, status in [
+            ("rejected_by", Annotation.REJECTED),
+            ("timed_out", Annotation.TIMED_OUT),
+            ("aborted", Annotation.ABORTED),
+        ]:
+            teamware_status[key] = [
+                annotation.user.id if anonymize else annotation.user.username
+                for annotation in self.annotations.filter(status=status)
+            ]
+            if json_format == "csv":
+                # Flatten list if exporting as CSV
+                teamware_status[key] = ",".join(str(val) for val in teamware_status[key])
+
+        if json_format == "gate":
+            doc_dict["features"]["teamware_status"] = teamware_status
+        else:
+            doc_dict["teamware_status"] = teamware_status
 
         return doc_dict
 
