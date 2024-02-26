@@ -1098,10 +1098,11 @@ class TestAnnotationModel(ModelTestCase):
 class TestDocumentAnnotationModelExport(TestCase):
 
     def setUp(self):
+        self.unanonymized_prefix = "namedperson"
         self.test_user = get_user_model().objects.create(username="project_creator")
-        self.annotator_names = [f"anno{i}" for i in range(3)]
+        self.annotator_names = [f"{self.unanonymized_prefix}{i}" for i in range(3)]
         self.annotators = [get_user_model().objects.create(username=u) for u in self.annotator_names]
-        self.annotator_ids = [a.id for a in self.annotators]
+        self.anon_annotator_names = [f"{settings.ANONYMIZATION_PREFIX}{a.id}" for a in self.annotators]
         self.project = Project.objects.create(owner=self.test_user)
         for i in range(10):
             document = Document.objects.create(
@@ -1112,6 +1113,55 @@ class TestDocumentAnnotationModelExport(TestCase):
                     "feature1": "Testvalue 1",
                     "feature2": "Testvalue 1",
                     "feature3": "Testvalue 1",
+                    "features": {
+                        "gate_format_feature1": "Gate feature test value",
+                        "gate_format_feature2": "Gate feature test value",
+                        "gate_format_feature3": "Gate feature test value",
+                    },
+                    "offset_type": "x",
+                    "annotations": {
+                        "existing_annotator1": {
+                            "sentiment": "positive"
+                        },
+                        f"{settings.ANONYMIZATION_PREFIX}{self.annotators[0].pk}": {
+                            "sentiment": "positive"
+                        }
+
+                    },
+                    "annotation_sets": {
+                        "existing_annotator1": {
+                            "name": "existing_annotator1",
+                            "annotations": [
+                                {
+                                    "type": "Document",
+                                    "start": 0,
+                                    "end": 10,
+                                    "id": 0,
+                                    "features": {
+                                        "sentiment": "positive"
+                                    }
+                                }
+                            ],
+                            "next_annid": 1
+                        },
+                        f"{settings.ANONYMIZATION_PREFIX}{self.annotators[0].pk}": {
+                            "name": f"{settings.ANONYMIZATION_PREFIX}{self.annotators[0].pk}",
+                            "annotations": [
+                                {
+                                    "type": "Document",
+                                    "start": 0,
+                                    "end": 10,
+                                    "id": 0,
+                                    "features": {
+                                        "sentiment": "positive"
+                                    }
+                                }
+                            ],
+                            "next_annid": 1
+                        }
+
+                    }
+
 
                 }
             )
@@ -1147,6 +1197,8 @@ class TestDocumentAnnotationModelExport(TestCase):
     def test_export_raw(self):
 
         for document in self.project.documents.all():
+            # Fields should remain exactly the same as what's been uploaded
+            # aside from  annotation_sets
             doc_dict = document.get_doc_annotation_dict("raw")
             print(doc_dict)
             self.assertTrue("id" in doc_dict)
@@ -1154,46 +1206,79 @@ class TestDocumentAnnotationModelExport(TestCase):
             self.assertTrue("feature1" in doc_dict)
             self.assertTrue("feature2" in doc_dict)
             self.assertTrue("feature3" in doc_dict)
+            self.assertTrue("features" in doc_dict)
+            self.assertTrue("offset_type" in doc_dict)
+            self.assertTrue("annotations" in doc_dict)
+            doc_features = doc_dict["features"]
+            self.assertTrue("gate_format_feature1" in doc_features)
+            self.assertTrue("gate_format_feature2" in doc_features)
+            self.assertTrue("gate_format_feature3" in doc_features)
+
 
             self.check_raw_gate_annotation_formatting(doc_dict)
-            self.check_teamware_status(doc_dict, self.annotator_ids)
+            self.check_teamware_status(doc_dict, self.anon_annotator_names)
 
     def test_export_gate(self):
 
         for document in self.project.documents.all():
+            # All top-level fields apart from name, text, features and annotation_sets should be
+            # nested inside the features field
             doc_dict = document.get_doc_annotation_dict("gate")
             print(doc_dict)
 
             self.assertTrue("text" in doc_dict)
             self.assertTrue("features" in doc_dict)
+            self.assertFalse("annotations" in doc_dict)
+            self.assertEqual(doc_dict["offset_type"], "x")
             doc_features = doc_dict["features"]
             self.assertTrue("id" in doc_features)
             self.assertTrue("feature1" in doc_features)
             self.assertTrue("feature2" in doc_features)
             self.assertTrue("feature3" in doc_features)
+            self.assertTrue("annotations" in doc_features)
+            self.assertFalse("features" in doc_features, "Double nesting of features field")
+            self.assertFalse("offset_type" in doc_features, "Double nesting of offset_type field")
+            self.assertTrue("gate_format_feature1" in doc_features)
+            self.assertTrue("gate_format_feature2" in doc_features)
+            self.assertTrue("gate_format_feature3" in doc_features)
 
             self.check_raw_gate_annotation_formatting(doc_dict)
-            self.check_teamware_status(doc_features, self.annotator_ids)
+            self.check_teamware_status(doc_features, self.anon_annotator_names)
 
-    def check_raw_gate_annotation_formatting(self, doc_dict):
+    def test_export_gate_with_no_offset_type(self):
+
+        for document in self.project.documents.all():
+            document.data.pop("offset_type")
+
+            doc_dict = document.get_doc_annotation_dict("gate")
+            self.assertEqual(doc_dict["offset_type"], "p", "offset_type should default to p")
+
+
+    def check_raw_gate_annotation_formatting(self, doc_dict: dict):
         self.assertTrue("annotation_sets" in doc_dict)
-        self.assertTrue(len(doc_dict["annotation_sets"]) == 3)
+        self.assertEqual(len(doc_dict["annotation_sets"]), 4, doc_dict)
 
         # Test annotation formatting
         for aset_key, aset_data in doc_dict["annotation_sets"].items():
-            self.assertTrue("name" in aset_data)
-            self.assertTrue("annotations" in aset_data)
-            self.assertEqual(len(aset_data["annotations"]), 1)
-            anno_dict = aset_data["annotations"][0]
-            self.assertTrue("type" in anno_dict)
-            self.assertTrue("start" in anno_dict)
-            self.assertTrue("end" in anno_dict)
-            self.assertTrue("id" in anno_dict)
-            self.assertTrue("features" in anno_dict)
-            self.assertTrue("label" in anno_dict["features"])
-            label_dict = anno_dict["features"]["label"]
-            self.assertTrue("text1" in label_dict)
-            self.assertTrue("checkbox1" in label_dict)
+            if aset_key != "existing_annotator1":
+                self.assertTrue("name" in aset_data)
+                self.assertTrue("annotations" in aset_data)
+                self.assertEqual(len(aset_data["annotations"]), 1)
+                anno_dict = aset_data["annotations"][0]
+                self.assertTrue("type" in anno_dict)
+                self.assertTrue("start" in anno_dict)
+                self.assertTrue("end" in anno_dict)
+                self.assertTrue("id" in anno_dict)
+                self.assertTrue("features" in anno_dict)
+                features_dict = anno_dict["features"]
+                self.assertTrue("text1" in features_dict)
+                self.assertTrue("checkbox1" in features_dict)
+            else:
+                # Check that existing annotation from document upload is carried over
+                self.assertEqual(aset_data["annotations"][0]["features"]["sentiment"], "positive")
+
+
+
 
     def check_teamware_status(self, containing_dict, expected_value):
         self.assertTrue("teamware_status" in containing_dict)
@@ -1219,31 +1304,44 @@ class TestDocumentAnnotationModelExport(TestCase):
             self.assertTrue("feature2" in doc_dict)
             self.assertTrue("feature3" in doc_dict)
             self.assertTrue("annotations" in doc_dict)
-            self.assertTrue(len(doc_dict["annotations"]) == 3)
+            self.assertEqual(len(doc_dict["annotations"]), 4, doc_dict)
             anno_set_dict = doc_dict["annotations"]
             for set_key in anno_set_dict:
-                self.assertTrue(isinstance(anno_set_dict[set_key]["text1"], str))
-                self.assertTrue(isinstance(anno_set_dict[set_key]["checkbox1"], str))
+                if set_key != "existing_annotator1":
+                    self.assertTrue(isinstance(anno_set_dict[set_key]["text1"], str))
+                    self.assertTrue(isinstance(anno_set_dict[set_key]["checkbox1"], str))
+                else:
+                    self.assertEqual(anno_set_dict[set_key]["sentiment"], "positive")
 
-            self.check_teamware_status(doc_dict, ",".join(str(i) for i in self.annotator_ids))
+            self.check_teamware_status(doc_dict, ",".join(str(i) for i in self.anon_annotator_names))
 
     def test_export_raw_anonymized(self):
 
         for document in self.project.documents.all():
+            # Mask any existing annotations that came with the document upload
+            document.data.pop("annotation_sets")
+            document.save()
+
             doc_dict = document.get_doc_annotation_dict("raw", anonymize=True)
 
             for aset_key, aset_data in doc_dict["annotation_sets"].items():
-                self.assertTrue(isinstance(aset_data.get("name", None), int))
+                self.assertFalse(aset_key.startswith(self.unanonymized_prefix))
+                self.assertFalse(aset_data.get("name", None).startswith(self.unanonymized_prefix))
 
-            self.check_teamware_status(doc_dict, self.annotator_ids)
+            self.check_teamware_status(doc_dict, self.anon_annotator_names)
 
     def test_export_raw_deanonymized(self):
 
         for document in self.project.documents.all():
+            # Mask any existing annotations that came with the document upload
+            document.data.pop("annotation_sets")
+            document.save()
+
             doc_dict = document.get_doc_annotation_dict("raw", anonymize=False)
 
             for aset_key, aset_data in doc_dict["annotation_sets"].items():
-                self.assertTrue(isinstance(aset_data.get("name", None), str))
+                self.assertTrue(aset_key.startswith(self.unanonymized_prefix))
+                self.assertTrue(aset_data.get("name", None).startswith(self.unanonymized_prefix))
 
             # for non-anonymized export the rejected/aborted/timed_out status
             # uses names rather than ID numbers
@@ -1252,20 +1350,30 @@ class TestDocumentAnnotationModelExport(TestCase):
     def test_export_gate_anonymized(self):
 
         for document in self.project.documents.all():
+            # Mask any existing annotations that came with the document upload
+            document.data.pop("annotation_sets")
+            document.save()
+
             doc_dict = document.get_doc_annotation_dict("gate", anonymize=True)
 
             for aset_key, aset_data in doc_dict["annotation_sets"].items():
-                self.assertTrue(isinstance(aset_data.get("name", None), int))
+                self.assertFalse(aset_key.startswith(self.unanonymized_prefix))
+                self.assertFalse(aset_data.get("name", None).startswith(self.unanonymized_prefix))
 
-            self.check_teamware_status(doc_dict["features"], self.annotator_ids)
+            self.check_teamware_status(doc_dict["features"], self.anon_annotator_names)
 
     def test_export_gate_deanonymized(self):
 
         for document in self.project.documents.all():
+            # Mask any existing annotations that came with the document upload
+            document.data.pop("annotation_sets")
+            document.save()
+
             doc_dict = document.get_doc_annotation_dict("gate", anonymize=False)
 
             for aset_key, aset_data in doc_dict["annotation_sets"].items():
-                self.assertTrue(isinstance(aset_data.get("name", None), str))
+                self.assertTrue(aset_key.startswith(self.unanonymized_prefix))
+                self.assertTrue(aset_data.get("name", None).startswith(self.unanonymized_prefix))
 
             # for non-anonymized export the rejected/aborted/timed_out status
             # uses names rather than ID numbers

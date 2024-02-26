@@ -266,6 +266,11 @@ DELETED_USER_LASTNAME = "Deleted"
 DELETED_USER_EMAIL_DOMAIN = "teamware-deleted.com"
 
 """
+Anonymization settings
+"""
+ANONYMIZATION_PREFIX = "annotator"
+
+"""
 Frontend dev server configuration
 """
 FRONTEND_DEV_SERVER_USE = True

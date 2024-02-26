@@ -187,12 +187,11 @@ possible to determine which documents were annotated by _the same person_, just 
 You can choose how documents are exported:
 
 * `.json` & `.jsonl` - JSON or JSON Lines files can be generated in the format of:
-  * `raw` - Exports unmodified JSON. If you've originally uploaded in GATE format then choose this option.
-
-    An additional field named `annotation_sets` is added for storing annotations. The annotations are laid out in the
-    same way as GATE JSON format. For example if a document has been annotated by `user1` with labels and values
-    `text`:`Annotation text`, `radio`:`val3`, and `checkbox`:`["val2", "val4"]`, the non-anonymous export might look
-    like this:
+  * `raw` - Exports the original `JSON` combined with an additional field named `annotation_sets` for storing
+    annotations. The annotations are laid out in the same way as GATE
+    [bdocjs](https://gatenlp.github.io/gateplugin-Format_Bdoc/bdoc_document.html) format. For example if a document
+    has been annotated by `user1` with labels and values `text`:`Annotation text`, `radio`:`val3`, and
+    `checkbox`:`["val2", "val4"]`, the non-anonymous export might look like this:
 
     ```json
     {
@@ -210,14 +209,12 @@ You can choose how documents are exported:
                  "end":10,
                  "id":0,
                  "features":{
-                    "label":{
-                       "text":"Annotation text",
-                       "radio":"val3",
-                       "checkbox":[
-                          "val2",
-                          "val4"
-                       ]
-                    }
+                     "text":"Annotation text",
+                     "radio":"val3",
+                     "checkbox":[
+                        "val2",
+                        "val4"
+                     ]
                  }
               }
            ],
@@ -232,16 +229,18 @@ You can choose how documents are exported:
     }
     ```
 
-    In anonymous mode the name `user1` would instead be the user's opaque numeric identifier (e.g. `105`).
+    In anonymous mode the name `user1` would instead be derived from the user's opaque numeric identifier (e.g.
+    `annotator105`).
 
-    The field `teamware_status` gives the ids or usernames (depending on the "anonymize" setting) of those annotators
+    The field `teamware_status` gives the usernames or anonymous IDs (depending on the "anonymize" setting) of those annotators
     who rejected the document, "timed out" because they did not complete their annotation in the time allowed by the
     project, or "aborted" for some other reason (e.g. they were removed from the project).
 
-  * `gate` - Convert documents to GATE JSON format and export. A `name` field is added that takes the ID value from the
-    ID field specified in the project configuration. Fields apart from `text` and the ID field specified in the project
-    config are placed in the `features` field, as is the `teamware_status` information. An `annotation_sets` field is
-    added for storing annotations.
+  * `gate` - Convert documents to GATE [bdocjs](https://gatenlp.github.io/gateplugin-Format_Bdoc/bdoc_document.html)
+    format and export.  A `name` field is added that takes the `ID` value from the `ID field` specified in the
+    **project configuration**. Any top-level fields apart from `text`, `features`, `offset_type`, `annotation_sets`,
+    and the ID field specified in the project config are placed in the `features` field, as is the `teamware_status`
+    information. An `annotation_sets` field is added for storing annotations if it doesn't already exist.
 
     For example in the case of this uploaded JSON document:
     ```json
@@ -270,6 +269,9 @@ You can choose how documents are exported:
 * `.csv` - The JSON documents will be flattened to csv's column based format. Annotations are added as additional
   columns with the header of `annotations.username.label` and the status information is in columns named
   `teamware_status.rejected_by`, `teamware_status.timed_out` and `teamware_status.aborted`.
+
+**Note: Documents that contains existing annotations (i.e. the `annotation_sets` field for `JSON` or `annotations` for `CSV`) are merged with the new sets of annotations. Be aware that if the document has a new annotation from an annotator with the same
+username, the previous annotation will be overwritten. Existing annotations are also not anonymized when exporting the document.**
 
 ## Deleting documents and annotations
 
