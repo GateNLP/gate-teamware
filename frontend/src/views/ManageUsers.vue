@@ -168,7 +168,7 @@ export default {
     ...mapActions(["getAllUsers", "adminGetUser", "adminUpdateUser", "adminUpdateUserPassword",
       "generatePasswordReset", "generateUserActivation", "adminDeleteUser", "adminDeleteUserPersonalInformation"]),
     searchUsers(users, searchString) {
-      const regEx = new RegExp(searchString);
+      const regEx = new RegExp(searchString, "i");
       const result = _.filter(users, ({username, email}) => !!username.match(regEx) || !!email.match(regEx));
       return result
     },
