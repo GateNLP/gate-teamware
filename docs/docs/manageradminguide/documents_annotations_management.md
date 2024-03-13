@@ -178,14 +178,20 @@ The above column headers will generate the following JSON:
 ## Exporting documents
 
 Documents and annotations can be exported using the **Export** button. A zip file is generated containing files with 500
-documents each. You can choose how documents are exported:
+documents each. The option to "anonymize annotators" controls whether the individual annotators are identified with
+their numeric ID or by their actual username - since usernames are often personally identifiable information (e.g. an
+email address) the anonumous mode is recommended if you intend to share the annotation data with third parties.  Note
+that the anonymous IDs are consistent within a single installation of Teamware, so even in anonymous mode it is still
+possible to determine which documents were annotated by _the same person_, just not who that person was.
+
+You can choose how documents are exported:
 
 * `.json` & `.jsonl` - JSON or JSON Lines files can be generated in the format of:
-  * `raw` - Exports unmodified JSON. If you've originally uploaded in GATE format then choose this option.
-
-    An additional field named `annotation_sets` is added for storing annotations. The annotations are laid out in the
-    same way as GATE JSON format. For example if a document has been annotated by `user1` with labels and values
-    `text`:`Annotation text`, `radio`:`val3`, and `checkbox`:`["val2", "val4"]`:
+  * `raw` - Exports the original `JSON` combined with an additional field named `annotation_sets` for storing
+    annotations. The annotations are laid out in the same way as GATE
+    [bdocjs](https://gatenlp.github.io/gateplugin-Format_Bdoc/bdoc_document.html) format. For example if a document
+    has been annotated by `user1` with labels and values `text`:`Annotation text`, `radio`:`val3`, and
+    `checkbox`:`["val2", "val4"]`, the non-anonymous export might look like this:
 
     ```json
     {
@@ -203,26 +209,38 @@ documents each. You can choose how documents are exported:
                  "end":10,
                  "id":0,
                  "features":{
-                    "label":{
-                       "text":"Annotation text",
-                       "radio":"val3",
-                       "checkbox":[
-                          "val2",
-                          "val4"
-                       ]
-                    }
+                     "text":"Annotation text",
+                     "radio":"val3",
+                     "checkbox":[
+                        "val2",
+                        "val4"
+                     ]
                  }
               }
            ],
            "next_annid":1
         }
+      },
+      "teamware_status": {
+        "rejected_by": ["user2"],
+        "timed_out": ["user3"],
+        "aborted": []
       }
     }
     ```
 
-  * `gate` - Convert documents to GATE JSON format and export. A `name` field is added that takes the ID value from the
-    ID field specified in the project configuration. Fields apart from `text` and the ID field specified in the project
-    config are placed in the `features` field. An `annotation_sets` field is added for storing annotations.
+    In anonymous mode the name `user1` would instead be derived from the user's opaque numeric identifier (e.g.
+    `annotator105`).
+
+    The field `teamware_status` gives the usernames or anonymous IDs (depending on the "anonymize" setting) of those annotators
+    who rejected the document, "timed out" because they did not complete their annotation in the time allowed by the
+    project, or "aborted" for some other reason (e.g. they were removed from the project).
+
+  * `gate` - Convert documents to GATE [bdocjs](https://gatenlp.github.io/gateplugin-Format_Bdoc/bdoc_document.html)
+    format and export.  A `name` field is added that takes the `ID` value from the `ID field` specified in the
+    **project configuration**. Any top-level fields apart from `text`, `features`, `offset_type`, `annotation_sets`,
+    and the ID field specified in the project config are placed in the `features` field, as is the `teamware_status`
+    information. An `annotation_sets` field is added for storing annotations if it doesn't already exist.
 
     For example in the case of this uploaded JSON document:
     ```json
@@ -233,21 +251,27 @@ documents each. You can choose how documents are exported:
       "feature1": "Feature text"
     }
     ```
-    The generated output is as follows. The annotations are formatted same as the `raw` output above:
+    The generated output is as follows. The annotations and `teamware_status` are formatted same as the `raw` output
+    above:
     ```json
     {
       "name": 32,
       "text": "Document text",
       "features": {
         "text2": "Document text 2",
-        "feature1": "Feature text"
+        "feature1": "Feature text",
+        "teamware_status": {...}
       },
       "offset_type":"p",
       "annotation_sets": {...}
     }
     ```
 * `.csv` - The JSON documents will be flattened to csv's column based format. Annotations are added as additional
-  columns with the header of `annotations.username.label`.
+  columns with the header of `annotations.username.label` and the status information is in columns named
+  `teamware_status.rejected_by`, `teamware_status.timed_out` and `teamware_status.aborted`.
+
+**Note: Documents that contains existing annotations (i.e. the `annotation_sets` field for `JSON` or `annotations` for `CSV`) are merged with the new sets of annotations. Be aware that if the document has a new annotation from an annotator with the same
+username, the previous annotation will be overwritten. Existing annotations are also not anonymized when exporting the document.**
 
 ## Deleting documents and annotations
 

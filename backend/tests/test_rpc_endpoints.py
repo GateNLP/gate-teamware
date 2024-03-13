@@ -620,6 +620,10 @@ class TestProject(TestEndpoint):
         self.assertEqual(len(result["items"]), 1)
         self.assertEqual(result["total_count"], 1)
 
+        # Ensure filtering is case-insensitive
+        result = get_projects(self.get_loggedin_request(), 1, page_size, "pROJECT 1")
+        self.assertEqual(len(result["items"]), 1)
+        self.assertEqual(result["total_count"], 1)
 
 
 
