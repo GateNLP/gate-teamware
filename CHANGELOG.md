@@ -27,6 +27,42 @@ docker compose run --rm -it pgbackups /backup.sh
 
 (or `docker-compose` if your version of Docker does not support compose v2).
 
+## [2.1.2] 2024-02-26
+
+### Changed
+- **Breaking change**: When exporting annotations as JSON, the "features" that the annotator entered are no longer nested under `label` ([#347](https://github.com/GateNLP/gate-teamware/issues/347)).  Where previously the export would have been 
+  ```json
+  {
+    "features": {
+      "label": {
+        "field1": "value1"
+      }
+    }
+  }
+  ```
+  
+  it is now
+  ```json
+  {
+    "features": {
+      "field1": "value1"
+    }
+  }
+  ```
+- Include details of failed annotations in export formats ([#399](https://github.com/GateNLP/gate-teamware/pull/399))
+  - When exporting annotation data from projects (both via the web UI and using the command line tool),
+    each document includes details of which users _rejected_, _timed out_ or _aborted_ annotation of
+    that document, as well as the annotation data from the users who completed the document successfully.
+    This can be useful for the project manager to identify documents that are particularly difficult
+    to annotate, perhaps suggesting that the annotation guidelines need to be extended or clarified.
+
+### Fixed
+- Upgraded a number of third-party dependencies to close various vulnerabilities ([#397](https://github.com/GateNLP/gate-teamware/pull/397))
+- Fixed several issues relating to the export of annotated data ([#377](https://github.com/GateNLP/gate-teamware/pull/377))
+  - "Anonymous" export was not properly anonymous ([#345](https://github.com/GateNLP/gate-teamware/issues/345))
+  - Teamware now does a better job of preserving the GATE BDOC JSON structure when exporting documents that were originally uploaded in that format ([#346](https://github.com/GateNLP/gate-teamware/issues/346), [#348](https://github.com/GateNLP/gate-teamware/issues/348))
+
+
 ## [2.1.1] 2023-10-02
 
 ### Added 
