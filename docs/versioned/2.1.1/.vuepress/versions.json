@@ -1,6 +1,6 @@
 {
- "current": "development",
- "base": "/gate-teamware/development/",
+ "current": "2.1.1",
+ "base": "/gate-teamware/2.1.1/",
  "versions": [
   {
    "text": "0.3.0",
@@ -31,5 +31,5 @@
    "value": "/gate-teamware/development/"
   }
  ],
- "frontendSource": "../../../frontend/src"
+ "frontendSource": "../../../../frontend/src"
 }

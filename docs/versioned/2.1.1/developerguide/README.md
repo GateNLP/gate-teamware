@@ -203,13 +203,9 @@ to the list of environment variables:
 ```bash
 DJANGO_EMAIL_BACKEND='django.core.mail.backends.smtp.EmailBackend'
 DJANGO_EMAIL_HOST='myserver.com'
-DJANGO_EMAIL_PORT=25
+DJANGO_EMAIL_PORT=22
 DJANGO_EMAIL_HOST_USER='username'
 DJANGO_EMAIL_HOST_PASSWORD='password'
-DJANGO_EMAIL_SECURITY=tls
-# tls = STARTTLS, typically on port 25 or 587
-# ssl = TLS-on-connect, typically on port 465
-# none (or omitted) = no encryption
 ```
 
 #### E-mail using Google API

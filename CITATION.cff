@@ -1,6 +1,6 @@
 abstract: A web application for collaborative document annotation. GATE teamware provides
   a flexible web app platform for managing classification of documents by human annotators.
-authors: 
+authors:
 - affiliation: The University of Sheffield
   email: t.karmakharm@sheffield.ac.uk
   family-names: Karmakharm
@@ -33,13 +33,7 @@ keywords:
 - document annotation
 license: AGPL-3.0
 message: If you use this software, please cite it using the metadata from this file.
-repository-code: https://github.com/GateNLP/gate-teamware
-title: GATE Teamware
-type: software
-url: https://gatenlp.github.io/gate-teamware/
-version: 2.1.1
 preferred-citation:
-  type: conference-paper
   authors:
   - affiliation: The University of Sheffield
     email: d.wilby@sheffield.ac.uk
@@ -66,14 +60,22 @@ preferred-citation:
     family-names: Bontcheva
     given-names: Kalina
     orcid: https://orcid.org/0000-0001-6152-9600
+  collection-title: 'Proceedings of the 17th Conference of the European Chapter of
+    the Association for Computational Linguistics: System Demonstrations'
   doi: 10.18653/v1/2023.eacl-demo.17
-  title: "GATE Teamware 2: An open-source tool for collaborative document classification annotation"
-  collection-title: "Proceedings of the 17th Conference of the European Chapter of the Association for Computational Linguistics: System Demonstrations"    
+  end: 151
   location:
     name: Dubrovnik, Croatia
-  year: 2023
   month: 5
-  start: 145
-  end: 151
   publisher:
     name: Association for Computational Linguistics
+  start: 145
+  title: 'GATE Teamware 2: An open-source tool for collaborative document classification
+    annotation'
+  type: conference-paper
+  year: 2023
+repository-code: https://github.com/GateNLP/gate-teamware
+title: GATE Teamware
+type: software
+url: https://gatenlp.github.io/gate-teamware/
+version: 2.2.0
