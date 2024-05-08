@@ -510,7 +510,7 @@ def get_projects(request, current_page=1, page_size=None, filters=None):
     # Perform filtering
     if isinstance(filters, str):
         # Search project title if is filter is a string only
-        projects_query = Project.objects.filter(name__contains=filters.strip())
+        projects_query = Project.objects.filter(name__icontains=filters.strip())
         total_count = projects_query.count()
     else:
         projects_query = Project.objects.all()

@@ -1,0 +1,35 @@
+{
+ "current": "2.2.0",
+ "base": "/gate-teamware/2.2.0/",
+ "versions": [
+  {
+   "text": "0.3.0",
+   "value": "/gate-teamware/0.3.0/"
+  },
+  {
+   "text": "0.4.0",
+   "value": "/gate-teamware/0.4.0/"
+  },
+  {
+   "text": "2.0.0",
+   "value": "/gate-teamware/2.0.0/"
+  },
+  {
+   "text": "2.1.0",
+   "value": "/gate-teamware/2.1.0/"
+  },
+  {
+   "text": "2.1.1",
+   "value": "/gate-teamware/2.1.1/"
+  },
+  {
+   "text": "2.2.0",
+   "value": "/gate-teamware/2.2.0/"
+  },
+  {
+   "text": "development",
+   "value": "/gate-teamware/development/"
+  }
+ ],
+ "frontendSource": "../../../../frontend/src"
+}

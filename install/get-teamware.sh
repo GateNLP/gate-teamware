@@ -175,7 +175,7 @@ else
 
     case "$EMAIL_SECURE" in
       [Nn]*)
-        DJANGO_EMAIL_SECURITY=
+        DJANGO_EMAIL_SECURITY=none
         ;;
 
       *)

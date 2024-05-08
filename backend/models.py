@@ -978,25 +978,28 @@ class Document(models.Model):
         # Create dictionary for document
         doc_dict = None
         if json_format == "raw" or json_format == "csv":
-            doc_dict = self.data
+            doc_dict = self.data.copy()
         elif json_format == "gate":
+            # GATE json format are expected to have an existing "features" field
+            features_dict = dict(self.data["features"]) if "features" in self.data and isinstance(self.data["features"], dict) else {}
 
-            ignore_keys = {"text", self.project.document_id_field}
-            features_dict = {key: value for key, value in self.data.items() if key not in ignore_keys}
+            # Add any non-compliant top-level fields into the "features" field instead
+            ignore_keys = {"text", "features", "offset_type", "annotation_sets", self.project.document_id_field}
+            features_dict.update({key: value for key, value in self.data.items() if key not in ignore_keys})
 
             doc_dict = {
                 "text": self.data["text"],
                 "features": features_dict,
-                "offset_type": "p",
+                "offset_type": self.data["offset_type"] if "offset_type" in self.data else "p",  # Use original offset type
                 "name": get_value_from_key_path(self.data, self.project.document_id_field)
             }
-            pass
 
         # Insert annotation sets into the doc dict
         annotations = self.annotations.filter(status=Annotation.COMPLETED)
         if json_format == "csv":
+            # Gets pre-existing annotations
+            annotation_sets = dict(self.data["annotations"]) if "annotations" in self.data else {}
             # Format annotations for CSV export
-            annotation_sets = {}
             for annotation in annotations:
                 a_data = annotation.data
                 annotation_dict = {}
@@ -1009,19 +1012,21 @@ class Document(models.Model):
                 annotation_dict["duration_seconds"] = annotation.time_to_complete
 
                 if anonymize:
-                    annotation_sets[str(annotation.user.id)] = annotation_dict
+                    annotation_sets[f"{settings.ANONYMIZATION_PREFIX}{annotation.user.id}"] = annotation_dict
                 else:
                     annotation_sets[annotation.user.username] = annotation_dict
 
             doc_dict["annotations"] = annotation_sets
 
         else:
+            # Gets pre-existing annotations
+            annotation_sets = dict(self.data["annotation_sets"]) if "annotation_sets" in self.data else {}
             # Format for JSON in line with GATE formatting
-            annotation_sets = {}
             for annotation in annotations:
                 a_data = annotation.data
+                anonymized_name = f"{settings.ANONYMIZATION_PREFIX}{annotation.user.id}"
                 annotation_set = {
-                    "name": annotation.user.id if anonymize else annotation.user.username,
+                    "name": anonymized_name if anonymize else annotation.user.username,
                     "annotations": [
                         {
                             "type": "Document",
@@ -1029,15 +1034,35 @@ class Document(models.Model):
                             "end": 0,
                             "id": 0,
                             "duration_seconds": annotation.time_to_complete,
-                            "features": {
-                                "label": a_data
-                            }
+                            "features": a_data
                         }
                     ],
                     "next_annid": 1,
                 }
-                annotation_sets[annotation.user.username] = annotation_set
+                annotation_sets[anonymized_name if anonymize else annotation.user.username] = annotation_set
+
             doc_dict["annotation_sets"] = annotation_sets
+
+        # Add to the export the lists (possibly empty) of users who rejected,
+        # timed out or aborted annotation of this document
+        teamware_status = {}
+        for key, status in [
+            ("rejected_by", Annotation.REJECTED),
+            ("timed_out", Annotation.TIMED_OUT),
+            ("aborted", Annotation.ABORTED),
+        ]:
+            teamware_status[key] = [
+                f"{settings.ANONYMIZATION_PREFIX}{annotation.user.id}" if anonymize else annotation.user.username
+                for annotation in self.annotations.filter(status=status)
+            ]
+            if json_format == "csv":
+                # Flatten list if exporting as CSV
+                teamware_status[key] = ",".join(str(val) for val in teamware_status[key])
+
+        if json_format == "gate":
+            doc_dict["features"]["teamware_status"] = teamware_status
+        else:
+            doc_dict["teamware_status"] = teamware_status
 
         return doc_dict
 

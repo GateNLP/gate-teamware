@@ -214,8 +214,10 @@ if 'DJANGO_EMAIL_SECURITY' in os.environ:
         EMAIL_USE_SSL = True
     elif os.environ['DJANGO_EMAIL_SECURITY'].lower() == 'tls':
         EMAIL_USE_TLS = True
+    elif os.environ['DJANGO_EMAIL_SECURITY'].lower() in ['', 'none']:
+        pass
     else:
-        raise ValueError("DJANGO_EMAIL_SECURITY, if set, must be either SSL or TLS")
+        raise ValueError("DJANGO_EMAIL_SECURITY, if set, must be either SSL or TLS, or 'none' for no security")
 
     if 'DJANGO_EMAIL_CLIENT_CERTIFICATE' in os.environ:
         # If certificate is set then key must also, and we want to raise an
@@ -264,6 +266,11 @@ DELETED_USER_USERNAME_HASH_LENGTH = 8
 DELETED_USER_FIRSTNAME = "Deleted"
 DELETED_USER_LASTNAME = "Deleted"
 DELETED_USER_EMAIL_DOMAIN = "teamware-deleted.com"
+
+"""
+Anonymization settings
+"""
+ANONYMIZATION_PREFIX = "annotator"
 
 """
 Frontend dev server configuration
