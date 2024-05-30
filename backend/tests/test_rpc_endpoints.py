@@ -21,7 +21,7 @@ from backend.rpc import create_project, update_project, add_project_document, ad
     get_project_training_documents, get_project_test_documents, project_annotator_allow_annotation, \
     annotator_leave_project, login, change_annotation, delete_annotation_change_history, get_annotation_task_with_id, \
     set_user_document_format_preference, initialise, is_authenticated, user_delete_personal_information, \
-    user_delete_account, admin_delete_user_personal_information, admin_delete_user
+    user_delete_account, admin_delete_user_personal_information, admin_delete_user, reject_project_annotator
 from backend.rpcserver import rpc_method
 from backend.errors import AuthError
 from backend.tests.test_models import create_each_annotation_status_for_user, TestUserModelDeleteUser
@@ -1781,6 +1781,107 @@ class TestAnnotationChange(TestEndpoint):
         with self.assertRaises(RuntimeError):
             delete_annotation_change_history(self.get_loggedin_request(),
                                              annotation_change_history_id=annotation.change_history.first().pk)
+
+
+
+class TestMovingUsersToDifferentProjects(TestEndpoint):
+
+    def setUp(self) -> None:
+
+        # Create initial projects (x5) with documents (x10)
+        self.projects = []
+        for i in range(5):
+            project = Project.objects.create(name="Test1", owner=self.get_default_user())
+            self.projects.append(project)
+            for j in range(10):
+                Document.objects.create(project=project)
+
+        # Create annotator
+        self.annotator = get_user_model().objects.create(username="annotator")
+
+    def test_moving_annotator_to_different_project(self):
+        projects = self.projects
+        annotator = self.annotator
+
+        annotator_request = self.get_request()
+        annotator_request.user = annotator
+        add_project_annotator(self.get_loggedin_request(), projects[0].pk, annotator.username)
+
+        # Check annotator has been added to 0th project
+        project_annotators = get_project_annotators(self.get_loggedin_request(), projects[0].pk)
+        self.assertTrue(project_annotators[0]["username"] == annotator.username)
+
+        # Make two annotations
+        self.get_and_complete_annotation_task(annotator_request, projects[0])
+        self.get_and_complete_annotation_task(annotator_request, projects[0])
+
+        # Make a pending annotation
+        annotation_task = get_annotation_task(annotator_request)
+
+        # Remove annotator from 0th project, add to 1st project
+        remove_project_annotator(self.get_loggedin_request(), projects[0].pk, annotator.username)
+        add_project_annotator(self.get_loggedin_request(), projects[1].pk, annotator.username)
+
+        # Make two more annotations
+        self.get_and_complete_annotation_task(annotator_request, projects[1])
+        self.get_and_complete_annotation_task(annotator_request, projects[1])
+
+        # Remove annotator from 1st project, add to 2nd project
+        remove_project_annotator(self.get_loggedin_request(), projects[1].pk, annotator.username)
+        add_project_annotator(self.get_loggedin_request(), projects[2].pk, annotator.username)
+
+        # Make two more annotations
+        self.get_and_complete_annotation_task(annotator_request, projects[2])
+        self.get_and_complete_annotation_task(annotator_request, projects[2])
+
+        # Check no. of associated annotations
+        self.assertEqual(7, Annotation.objects.filter(user=annotator).count(), "Annotator should have 7 associated annotations")
+
+    def get_and_complete_annotation_task(self, annotator_request, project):
+        annotation_task = get_annotation_task(annotator_request)
+        self.assertEqual(project.pk, annotation_task["project_id"], f"Id of the project should be {project.pk}")
+        complete_annotation_task(annotator_request, annotation_task["annotation_id"], {"test": "result"})
+
+
+    def test_moving_rejected_annotator_to_different_project(self):
+        projects = self.projects
+        annotator = self.annotator
+
+        annotator_request = self.get_request()
+        annotator_request.user = annotator
+        add_project_annotator(self.get_loggedin_request(), projects[0].pk, annotator.username)
+
+        # Check annotator has been added to 0th project
+        project_annotators = get_project_annotators(self.get_loggedin_request(), projects[0].pk)
+        self.assertTrue(project_annotators[0]["username"] == annotator.username)
+
+        # Make two annotations
+        self.get_and_complete_annotation_task(annotator_request, projects[0])
+        self.get_and_complete_annotation_task(annotator_request, projects[0])
+
+        # Make a pending annotation
+        annotation_task = get_annotation_task(annotator_request)
+
+        # Remove annotator from 0th project, add to 1st project
+        reject_project_annotator(self.get_loggedin_request(), projects[0].pk, annotator.username)
+        add_project_annotator(self.get_loggedin_request(), projects[1].pk, annotator.username)
+
+        # Make two more annotations
+        self.get_and_complete_annotation_task(annotator_request, projects[1])
+        self.get_and_complete_annotation_task(annotator_request, projects[1])
+
+        # Remove annotator from 1st project, add to 2nd project
+        reject_project_annotator(self.get_loggedin_request(), projects[1].pk, annotator.username)
+        add_project_annotator(self.get_loggedin_request(), projects[2].pk, annotator.username)
+
+        # Make two more annotations
+        self.get_and_complete_annotation_task(annotator_request, projects[2])
+        self.get_and_complete_annotation_task(annotator_request, projects[2])
+
+        # Check no. of associated annotations
+        self.assertEqual(7, Annotation.objects.filter(user=annotator).count(),
+                         "Annotator should have 7 associated annotations")
+
 
 
 
