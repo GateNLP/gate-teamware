@@ -48,4 +48,12 @@ export default {
 </script>
 
 <style scoped>
+div.custom-radio >>> label {
+  display: inline-flex;
+}
+
+div.custom-radio >>> svg.annotation-help-prompt {
+  margin-top: 0.3em;
+  margin-inline-start: 0.25em;
+}
 </style>

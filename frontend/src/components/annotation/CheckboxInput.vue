@@ -51,5 +51,12 @@ name: "CheckboxInput",
 </script>
 
 <style scoped>
+div.custom-checkbox >>> label {
+  display: inline-flex;
+}
 
+div.custom-checkbox >>> svg.annotation-help-prompt {
+  margin-top: 0.3em;
+  margin-inline-start: 0.25em;
+}
 </style>
