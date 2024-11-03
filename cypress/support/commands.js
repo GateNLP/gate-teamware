@@ -72,10 +72,18 @@ Cypress.Commands.add("logout", () => {
 
 //Migrate integration db
 Cypress.Commands.add("migrate_integration_db", (fixtureName) => {
-    if (Cypress.env('TESTENV') == 'container') {
-        cy.exec(`docker-compose exec -T backend ./migrate-integration.sh -n=${fixtureName}`)
-    } else if (Cypress.env('TESTENV') == 'ci') {
-        cy.exec(`DJANGO_SETTINGS_MODULE=teamware.settings.deployment docker-compose exec -T backend ./migrate-integration.sh -n=${fixtureName}`)
+
+    const testenv = Cypress.env('TESTENV');
+    if (testenv === 'container' || testenv === 'ci') {
+        // find the right docker compose command
+        cy.exec("docker compose").then(({code}) => {
+            const compose = (code === 0 ? 'docker compose' : 'docker-compose')
+            if (testenv === 'container') {
+                cy.exec(`${compose} exec -T backend ./migrate-integration.sh -n=${fixtureName}`)
+            } else if (testenv === 'ci') {
+                cy.exec(`DJANGO_SETTINGS_MODULE=teamware.settings.deployment ${compose} exec -T backend ./migrate-integration.sh -n=${fixtureName}`)
+            }
+        });
     }
     else{
         cy.exec(`npm run migrate:integration -- -n=${fixtureName}`, {log:true})
