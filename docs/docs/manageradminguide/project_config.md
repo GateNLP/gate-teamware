@@ -348,6 +348,38 @@ If your documents are plain text and include line breaks that need to be preserv
 
 </AnnotationRendererPreview>
 
+### Richer labels for radios & checkboxes
+
+The `label` of radio and checkbox inputs is normally plain text, however both input types support an `htmlLabel` property as an alternative to `label`, which allows for HTML tags within the option label.  The `htmlLabel` is rendered within a `<span></span>` inside the `<label>` element for the option, so it should be limited to presentational tags such as `<em>`, `<b>`, `<tt>`, or custom CSS directives via `<span style='...'>` or `<div style='...'>`.  In particular a `<div style='margin-bottom: 1.5em'>` is a convenient way to break up a long list of radio buttons (with `"orientation": "vertical"`) into logical sections.
+
+<AnnotationRendererPreview :config="configs.configHtmlLabels">
+
+```json
+[
+  {
+    "name": "sentiment",
+    "type": "checkbox",
+    "title": "Sentiment",
+    "options": [
+      {
+        "value": "positive",
+        "htmlLabel": "<span style='color: green'>Positive</span>"
+      },
+      {
+        "value": "neutral",
+        "htmlLabel": "<span style='font-style: italic'>Neutral</span> or uncertain"
+      },
+      {
+        "value": "positive",
+        "htmlLabel": "<span style='color: red'>Negative</span>"
+      }
+    ]
+  }
+]
+```
+
+</AnnotationRendererPreview>
+
 ### Selector input
 
 <AnnotationRendererPreview :config="configs.configSelector">

@@ -145,6 +145,18 @@ export default {
             "valError": "Error message when field fails is validation" //Optional
         }
     ],
+    configHtmlLabels: [
+        {
+            "name": "sentiment",
+            "type": "checkbox",
+            "title": "Sentiment",
+            "options": [
+                {"value": "positive", "htmlLabel": "<span style='color: green'>Positive</span>"},
+                {"value": "neutral", "htmlLabel": "<span style='font-style: italic'>Neutral</span> or uncertain"},
+                {"value": "positive", "htmlLabel": "<span style='color: red'>Negative</span>"}
+            ]
+        },
+    ],
     configSelector: [
         {
             "name": "mylabel",
