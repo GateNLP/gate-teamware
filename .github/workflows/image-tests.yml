@@ -50,16 +50,16 @@ jobs:
           source .env
 
           # Launch the database container
-          docker-compose up -d db
+          docker compose up -d db
 
           # Hacky method of waiting for postgres to be up and running
           sleep 10
           
           # Allow Django to create databases for the testing
-          docker-compose exec -T db psql -v ON_ERROR_STOP=1 --username postgres -c 'ALTER USER '"$DB_USERNAME"' CREATEDB;'
+          docker compose exec -T db psql -v ON_ERROR_STOP=1 --username postgres -c 'ALTER USER '"$DB_USERNAME"' CREATEDB;'
           
           # Run the backend tests
-          docker-compose run --rm --entrypoint npm backend run test:pytest
+          docker compose run --rm --entrypoint npm backend run test:pytest
 
           # Run the frontend tests
-          docker-compose run --rm --entrypoint npm backend run test:frontend
+          docker compose run --rm --entrypoint npm backend run test:frontend
