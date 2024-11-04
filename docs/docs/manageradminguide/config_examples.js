@@ -148,12 +148,14 @@ export default {
     configHtmlLabels: [
         {
             "name": "sentiment",
-            "type": "checkbox",
+            "type": "radio",
             "title": "Sentiment",
+            "orientation": "vertical",
             "options": [
                 {"value": "positive", "htmlLabel": "<span style='color: green'>Positive</span>"},
-                {"value": "neutral", "htmlLabel": "<span style='font-style: italic'>Neutral</span> or uncertain"},
-                {"value": "positive", "htmlLabel": "<span style='color: red'>Negative</span>"}
+                {"value": "neutral", "htmlLabel": "<span style='font-style: italic'>Neutral</span>"},
+                {"value": "negative", "htmlLabel": "<span style='color: red'>Negative</span>"},
+                {"value": "unknown", "htmlLabel": "<span class='tw-space-above-3'>Cannot be determined</span>"}
             ]
         },
     ],

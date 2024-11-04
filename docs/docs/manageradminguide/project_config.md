@@ -350,7 +350,7 @@ If your documents are plain text and include line breaks that need to be preserv
 
 ### Richer labels for radios & checkboxes
 
-The `label` of radio and checkbox inputs is normally plain text, however both input types support an `htmlLabel` property as an alternative to `label`, which allows for HTML tags within the option label.  The `htmlLabel` is rendered within a `<span></span>` inside the `<label>` element for the option, so it should be limited to presentational tags such as `<em>`, `<b>`, `<tt>`, or custom CSS directives via `<span style='...'>` or `<div style='...'>`.  In particular a `<div style='margin-bottom: 1.5em'>` is a convenient way to break up a long list of radio buttons (with `"orientation": "vertical"`) into logical sections.
+The `label` of radio and checkbox inputs is normally plain text, however both input types support an `htmlLabel` property as an alternative to `label`, which allows for HTML tags within the option label.  The `htmlLabel` is rendered within a `<span></span>` inside the `<label>` element for the option, so it should be limited to presentational tags such as `<em>`, `<b>`, `<tt>`, or custom CSS directives via `<span style='...'>` or `<div style='...'>`.  To allow for breaking up a long list of radio buttons or checkboxes (with `"orientation": "vertical"`) into logical sections, a set of special CSS _classes_ are available named `tw-space-above-N` and `tw-space-below-N` for numbers 1 to 5.  Applying one of these classes to an element in the `htmlLabel` (e.g. `<span class='tw-space-below-4'>Label</span>`) will add a corresponding amount of space above or below that option in the annotation UI.
 
 <AnnotationRendererPreview :config="configs.configHtmlLabels">
 
@@ -358,8 +358,9 @@ The `label` of radio and checkbox inputs is normally plain text, however both in
 [
   {
     "name": "sentiment",
-    "type": "checkbox",
+    "type": "radio",
     "title": "Sentiment",
+    "orientation": "vertical",
     "options": [
       {
         "value": "positive",
@@ -367,11 +368,15 @@ The `label` of radio and checkbox inputs is normally plain text, however both in
       },
       {
         "value": "neutral",
-        "htmlLabel": "<span style='font-style: italic'>Neutral</span> or uncertain"
+        "htmlLabel": "<span style='font-style: italic'>Neutral</span>"
       },
       {
-        "value": "positive",
+        "value": "negative",
         "htmlLabel": "<span style='color: red'>Negative</span>"
+      },
+      {
+        "value": "unknown",
+        "htmlLabel": "<span class='tw-space-above-3'>Cannot be determined</span>"
       }
     ]
   }
