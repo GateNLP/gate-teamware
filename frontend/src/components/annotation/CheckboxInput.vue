@@ -13,7 +13,8 @@
         :state="state"
         v-for="(option, idx) in options"
         >
-        {{ option.text }}
+        <span v-if="option.html" v-html="option.html"></span>
+        <span v-else>{{ option.text }}</span>
         <b-icon-question-circle v-if="option.helptext != null" :id="config.name + '__opt' + idx" class="annotation-help-prompt"></b-icon-question-circle>
         <b-tooltip v-if="option.helptext != null" :target="config.name + '__opt' + idx" :title="option.helptext"></b-tooltip>
       </b-form-checkbox>
@@ -50,5 +51,12 @@ name: "CheckboxInput",
 </script>
 
 <style scoped>
+div.custom-checkbox >>> label {
+  display: inline-flex;
+}
 
+div.custom-checkbox >>> svg.annotation-help-prompt {
+  margin-top: 0.3em;
+  margin-inline-start: 0.25em;
+}
 </style>

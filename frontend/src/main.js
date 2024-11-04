@@ -14,15 +14,13 @@ import VJsoneditor from 'v-jsoneditor'
 import MarkdownItVue from 'markdown-it-vue'
 
 
-
-// Import Bootstrap an BootstrapVue CSS files (order is important)
-import 'bootstrap/dist/css/bootstrap.css'
-import 'bootstrap-vue/dist/bootstrap-vue.css'
-
-
 //Importing scss assets needs an @/ in front of it
 
 import "@/assets/sass/app.scss"
+
+// Import Bootstrap an BootstrapVue CSS files (after app.scss, which includes bootstrap)
+import 'bootstrap-vue/dist/bootstrap-vue.css'
+
 
 
 Vue.use(BootstrapVue)

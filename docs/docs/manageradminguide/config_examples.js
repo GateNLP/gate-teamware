@@ -145,6 +145,20 @@ export default {
             "valError": "Error message when field fails is validation" //Optional
         }
     ],
+    configHtmlLabels: [
+        {
+            "name": "sentiment",
+            "type": "radio",
+            "title": "Sentiment",
+            "orientation": "vertical",
+            "options": [
+                {"value": "positive", "htmlLabel": "<span style='color: green'>Positive</span>"},
+                {"value": "neutral", "htmlLabel": "<span style='font-style: italic'>Neutral</span>"},
+                {"value": "negative", "htmlLabel": "<span style='color: red'>Negative</span>"},
+                {"value": "unknown", "htmlLabel": "<span class='tw-space-above-3'>Cannot be determined</span>"}
+            ]
+        },
+    ],
     configSelector: [
         {
             "name": "mylabel",

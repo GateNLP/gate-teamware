@@ -100,6 +100,7 @@ export default {
                                 "type:": "object",
                                 "properties": {
                                   "label": {"type": "string"},
+                                  "htmlLabel": {"type": "string"},
                                   "value": {
                                     "anyOf": [
                                       {"type": "string"},
@@ -108,7 +109,10 @@ export default {
                                     ]
                                   }
                                 },
-                                "required": ["label", "value"]
+                                "oneOf":[
+                                  {"required": ["label", "value"]},
+                                  {"required": ["htmlLabel", "value"]}
+                                ]
                               },
                               {
                                 "type": "object",
