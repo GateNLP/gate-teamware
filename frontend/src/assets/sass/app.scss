@@ -1,4 +1,4 @@
-//@import 'node_modules/bootstrap/scss/bootstrap';
+@import '../../../node_modules/bootstrap/scss/bootstrap';
 
 body {
   background: #fff;
@@ -26,6 +26,17 @@ legend {
     font-size: small;
     color: #6d6d6d;
 
+  }
+
+  // convenient spacing classes for checkboxes/radios that have an htmlLabel - the effect
+  // of putting a class='tw-space-below-4' on something inside the htmlLabel of an option
+  // is equivalent to putting 'mb-4' on the option div itself.
+  @each $size, $length in $spacers {
+    @each $dir, $edge in (above:top, below:bottom) {
+      :is(.custom-checkbox, .custom-radio):has(.tw-space-#{$dir}-#{$size}) {
+        margin-#{$edge}: $length;
+      }
+    }
   }
 
 }
