@@ -27,6 +27,18 @@ docker compose run --rm -it pgbackups /backup.sh
 
 (or `docker-compose` if your version of Docker does not support compose v2).
 
+## [2.3.0] 2024-11-04
+
+### Added
+- Ability to label radio and checkbox options with HTML rather than just plain text ([#412](https://github.com/GateNLP/gate-teamware/pull/412)), allowing customizations like:
+  - coloured labels
+  - use of bold and italic within the label
+  - adding visual spacing between groups of related options
+  - making clickable links to a knowledge base for entity linking tasks, etc.
+
+### Fixed
+- Upgraded various third-party dependencies ([#413](https://github.com/GateNLP/gate-teamware/pull/413))
+
 ## [2.2.0] 2024-05-08
 
 ### Changed
