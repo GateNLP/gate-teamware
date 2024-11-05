@@ -244,6 +244,27 @@ describe("AnnotationRenderer", () => {
 
         })
 
+        it("htmlLabel wins over label if both are provided", () => {
+            const annotationComps = [
+                {
+                    name: "sentiment",
+                    type: "checkbox",
+                    options: [
+                        {value: "positive", label: "+ve", htmlLabel: "<span style='color:green'>Positive</span>"},
+                        {value: "neutral", label: "meh..."},
+                        {value: "negative", label: "-ve", htmlLabel: "<span style='color:red'>Negative</span>"},
+                    ],
+                }]
+
+            cy.mount(AnnotationRenderer, {propsData: {config: annotationComps}})
+
+            // the HTML label for (i.e. next sibling of) the positive option should be visible.
+            cy.get("[name='sentiment'][value='positive'] + label").contains("Positive").should("exist")
+            // but the text label should not
+            cy.get("[name='sentiment'][value='positive'] + label").contains("+ve").should("not.exist")
+
+        })
+
     })
 
     it('Test dynamic options fromDocument', () => {

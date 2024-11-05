@@ -1,6 +1,6 @@
-gatenlp[formats]>=1.0.4,<2.*
-Django>=3.2,<4.*
+gatenlp[formats]>=1.0.4,<2
+Django>=3.2,<4
 django-gmailapi-backend
-django-webpack-loader>=0.7.0,<1.*
-djangorestframework>=3.12.4,<4.*
-psycopg2>=2.8.6,<3.*
+django-webpack-loader>=0.7.0,<1
+djangorestframework>=3.12.4,<4
+psycopg2>=2.8.6,<3

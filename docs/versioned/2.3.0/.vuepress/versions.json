@@ -1,6 +1,6 @@
 {
- "current": "2.1.1",
- "base": "/gate-teamware/2.1.1/",
+ "current": "2.3.0",
+ "base": "/gate-teamware/2.3.0/",
  "versions": [
   {
    "text": "0.3.0",

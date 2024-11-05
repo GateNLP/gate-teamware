@@ -67,6 +67,7 @@ export function generateBVOptions(options, document) {
                 } else if ("value" in option) {
                     optionsList.push({
                         value: option.value,
+                        html: ("htmlLabel" in option ? option.htmlLabel : null),
                         text: ("label" in option ? option.label : option.value),
                         helptext: ("helptext" in option ? option.helptext : null),
                     })
